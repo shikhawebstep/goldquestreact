@@ -378,15 +378,19 @@ const ClientManagement = () => {
             </div>
             <div className="mb-4">
               <label htmlFor="" >Required Custom Template:*</label>
-              <select name="" id="" value={input.required} onChange={handleChange}>
+              <select name="" id="" value={input.required} onChange={handleChange} className="border  rounded-md w-full mt-3 p-2">
                 <option value="Yes">Yes</option>
                 <option value="No">No</option>
               </select>
             </div>
             <div className="mb-4">
             <label htmlFor=""  onChange={handleChange}>Additional login required?:</label>
-            <input type="radio" name="yes" id=""  />Yes
-            <input type="radio" name="no" id="" />No
+            <div className="flex items-center gap-10 mt-4"> <div > <input type="radio" name="yes" id="" className="me-2" />Yes</div>
+            <div className=""> <input type="radio" name="yes" id="" className="me-2" />No</div></div>
+
+            
+
+             
           </div>
             {branchForms.map((form, index) => (
               <div className="my-8" id="AddMoreClient" key={index}>

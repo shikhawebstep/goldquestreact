@@ -10,7 +10,7 @@ const Main = () => {
         <>
             <div className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="flex gap-3 items-center justify-between bg-white px-2 py-6 rounded-md shadow-md">
+                    <div className="flex gap-3 w-10/12 md:w-full m-auto items-center justify-between bg-white px-2 py-6 rounded-md shadow-md">
                         <div className='w-4/12'><img src={active_client} alt="Active Clients" /></div>
                         <div className='w-8/12'>
                             <h1 className='text-5xl font-bold text-black'>375</h1>
@@ -18,7 +18,7 @@ const Main = () => {
                             <span className='text-sm'>4% (30 days)</span>
                         </div>
                     </div>
-                    <div className="flex gap-5 items-center justify-between bg-white px-2 py-6 rounded-md shadow-md">
+                    <div className="flex gap-5 w-10/12 md:w-full m-auto items-center justify-between bg-white px-2 py-6 rounded-md shadow-md">
                         <div className='w-4/12'><img src={active_client} alt="Final Reports" /></div>
                         <div className='w-8/12'>
                             <h1 className='text-5xl font-bold text-black'>75</h1>
@@ -27,7 +27,7 @@ const Main = () => {
                         </div>
                     </div>
 
-                    <div className="flex gap-5 items-center justify-between bg-white px-2 py-6 rounded-md shadow-md">
+                    <div className="flex gap-5 w-10/12 md:w-full m-auto items-center justify-between bg-white px-2 py-6 rounded-md shadow-md">
                         <div className='w-4/12'><img src={active_client} alt="QC Pending" /></div>
                         <div className='w-8/12'>
                             <h1 className='text-5xl font-bold text-black'>115</h1>
@@ -35,7 +35,7 @@ const Main = () => {
                             <span className='text-sm'>4% (30 days)</span>
                         </div>
                     </div>
-                    <div className="flex gap-5 items-center justify-between bg-white px-2 py-6 rounded-md shadow-md ">
+                    <div className="flex gap-5 w-10/12 md:w-full m-auto items-center justify-between bg-white px-2 py-6 rounded-md shadow-md ">
                         <div className='w-4/12'><img src={active_client} alt="TAT Delay" /></div>
                         <div className='w-8/12'>
                             <h1 className='text-5xl font-bold text-black'>35</h1>

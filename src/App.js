@@ -14,7 +14,7 @@ const App = () => {
   return (
  
 <PaginationProvider>
-    <Router>
+    <Router basename='/demo/Goldquest'>
       <Routes>
         <Route path='/' element={<Render />}/>
           <Route path='customerlogin' element={<CustomerLogin />} />

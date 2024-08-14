@@ -6,23 +6,6 @@ const InternalLoginList = () => {
     const LoginData = [
         { SL: "01", employeeid: "NA_2423", e_name: "lShruti M ",e_number:'8050410136',email:"support@goldquestglobal.in",role:"	Super_user",status:"Active" },
         { SL: "02", employeeid: "NA_2423", e_name: "lShruti M ",e_number:'8050410136',email:"support@goldquestglobal.in",role:"	Super_user",status:"Active" },
-        { SL: "03", employeeid: "NA_2423", e_name: "lShruti M ",e_number:'8050410136',email:"support@goldquestglobal.in",role:"	Super_user",status:"Active" },
-        { SL: "04", employeeid: "NA_2423", e_name: "lShruti M ",e_number:'8050410136',email:"support@goldquestglobal.in",role:"	Super_user",status:"Active" },
-        { SL: "05", employeeid: "NA_2423", e_name: "lShruti M ",e_number:'8050410136',email:"support@goldquestglobal.in",role:"	Super_user",status:"Active" },
-        { SL: "06", employeeid: "NA_2423", e_name: "lShruti M ",e_number:'8050410136',email:"support@goldquestglobal.in",role:"	Super_user",status:"Active" },
-        { SL: "01", employeeid: "NA_2423", e_name: "lShruti M ",e_number:'8050410136',email:"support@goldquestglobal.in",role:"	Super_user",status:"Active" },
-        { SL: "02", employeeid: "NA_2423", e_name: "lShruti M ",e_number:'8050410136',email:"support@goldquestglobal.in",role:"	Super_user",status:"Active" },
-        { SL: "03", employeeid: "NA_2423", e_name: "lShruti M ",e_number:'8050410136',email:"support@goldquestglobal.in",role:"	Super_user",status:"Active" },
-        { SL: "04", employeeid: "NA_2423", e_name: "lShruti M ",e_number:'8050410136',email:"support@goldquestglobal.in",role:"	Super_user",status:"Active" },
-        { SL: "05", employeeid: "NA_2423", e_name: "lShruti M ",e_number:'8050410136',email:"support@goldquestglobal.in",role:"	Super_user",status:"Active" },
-        { SL: "06", employeeid: "NA_2423", e_name: "lShruti M ",e_number:'8050410136',email:"support@goldquestglobal.in",role:"	Super_user",status:"Active" },
-        { SL: "01", employeeid: "NA_2423", e_name: "lShruti M ",e_number:'8050410136',email:"support@goldquestglobal.in",role:"	Super_user",status:"Active" },
-        { SL: "02", employeeid: "NA_2423", e_name: "lShruti M ",e_number:'8050410136',email:"support@goldquestglobal.in",role:"	Super_user",status:"Active" },
-        { SL: "03", employeeid: "NA_2423", e_name: "lShruti M ",e_number:'8050410136',email:"support@goldquestglobal.in",role:"	Super_user",status:"Active" },
-        { SL: "04", employeeid: "NA_2423", e_name: "lShruti M ",e_number:'8050410136',email:"support@goldquestglobal.in",role:"	Super_user",status:"Active" },
-        { SL: "05", employeeid: "NA_2423", e_name: "lShruti M ",e_number:'8050410136',email:"support@goldquestglobal.in",role:"	Super_user",status:"Active" },
-        { SL: "06", employeeid: "NA_2423", e_name: "lShruti M ",e_number:'8050410136',email:"support@goldquestglobal.in",role:"	Super_user",status:"Active" },
-    
     ];
     const [paginatedData, setPaginatedData] = useState([]);
 

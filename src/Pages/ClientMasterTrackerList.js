@@ -8,17 +8,6 @@ const ClientMasterTrackerList = () => {
     const LoginData = [
         { SL: "01", c_code: "NA_2423", company_name: "Antraweb Technologies Pvt Ltd", client_spoc: 'Manjunath', active_case: "14",check_in: "Check In",  },
         { SL: "02", c_code: "NA_2423", company_name: "Waterwala Labs Pvt Ltd", client_spoc: 'Raj Kumar', active_case: "124",check_in: "Check In",  },
-        { SL: "03", c_code: "NA_2423", company_name: "Vyeco Solutions LLP", client_spoc: 'Raj Kumar', active_case: "143",check_in: "Check In",  },
-        { SL: "04", c_code: "NA_2423", company_name: "JKM Human Resources Pvt Ltd", client_spoc: 'Raj Kumar', active_case: "114",check_in: "Check In",  },
-        { SL: "05", c_code: "NA_2423", company_name: "Ahum Softtech Solutions Pvt Ltd", client_spoc: 'Raj Kumar', active_case: "124",check_in: "Check In",  },
-        { SL: "06", c_code: "NA_2423", company_name: "Primes4tech India Private Limited", client_spoc: 'Raj Kumar', active_case: "214",check_in: "Check In",  },
-        { SL: "07", c_code: "NA_2423", company_name: "Primes4tech India Private Limited", client_spoc: 'Raj Kumar', active_case: "714",check_in: "Check In",  },
-        { SL: "08", c_code: "NA_2423", company_name: "Primes4tech India Private Limited", client_spoc: 'Raj Kumar', active_case: "164",check_in: "Check In",  },
-        { SL: "09", c_code: "NA_2423", company_name: "Primes4tech India Private Limited", client_spoc: 'Raj Kumar', active_case: "144",check_in: "Check In",  },
-        { SL: "10", c_code: "NA_2423", company_name: "Primes4tech India Private Limited", client_spoc: 'Raj Kumar', active_case: "144",check_in: "Check In",  },
-        { SL: "11", c_code: "NA_2423", company_name: "Primes4tech India Private Limited", client_spoc: 'Raj Kumar', active_case: "614",check_in: "Check In",  },
-        { SL: "12", c_code: "NA_2423", company_name: "Primes4tech India Private Limited", client_spoc: 'Raj Kumar', active_case: "514",check_in: "Check In",  },
-        { SL: "13", c_code: "NA_2423", company_name: "Primes4tech India Private Limited", client_spoc: 'Raj Kumar', active_case: "12",check_in: "Check In",  },
     ];
     const [paginated, setPaginated] = useState([]);
 

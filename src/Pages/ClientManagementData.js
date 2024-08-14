@@ -7,14 +7,6 @@ const ClientManagementData = () => {
     const Services = [
         { service_name: "LATEST EMPLOYMENT-3", },
         { service_name: "LATEST EMPLOYMENT-1", },
-        { service_name: "LATEST EMPLOYMENT-1", },
-        { service_name: "LATEST EMPLOYMENT-1", },
-        { service_name: "LATEST EMPLOYMENT-3", },
-        { service_name: "LATEST EMPLOYMENT-1", },
-        { service_name: "LATEST EMPLOYMENT-1", },
-        { service_name: "LATEST EMPLOYMENT-1", },
-        
-      
     ];
 
     const [paginated, setPaginated] = useState([]);

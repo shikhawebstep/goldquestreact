@@ -8,11 +8,6 @@ const PackageManagementList = () => {
     const PackageData = [
         { PackageName: "Package_name24", Services: "NA_2423", Message: "lorem ipsum dummy text! ispum dum loren ", edit: 'Edit', Delete: "Delete" },
         { PackageName: "Package_name12", Services: "NA_44", Message: "lorem ipsum dummy text! ispum dum loren ", edit: 'Edit', Delete: "Delete" },
-        { PackageName: "Package_name165", Services: "NA_334", Message: "lorem ipsum dummy text! ispum dum loren ", edit: 'Edit', Delete: "Delete" },
-        { PackageName: "Package_name24", Services: "_21234_NA", Message: "lorem ipsum dummy text! ispum dum loren ", edit: 'Edit', Delete: "Delete" },
-        { PackageName: "Package_name455", Services: "NA_23435", Message: "lorem ipsum dummy text! ispum dum loren ", edit: 'Edit', Delete: "Delete" },
-        { PackageName: "Package_name435", Services: "NA_24325", Message: "lorem ipsum dummy text! ispum dum loren ", edit: 'Edit', Delete: "Delete" }
-
     ];
     const [paginatedData, setPaginatedData] = useState([]);
 

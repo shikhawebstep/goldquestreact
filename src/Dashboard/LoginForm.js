@@ -1,5 +1,6 @@
 import axios from 'axios';
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom'; // Import useNavigate and useLocation
 import { FaGoogle, FaFacebook, FaApple } from 'react-icons/fa';
 
 const LoginForm = () => {
@@ -8,6 +9,25 @@ const LoginForm = () => {
     password: '',
   });
   const [error, setError] = useState({});
+  const navigate = useNavigate(); // Initialize navigate
+  const location = useLocation(); // Initialize location
+
+  const storedAdminData = localStorage.getItem("admin");
+  const storedToken = localStorage.getItem("_token");
+  let preAdminData;
+
+  try {
+    preAdminData = JSON.parse(storedAdminData);
+  } catch (e) {
+    console.error('Error parsing JSON from localStorage:', e);
+    preAdminData = null;
+  }
+
+  if (preAdminData || storedToken) {
+    // No admin data or token, redirect to login
+    navigate('/', { state: { from: location }, replace: true });
+    return;
+  }
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -30,23 +50,34 @@ const LoginForm = () => {
     if (Object.keys(errors).length === 0) {
       console.log(input);
 
-     
       const loginData = {
         username: input.username,
         password: input.password,
       };
-      alert(`Username - ${username} // Password - ${password}`);
-      return;
 
       axios.post('https://goldquestreact.onrender.com/admin/login', loginData)
         .then((response) => {
           console.log('Login successful:', response.data);
+          if (response.data.status) {
+            const adminData = response.data.adminData;
+            const _token = response.data.token;
+
+            // Store in local storage
+            localStorage.setItem('admin', JSON.stringify(adminData));
+            localStorage.setItem('_token', _token);
+
+            // Check before navigating
+            console.log('Navigating to dashboard...');
+            // Redirect to admin-login page
+            navigate('/', { state: { from: location }, replace: true });
+            setError({});
+          } else {
+            alert(`Error: ${response.data.message}`);
+          }
         })
         .catch((error) => {
           console.error('Login failed:', error);
         });
-
-      setError({});
     } else {
       setError(errors);
     }

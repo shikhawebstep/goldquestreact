@@ -1,6 +1,6 @@
 {
   "name": "myapp6",
-  "homepage":"https://webstepdev.com/demo/Goldquest",
+  "homepage": "https://webstepdev.com/demo/Goldquest",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -9,6 +9,7 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.7.4",
     "classnames": "^2.5.1",
     "font-awesome": "^4.7.0",
     "froala-editor": "^4.2.1",

@@ -22,7 +22,7 @@ const PackageManagementList = () => {
       const startIndex = (currentItem - 1) * showPerPage;
       const endIndex = startIndex + showPerPage;
       setPaginatedData(PackageData.slice(startIndex, endIndex));
-    }, [currentItem, showPerPage, PackageData, setTotalResults]);
+    }, [currentItem, showPerPage, setTotalResults]);
     return (
         <>
             <div className="overflow-x-auto py-4 px-4">

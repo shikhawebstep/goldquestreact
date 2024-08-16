@@ -1,7 +1,6 @@
-// src/components/AdminAuth.js
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios'; // Make sure to install axios or use fetch
+import axios from 'axios'; 
 
 const Admin = ({ children }) => {
   const [loading, setLoading] = useState(true);
@@ -12,46 +11,50 @@ const Admin = ({ children }) => {
     const checkAuthentication = async () => {
       const storedAdminData = localStorage.getItem("admin");
       const storedToken = localStorage.getItem("_token");
-      let adminData;
 
-      try {
-        adminData = JSON.parse(storedAdminData);
-      } catch (e) {
-        console.error('Error parsing JSON from localStorage:', e);
-        adminData = null;
+      if (!storedAdminData || !storedToken) {
+        redirectToLogin();
+        return;
       }
 
-      if (!adminData || !storedToken) {
-        // No admin data or token, redirect to login
-        navigate('/admin-login', { state: { from: location }, replace: true });
+      let adminData;
+      try {
+        adminData = JSON.parse(storedAdminData);
+      } catch (error) {
+        console.error('Error parsing JSON from localStorage:', error);
+        redirectToLogin();
         return;
       }
 
       try {
         const response = await axios.post('https://goldquestreact.onrender.com/admin/verify-admin-login', {
           admin_id: adminData.id,
-          _token: storedToken
+          _token: storedToken,
         });
-      
+
         if (response.data.status) {
           setLoading(false);
         } else {
-          navigate('/admin-login', { state: { from: location }, replace: true });
+          redirectToLogin();
         }
       } catch (error) {
         console.error('Error validating login:', error);
-        navigate('/admin-login', { state: { from: location }, replace: true });
-      }      
+        redirectToLogin();
+      }
+    };
+
+    const redirectToLogin = () => {
+      navigate('/admin-login', { state: { from: location }, replace: true });
     };
 
     checkAuthentication();
   }, [navigate, location]);
 
   if (loading) {
-    return <div>Loading...</div>; // Show a loading state while checking authentication
+    return <div className='m-auto w-full text-center'>Loading...</div>; 
   }
 
-  return children; // Render children if authenticated
+  return children; 
 };
 
 export default Admin;

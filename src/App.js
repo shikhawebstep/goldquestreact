@@ -1,5 +1,4 @@
 import React from 'react';
-import { AuthProvider } from './AuthContext';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './index.css'; 
 import Render from './Pages/Render';
@@ -12,10 +11,12 @@ import CustomerDashboard from './CustomerDashboard/CustomerDashboard';
 import ExelTrackerStatus from './Pages/ExelTrackerStatus';
 import { PaginationProvider } from './Pages/PaginationContext';
 import Admin from './Middleware/Admin';
+import { PackageProvider } from './Pages/PackageContext';
 const App = () => {
   return (
  
 <PaginationProvider>
+<PackageProvider>
     <Router basename='/demo/Goldquest/public'>
       <Routes>
           <Route path='/' element={<Admin><Render /></Admin>}/>
@@ -29,7 +30,9 @@ const App = () => {
           <Route path='/trackerstatus' element={<Admin><ExelTrackerStatus /></Admin>} />
       </Routes>
     </Router>
+    </PackageProvider>
     </PaginationProvider>
+    
   );
 }
 

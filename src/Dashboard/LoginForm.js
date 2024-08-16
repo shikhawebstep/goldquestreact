@@ -12,22 +12,6 @@ const LoginForm = () => {
   const navigate = useNavigate(); // Initialize navigate
   const location = useLocation(); // Initialize location
 
-  const storedAdminData = localStorage.getItem("admin");
-  const storedToken = localStorage.getItem("_token");
-  let preAdminData;
-
-  try {
-    preAdminData = JSON.parse(storedAdminData);
-  } catch (e) {
-    console.error('Error parsing JSON from localStorage:', e);
-    preAdminData = null;
-  }
-
-  if (preAdminData || storedToken) {
-    // No admin data or token, redirect to login
-    navigate('/', { state: { from: location }, replace: true });
-    return;
-  }
 
   const handleChange = (event) => {
     const { name, value } = event.target;

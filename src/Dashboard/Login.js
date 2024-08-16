@@ -1,9 +1,35 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import active_client from '../Images/Login.jpeg';
+import { useNavigate, useLocation } from 'react-router-dom'; // Import useNavigate and useLocation
+
 import LoginForm from './LoginForm';
 import LoginDes from './LoginDes';
 
 const Login = () => {
+  const navigate = useNavigate(); // Initialize navigate
+  const location = useLocation(); // Initialize location
+  useEffect(()=>{
+   
+  
+    const storedAdminData = localStorage.getItem("admin");
+    const storedToken = localStorage.getItem("_token");
+    let preAdminData;
+  
+    try {
+      preAdminData = JSON.parse(storedAdminData);
+    } catch (e) {
+      console.error('Error parsing JSON from localStorage:', e);
+      preAdminData = null;
+    }
+  
+    if (preAdminData || storedToken) {
+      // No admin data or token, redirect to login
+      navigate('/', { state: { from: location }, replace: true });
+      return;
+    }
+  },[])
+
+
   return (
     <div className="bg-cover bg-center flex items-center justify-center md:h-dvh p-4 md:p-14" style={{ backgroundImage: `url(${active_client})` }}>
       <div className="flex flex-col md:flex-row items-center w-full md:w-8/12 bg-slate-50 opacity-90 md:p-6 p-3 rounded-lg shadow-lg">

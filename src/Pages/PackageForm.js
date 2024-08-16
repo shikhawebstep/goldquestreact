@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { usePackage } from './PackageContext'; // Import the custom hook
+import { usePackage } from './PackageContext';
 
-const PackageForm = () => {
-    const { selectedPackage } = usePackage();
+const PackageForm = ({ onSuccess }) => {
+    const { selectedPackage, clearSelectedPackage } = usePackage(); // Assuming clearSelectedPackage is a function to clear the selected package
     const [packageInput, setPackageInput] = useState({
         name: "",
         message: "",
@@ -25,12 +25,6 @@ const PackageForm = () => {
                 message: selectedPackage.description || "",
             });
             setIsEditMode(true);
-            alert('edit');
-
-          if(isEditMode===true){
-            alert('hello');
-          }
-
         } else {
             setPackageInput({
                 name: "",
@@ -38,16 +32,15 @@ const PackageForm = () => {
             });
             setIsEditMode(false);
         }
-
     }, [selectedPackage]);
 
-    const Validations = () => {
+    const validateInputs = () => {
         const errors = {};
         if (!packageInput.name) {
-            errors.name = 'This Field is Required!';
+            errors.name = 'This field is required!';
         }
         if (!packageInput.message) {
-            errors.message = 'This Field is Required!';
+            errors.message = 'This field is required!';
         }
         return errors;
     };
@@ -62,37 +55,77 @@ const PackageForm = () => {
 
     const handlePackageFormSubmit = (e) => {
         e.preventDefault();
-
-        const validationErrors = Validations();
+    
+        const validationErrors = validateInputs();
         if (Object.keys(validationErrors).length === 0) {
+            const adminData = JSON.parse(localStorage.getItem("admin"));
+            const token = localStorage.getItem("_token");
+    
+            if (!adminData || !token) {
+                console.error("Admin ID or token is missing.");
+                return;
+            }
+    
+            const myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+    
+            const raw = JSON.stringify({
+                id: selectedPackage?.id || "",
+                title: packageInput.name,
+                description: packageInput.message,
+                admin_id: adminData.id,
+                _token: token,
+            });
+    
+            console.log('Request body:', raw);
+    
             const requestOptions = {
                 method: isEditMode ? "PUT" : "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    "title": packageInput.name,
-                    "description": packageInput.message,
-                    "admin_id": adminId,
-                    "_token": storedToken,
-                    ...(isEditMode && { "id": selectedPackage.id }) // Include ID for updates
-                }),
+                headers: myHeaders,
+                body: raw,
                 redirect: "follow"
             };
-
-            fetch(`https://goldquestreact.onrender.com/package/${isEditMode ? 'update' : 'add'}`, requestOptions)
+    
+            const url = isEditMode
+                ? "https://goldquestreact.onrender.com/package/update"
+                : "https://goldquestreact.onrender.com/package/create";
+    
+            fetch(url, requestOptions)
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Network response was not ok');
+                        return response.text().then(text => {
+                            console.error('Server error:', text);
+                            throw new Error(text);
+                        });
                     }
-                    return response.text();
+                    return response.json();
                 })
                 .then(result => {
                     console.log(result);
                     setError({});
                     alert(isEditMode ? 'Package updated successfully' : 'Package added successfully');
+    
+                    // Reset form fields
+                    setPackageInput({
+                        name: "",
+                        message: "",
+                    });
+                    setIsEditMode(false);
+
+                    // Clear selected package in context or parent component
+                    if (typeof clearSelectedPackage === 'function') {
+                        clearSelectedPackage();
+                    }
+
+                    // If onSuccess is provided, call it
+                    if (typeof onSuccess === 'function') {
+                        onSuccess(result); // Pass the result to onSuccess
+                    }
                 })
-                .catch(error => console.error('Fetch error:', error));
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    alert(`An error occurred: ${error.message}`);
+                });
         } else {
             setError(validationErrors);
         }

@@ -10,16 +10,7 @@ const TatDelay = () => {
     { sl: "01", tatDays: "12", initiationDate: "NA", applicationId: "GQ-NTIPL-667", employeeName: "Mohammed Zeeshanulla", exceedDays: "-201" },
     { sl: "02", tatDays: "12", initiationDate: "NA", applicationId: "GQ-NTIPL-667", employeeName: "Mohammed Zeeshanulla", exceedDays: "-201" },
     { sl: "03", tatDays: "12", initiationDate: "NA", applicationId: "GQ-NTIPL-667", employeeName: "Mohammed Zeeshanulla", exceedDays: "-201" },
-    { sl: "04", tatDays: "12", initiationDate: "NA", applicationId: "GQ-NTIPL-667", employeeName: "Mohammed Zeeshanulla", exceedDays: "-201" },
-    { sl: "05", tatDays: "12", initiationDate: "NA", applicationId: "GQ-NTIPL-667", employeeName: "Mohammed Zeeshanulla", exceedDays: "-201" },
-    { sl: "06", tatDays: "12", initiationDate: "NA", applicationId: "GQ-NTIPL-667", employeeName: "Mohammed Zeeshanulla", exceedDays: "-201" },
-    { sl: "07", tatDays: "12", initiationDate: "NA", applicationId: "GQ-NTIPL-667", employeeName: "Mohammed Zeeshanulla", exceedDays: "-201" },
-    { sl: "08", tatDays: "12", initiationDate: "NA", applicationId: "GQ-NTIPL-667", employeeName: "Mohammed Zeeshanulla", exceedDays: "-201" },
-    { sl: "09", tatDays: "12", initiationDate: "NA", applicationId: "GQ-NTIPL-667", employeeName: "Mohammed Zeeshanulla", exceedDays: "-201" },
-    { sl: "10", tatDays: "12", initiationDate: "NA", applicationId: "GQ-NTIPL-667", employeeName: "Mohammed Zeeshanulla", exceedDays: "-201" },
-    { sl: "11", tatDays: "12", initiationDate: "NA", applicationId: "GQ-NTIPL-667", employeeName: "Mohammed Zeeshanulla", exceedDays: "-201" },
-    { sl: "12", tatDays: "12", initiationDate: "NA", applicationId: "GQ-NTIPL-667", employeeName: "Mohammed Zeeshanulla", exceedDays: "-201" }
-
+   
   ];
   const [paginated, setPaginated] = useState([]);
 
@@ -28,7 +19,7 @@ const TatDelay = () => {
       const startIndex = (currentItem - 1) * showPerPage;
       const endIndex = startIndex + showPerPage;
       setPaginated(tatData.slice(startIndex, endIndex));
-  }, [currentItem, setTotalResults]);
+  }, [currentItem, setTotalResults,tatData,showPerPage]);
   return (
     <>
     <div className="m-4 md:py-16">

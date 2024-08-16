@@ -1,22 +1,25 @@
-// PackageManagementList.js
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useCallback } from 'react';
 import PaginationContext from './PaginationContext';
 import Pagination from './Pagination';
-import { usePackage } from './PackageContext'; // Import the custom hook
+import { usePackage } from './PackageContext';
 
-const PackageManagementList = () => {
+const PackageManagementList = ({ refreshTrigger }) => {
     const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
-    const { editPackage } = usePackage(); // Access the context
+    const { editPackage } = usePackage();
     const [paginatedData, setPaginatedData] = useState([]);
     const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    useEffect(() => {
+    const fetchData = useCallback(() => {
+        setLoading(true);
+        setError(null); // Reset error state
         const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
         const storedToken = localStorage.getItem("_token");
 
         const queryParams = new URLSearchParams({
-            admin_id: admin_id,
-            _token: storedToken
+            admin_id: admin_id || '',
+            _token: storedToken || ''
         }).toString();
 
         fetch(`https://goldquestreact.onrender.com/package/list?${queryParams}`, {
@@ -38,8 +41,14 @@ const PackageManagementList = () => {
             })
             .catch((error) => {
                 console.error('Fetch error:', error);
-            });
+                setError('Failed to load data');
+            })
+            .finally(() => setLoading(false));
     }, [setTotalResults]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData, refreshTrigger]);
 
     useEffect(() => {
         if (Array.isArray(data)) {
@@ -54,9 +63,46 @@ const PackageManagementList = () => {
         console.log('Editing package:', pkg);
     };
 
+    const handleDelete = (packageId) => {
+        const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
+        const storedToken = localStorage.getItem("_token");
+
+        if (!admin_id || !storedToken) {
+            console.error("Admin ID or token is missing.");
+            return;
+        }
+
+        const requestOptions = {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+
+        fetch(`https://goldquestreact.onrender.com/package/delete?id=${packageId}&admin_id=${admin_id}&_token=${storedToken}`, requestOptions)
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        console.error('Server error:', text);
+                        throw new Error(text);
+                    });
+                }
+                return response.json();
+            })
+            .then(result => {
+                console.log('Package deleted:', result);
+                fetchData(); // Refresh data after deletion
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                alert(`An error occurred: ${error.message}`);
+            });
+    };
+
     return (
         <>
             <div className="overflow-x-auto py-4 px-4">
+                {error && <div className="text-red-500 text-center">{error}</div>}
                 <table className="min-w-full">
                     <thead>
                         <tr className='bg-green-500'>
@@ -71,21 +117,20 @@ const PackageManagementList = () => {
                             <tr key={item.id}>
                                 <td className="py-2 px-4 border-b border-r border-l whitespace-nowrap">{(currentItem - 1) * showPerPage + index + 1}</td>
                                 <td className="py-2 px-4 border-b border-r border-l whitespace-nowrap">{item.title}</td>
-                                <td className='hidden'>{item.id}</td>
                                 <td className="py-2 px-4 border-b border-r whitespace-nowrap">{item.description}</td>
                                 <td className="py-2 px-4 border-b border-r whitespace-nowrap">
-                                <button className='bg-green-500 hover:bg-green-200 rounded-md p-2 me-2 text-white' onClick={() => handleEdit(item)}>Edit</button>
-
-                                    <button className='bg-red-600 rounded-md p-2 text-white'>{item.Delete || 'Delete'}</button>
+                                    <button className='bg-green-500 hover:bg-green-200 rounded-md p-2 me-2 text-white' onClick={() => handleEdit(item)}>Edit</button>
+                                    <button className='bg-red-600 rounded-md p-2 text-white' onClick={() => handleDelete(item.id)}>Delete</button>
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
+            {loading && <div className="text-center">Loading...</div>}
             <Pagination />
         </>
     );
-}
+};
 
 export default PackageManagementList;

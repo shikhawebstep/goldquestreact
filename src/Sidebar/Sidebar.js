@@ -11,6 +11,7 @@ import { MdOutlineTrackChanges, MdTrackChanges, MdEmail } from "react-icons/md";
 import { IoNotificationsCircle } from "react-icons/io5";
 import { GrServices } from "react-icons/gr";
 import classNames from 'classnames';
+import Logout from '../Dashboard/Logout';
 
 const tabNames = {
   dashboard: (<><HomeIcon className="h-6 w-6 mr-3 text-gray-600" />DashBoard</>),
@@ -28,7 +29,6 @@ const tabNames = {
   update_password: (<><RiLockPasswordFill className="h-6 w-6 mr-3 text-gray-600" />Update Password</>),
   invoice: (<><FaFileInvoiceDollar className="h-6 w-6 mr-3 text-gray-600" />Invoice</>),
   email_temp: (<><FaFileInvoiceDollar className="h-6 w-6 mr-3 text-gray-600" />Email Template</>),
-  logout: (<><RiLoginCircleFill className="h-6 w-6 mr-3 text-gray-600" />Logout</>),
 };
 
 const Sidebar = () => {
@@ -63,6 +63,7 @@ const Sidebar = () => {
           </div>
           {
             toggle && (
+            <>
               <ul className='  md:hidden'>
                 {Object.keys(tabNames).map((tab) => (
                   <li
@@ -77,6 +78,9 @@ const Sidebar = () => {
                   </li>
                 ))}
               </ul>
+               
+                 </>
+
             )
           }
                <ul className='hidden md:block'>
@@ -93,6 +97,7 @@ const Sidebar = () => {
                   </li>
                 ))}
               </ul>
+              <Logout/>
         </div>
       </div>
     </div>

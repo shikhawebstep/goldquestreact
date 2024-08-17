@@ -12,10 +12,12 @@ import ExelTrackerStatus from './Pages/ExelTrackerStatus';
 import { PaginationProvider } from './Pages/PaginationContext';
 import Admin from './Middleware/Admin';
 import { PackageProvider } from './Pages/PackageContext';
+import { ServiceProvider } from './Pages/ServiceContext';
 const App = () => {
   return (
  
 <PaginationProvider>
+<ServiceProvider>
 <PackageProvider>
     <Router basename='/demo/Goldquest'>
       <Routes>
@@ -31,6 +33,7 @@ const App = () => {
       </Routes>
     </Router>
     </PackageProvider>
+    </ServiceProvider>
     </PaginationProvider>
     
   );

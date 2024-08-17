@@ -1,7 +1,6 @@
 import React from 'react'
 import ServiceList from './ServiceList'
 import SearchBar from './SearchBar'
-import Pagination from './Pagination'
 import ServiceForm from './ServiceForm'
 const ServiceMangement = () => {
   return (
@@ -15,7 +14,6 @@ const ServiceMangement = () => {
           <div className="md:col-span-3 bg-white shadow-md rounded-md  p-3 ">
             <SearchBar />
             <ServiceList />
-            <Pagination />
           </div>
         </div>
       </div>

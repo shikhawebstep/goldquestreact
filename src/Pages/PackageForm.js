@@ -11,7 +11,7 @@ const PackageForm = ({ onSuccess }) => {
     const [adminId, setAdminId] = useState(null);
     const [storedToken, setStoredToken] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
-    const [formMessage, setFormMessage] = useState(""); // New state for form messages
+    const [formMessage, setFormMessage] = useState(""); 
 
     useEffect(() => {
         const adminData = JSON.parse(localStorage.getItem("admin"));

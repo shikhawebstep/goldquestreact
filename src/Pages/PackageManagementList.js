@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState, useCallback } from 'react';
 import PaginationContext from './PaginationContext';
 import Pagination from './Pagination';
 import { usePackage } from './PackageContext';
+import Swal from 'sweetalert2';
 
 const PackageManagementList = ({ refreshTrigger }) => {
     const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
@@ -14,6 +15,7 @@ const PackageManagementList = ({ refreshTrigger }) => {
     const fetchData = useCallback(() => {
         setLoading(true);
         setError(null); // Reset error state
+
         const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
         const storedToken = localStorage.getItem("_token");
 
@@ -64,39 +66,59 @@ const PackageManagementList = ({ refreshTrigger }) => {
     };
 
     const handleDelete = (packageId) => {
-        const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
-        const storedToken = localStorage.getItem("_token");
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'No, cancel!',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
+                const storedToken = localStorage.getItem("_token");
 
-        if (!admin_id || !storedToken) {
-            console.error("Admin ID or token is missing.");
-            return;
-        }
-
-        const requestOptions = {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        };
-
-        fetch(`https://goldquestreact.onrender.com/package/delete?id=${packageId}&admin_id=${admin_id}&_token=${storedToken}`, requestOptions)
-            .then(response => {
-                if (!response.ok) {
-                    return response.text().then(text => {
-                        console.error('Server error:', text);
-                        throw new Error(text);
-                    });
+                if (!admin_id || !storedToken) {
+                    console.error("Admin ID or token is missing.");
+                    return;
                 }
-                return response.json();
-            })
-            .then(result => {
-                console.log('Package deleted:', result);
-                fetchData(); // Refresh data after deletion
-            })
-            .catch(error => {
-                console.error('Fetch error:', error);
-                alert(`An error occurred: ${error.message}`);
-            });
+
+                const requestOptions = {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                };
+
+                fetch(`https://goldquestreact.onrender.com/package/delete?id=${packageId}&admin_id=${admin_id}&_token=${storedToken}`, requestOptions)
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.text().then(text => {
+                                console.error('Server error:', text);
+                                throw new Error(text);
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(result => {
+                        console.log('Package deleted:', result);
+                        fetchData(); // Refresh data after deletion
+                        Swal.fire(
+                            'Deleted!',
+                            'Your package has been deleted.',
+                            'success'
+                        );
+                    })
+                    .catch(error => {
+                        console.error('Fetch error:', error);
+                        Swal.fire(
+                            'Error!',
+                            `An error occurred: ${error.message}`,
+                            'error'
+                        );
+                    });
+            }
+        });
     };
 
     return (

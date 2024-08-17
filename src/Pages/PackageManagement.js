@@ -6,7 +6,7 @@ const PackageManagement = () => {
     const [refresh, setRefresh] = useState(false);
 
     const handleSuccess = () => {
-        setRefresh(prev => !prev); // Toggle refresh state
+        setRefresh(prev => !prev);
     };
 
     return (

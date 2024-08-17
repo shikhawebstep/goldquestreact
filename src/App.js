@@ -17,7 +17,7 @@ const App = () => {
  
 <PaginationProvider>
 <PackageProvider>
-    <Router basename=''>
+    <Router basename='/demo/Goldquest'>
       <Routes>
           <Route path='/' element={<Admin><Render /></Admin>}/>
           <Route path='customerlogin' element={<CustomerLogin />} />

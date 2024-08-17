@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom'; // Import useNavigate and useLocation
+import { useNavigate, useLocation } from 'react-router-dom'; 
 import { FaGoogle, FaFacebook, FaApple } from 'react-icons/fa';
 
 const LoginForm = () => {
@@ -9,8 +9,8 @@ const LoginForm = () => {
     password: '',
   });
   const [error, setError] = useState({});
-  const navigate = useNavigate(); // Initialize navigate
-  const location = useLocation(); // Initialize location
+  const navigate = useNavigate(); 
+  const location = useLocation(); 
 
 
   const handleChange = (event) => {
@@ -46,13 +46,13 @@ const LoginForm = () => {
             const adminData = response.data.adminData;
             const _token = response.data.token;
 
-            // Store in local storage
+            
             localStorage.setItem('admin', JSON.stringify(adminData));
             localStorage.setItem('_token', _token);
 
-            // Check before navigating
+           
             console.log('Navigating to dashboard...');
-            // Redirect to admin-login page
+            
             navigate('/', { state: { from: location }, replace: true });
             setError({});
           } else {

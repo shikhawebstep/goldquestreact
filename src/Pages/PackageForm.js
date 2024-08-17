@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { usePackage } from './PackageContext';
 
 const PackageForm = ({ onSuccess }) => {
-    const { selectedPackage, clearSelectedPackage } = usePackage(); // Assuming clearSelectedPackage is a function to clear the selected package
+    const { selectedPackage, clearSelectedPackage, packageList, updatePackageList } = usePackage();
     const [packageInput, setPackageInput] = useState({
         name: "",
         message: "",
@@ -11,6 +11,7 @@ const PackageForm = ({ onSuccess }) => {
     const [adminId, setAdminId] = useState(null);
     const [storedToken, setStoredToken] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
+    const [formMessage, setFormMessage] = useState(""); // New state for form messages
 
     useEffect(() => {
         const adminData = JSON.parse(localStorage.getItem("admin"));
@@ -55,41 +56,39 @@ const PackageForm = ({ onSuccess }) => {
 
     const handlePackageFormSubmit = (e) => {
         e.preventDefault();
-    
+
         const validationErrors = validateInputs();
         if (Object.keys(validationErrors).length === 0) {
-            const adminData = JSON.parse(localStorage.getItem("admin"));
-            const token = localStorage.getItem("_token");
-    
-            if (!adminData || !token) {
-                console.error("Admin ID or token is missing.");
+            if (!adminId || !storedToken) {
+                setFormMessage("Admin ID or token is missing.");
+                setTimeout(() => setFormMessage(""), 5000); // Clear message after 5 seconds
                 return;
             }
-    
+
             const myHeaders = new Headers();
             myHeaders.append("Content-Type", "application/json");
-    
+
             const raw = JSON.stringify({
                 id: selectedPackage?.id || "",
                 title: packageInput.name,
                 description: packageInput.message,
-                admin_id: adminData.id,
-                _token: token,
+                admin_id: adminId,
+                _token: storedToken,
             });
-    
+
             console.log('Request body:', raw);
-    
+
             const requestOptions = {
                 method: isEditMode ? "PUT" : "POST",
                 headers: myHeaders,
                 body: raw,
                 redirect: "follow"
             };
-    
+
             const url = isEditMode
                 ? "https://goldquestreact.onrender.com/package/update"
                 : "https://goldquestreact.onrender.com/package/create";
-    
+
             fetch(url, requestOptions)
                 .then(response => {
                     if (!response.ok) {
@@ -103,28 +102,38 @@ const PackageForm = ({ onSuccess }) => {
                 .then(result => {
                     console.log(result);
                     setError({});
-                    alert(isEditMode ? 'Package updated successfully' : 'Package added successfully');
-    
-                    // Reset form fields
+                    setFormMessage(isEditMode ? 'Package updated successfully' : 'Package added successfully'); // Show success message
+
+                    // Update the package list without a refresh
+                    if (isEditMode) {
+                        const updatedPackages = packageList.map(pkg =>
+                            pkg.id === result.id ? result : pkg
+                        );
+                        updatePackageList(updatedPackages);
+                    } else {
+                        updatePackageList([...packageList, result]);
+                    }
+
                     setPackageInput({
                         name: "",
                         message: "",
                     });
                     setIsEditMode(false);
 
-                    // Clear selected package in context or parent component
                     if (typeof clearSelectedPackage === 'function') {
                         clearSelectedPackage();
                     }
 
-                    // If onSuccess is provided, call it
                     if (typeof onSuccess === 'function') {
-                        onSuccess(result); // Pass the result to onSuccess
+                        onSuccess(result);
                     }
+
+                    setTimeout(() => setFormMessage(""), 5000); // Clear message after 5 seconds
                 })
                 .catch(error => {
                     console.error('Fetch error:', error);
-                    alert(`An error occurred: ${error.message}`);
+                    setFormMessage(`An error occurred: ${error.message}`); // Show error message
+                    setTimeout(() => setFormMessage(""), 5000); // Clear message after 5 seconds
                 });
         } else {
             setError(validationErrors);
@@ -132,42 +141,42 @@ const PackageForm = ({ onSuccess }) => {
     };
 
     return (
-        <>
-            <form onSubmit={handlePackageFormSubmit}>
-                <div className="mb-4">
-                    <label htmlFor="packagename">Package Name:</label>
-                    <input
-                        type="text"
-                        name="name"
-                        id="packagename"
-                        className="border w-full rounded-md p-2 mt-2"
-                        onChange={handleChange}
-                        value={packageInput.name}
-                    />
-                    {error.name && <p className="text-red-500">{error.name}</p>}
-                </div>
+        <form onSubmit={handlePackageFormSubmit}>
+            <div className="mb-4">
+                <label htmlFor="packagename">Package Name:</label>
+                <input
+                    type="text"
+                    name="name"
+                    id="packagename"
+                    className="border w-full rounded-md p-2 mt-2"
+                    onChange={handleChange}
+                    value={packageInput.name}
+                />
+                {error.name && <p className="text-red-500">{error.name}</p>}
+            </div>
 
-                <div className="mb-4">
-                    <label htmlFor="message">Description:</label>
-                    <textarea
-                        name="message"
-                        id="message"
-                        className="w-full border p-3 outline-none rounded-md mt-2"
-                        rows={5}
-                        cols={4}
-                        onChange={handleChange}
-                        value={packageInput.message}
-                    ></textarea>
-                    {error.message && <p className="text-red-500">{error.message}</p>}
-                </div>
-                <button
-                    type="submit"
-                    className='bg-green-400 text-white p-3 rounded-md w-full hover:bg-green-200'
-                >
-                    {isEditMode ? 'Update' : 'Send'}
-                </button>
-            </form>
-        </>
+            <div className="mb-4">
+                <label htmlFor="message">Description:</label>
+                <textarea
+                    name="message"
+                    id="message"
+                    className="w-full border p-3 outline-none rounded-md mt-2"
+                    rows={5}
+                    cols={4}
+                    onChange={handleChange}
+                    value={packageInput.message}
+                ></textarea>
+                {error.message && <p className="text-red-500">{error.message}</p>}
+            </div>
+            <button
+                type="submit"
+                className='bg-green-400 text-white p-3 rounded-md w-full hover:bg-green-200'
+            >
+                {isEditMode ? 'Update' : 'Send'}
+            </button>
+
+            {formMessage && <p className="mt-4 text-center text-green-600">{formMessage}</p>} {/* Display form message */}
+        </form>
     );
 };
 

@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import active_client from '../Images/Login.jpeg';
-import { useNavigate, useLocation } from 'react-router-dom'; // Import useNavigate and useLocation
+import { useNavigate, useLocation } from 'react-router-dom'; 
 
 import LoginForm from './LoginForm';
 import LoginDes from './LoginDes';
 
 const Login = () => {
-  const navigate = useNavigate(); // Initialize navigate
-  const location = useLocation(); // Initialize location
+  const navigate = useNavigate(); 
+  const location = useLocation(); 
   useEffect(()=>{
    
   
@@ -23,7 +23,7 @@ const Login = () => {
     }
   
     if (preAdminData || storedToken) {
-      // No admin data or token, redirect to login
+      
       navigate('/', { state: { from: location }, replace: true });
       return;
     }

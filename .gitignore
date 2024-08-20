@@ -1,8 +1,0 @@
-# Ignore everything
-/*
-
-# Except the build directory
-!build/
-
-# If you want to keep track of files inside the build directory, add:
-!build/**

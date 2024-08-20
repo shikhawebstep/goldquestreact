@@ -20,7 +20,6 @@ const Pagination = () => {
     setCurrentItem(page);
   };
 
-  // Create page numbers to show
   const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1);
 
   return (

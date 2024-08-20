@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext, useCallback } from 'react';
 import PaginationContext from './PaginationContext';
 import Pagination from './Pagination';
 import { useService } from './ServiceContext';
+import Swal from 'sweetalert2';
 
 const ServiceList = () => {
     const { setTotalResults, currentItem, showPerPage } = useContext(PaginationContext);
@@ -116,10 +117,69 @@ const ServiceList = () => {
         });
         setPaginated(paginatedData);
     }, [currentPage, showPerPage, data, packages]);
+
+     //function to edit items
     const handleEditService = ((service) => {
         editService(service);
         console.log('editing service:', service);
-    })
+    });
+
+    //function to delete items
+    const handleDelete = (serviceId) => {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'No, cancel!',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
+                const storedToken = localStorage.getItem("_token");
+
+                if (!admin_id || !storedToken) {
+                    console.error("Admin ID or token is missing.");
+                    return;
+                }
+
+                const requestOptions = {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                };
+
+                fetch(`https://goldquestreact.onrender.com/service/delete?id=${serviceId}&admin_id=${admin_id}&_token=${storedToken}`, requestOptions)
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.text().then(text => {
+                                console.error('Server error:', text);
+                                throw new Error(text);
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(result => {
+                        console.log('Package deleted:', result);
+                        fetchData(); // Refresh data after deletion
+                        Swal.fire(
+                            'Deleted!',
+                            'Your package has been deleted.',
+                            'success'
+                        );
+                    })
+                    .catch(error => {
+                        console.error('Fetch error:', error);
+                        Swal.fire(
+                            'Error!',
+                            `An error occurred: ${error.message}`,
+                            'error'
+                        );
+                    });
+            }
+        });
+    };
     return (
         <div className='overflow-auto'>
             {loading && <p>Loading...</p>}
@@ -135,7 +195,7 @@ const ServiceList = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {paginated.map((item) => (
+                    {paginated.map((item, index) => (
                         <tr key={item.index}>
                             <td className="py-2 px-4 border-l border-r border-b whitespace-nowrap">{item.index}</td>
                             <td className="py-2 px-4 border-r border-b whitespace-nowrap">{item.title}</td>
@@ -143,7 +203,7 @@ const ServiceList = () => {
                             <td className="py-2 px-4 border-r border-b whitespace-nowrap">{item.packageTitle}</td>
                             <td className="py-2 px-4 border-r border-b whitespace-nowrap text-center">
                                 <button className='bg-green-500 rounded-md hover:bg-green-200 p-2 text-white' onClick={(() => { handleEditService(item) })}>Edit</button>
-                                <button className='bg-red-600 rounded-md p-2 text-white ms-2'>Delete</button>
+                                <button className='bg-red-600 rounded-md p-2 text-white ms-2' onClick={() => { handleDelete(item.id) }}>Delete</button>
                             </td>
                         </tr>
                     ))}

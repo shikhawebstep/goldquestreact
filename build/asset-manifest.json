@@ -1,0 +1,17 @@
+{
+  "files": {
+    "main.css": "/demo/Goldquest/static/css/main.e70db7c5.css",
+    "main.js": "/demo/Goldquest/static/js/main.549ccb35.js",
+    "static/js/453.f3e73c0f.chunk.js": "/demo/Goldquest/static/js/453.f3e73c0f.chunk.js",
+    "static/media/Login.jpeg": "/demo/Goldquest/static/media/Login.162c47991a7ee4af6d48.jpeg",
+    "static/media/Logo.png": "/demo/Goldquest/static/media/Logo.69eaa85bee5a9e340f87.png",
+    "index.html": "/demo/Goldquest/index.html",
+    "main.e70db7c5.css.map": "/demo/Goldquest/static/css/main.e70db7c5.css.map",
+    "main.549ccb35.js.map": "/demo/Goldquest/static/js/main.549ccb35.js.map",
+    "453.f3e73c0f.chunk.js.map": "/demo/Goldquest/static/js/453.f3e73c0f.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e70db7c5.css",
+    "static/js/main.549ccb35.js"
+  ]
+}

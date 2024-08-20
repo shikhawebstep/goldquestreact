@@ -15,6 +15,8 @@ const ServiceList = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const { editService } = useService();
+
+    //function to show list data 
     const fetchData = useCallback(async () => {
         try {
             setLoading(true);
@@ -61,6 +63,7 @@ const ServiceList = () => {
         }
     }, [setTotalResults, showPerPage]);
 
+    //function to  fetch package list data 
     const fetchPackageData = useCallback(async () => {
         try {
             setLoading(true);

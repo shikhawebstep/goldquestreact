@@ -1,6 +1,6 @@
 {
   "name": "myapp6",
-  "homepage": "https://webstepdev.com/demo/Goldquest/public",
+  "homepage": "https://webstepdev.com/demo/Goldquest/public/",
   "version": "0.1.0",
   "private": true,
   "dependencies": {

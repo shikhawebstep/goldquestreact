@@ -19,7 +19,7 @@ const App = () => {
 <PaginationProvider>
 <ServiceProvider>
 <PackageProvider>
-    <Router basename='/demo/Goldquest/public'>
+    <Router basename='/demo/Goldquest/public/'>
       <Routes>
           <Route path='/' element={<Admin><Render /></Admin>}/>
           <Route path='customerlogin' element={<CustomerLogin />} />

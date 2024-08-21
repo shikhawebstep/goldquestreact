@@ -118,6 +118,7 @@ const ServiceForm = () => {
             myHeaders.append("Content-Type", "application/json");
     
             const raw = JSON.stringify({
+                id:selectedService?.id || '',
                 title: serviceInput.name,
                 description: serviceInput.d_name,
                 admin_id: adminData.id,

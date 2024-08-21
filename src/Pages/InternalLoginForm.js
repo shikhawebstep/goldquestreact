@@ -46,7 +46,7 @@ const InternalLoginForm = () => {
         <>
             <form action="" onSubmit={handleSubmit}>
                 <div className="mb-4">
-                    <label htmlFor="employee_id">Employee ID: *</label>
+                    <label className="text-gray-500" htmlFor="employee_id">Employee ID: *</label>
                     <input
                         type="text"
                         name="id"
@@ -58,7 +58,7 @@ const InternalLoginForm = () => {
                     {error.id && <p className='text-red-500'>{error.id}</p>}
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="Employee-name">Employee Name: *</label>
+                    <label className="text-gray-500" htmlFor="Employee-name">Employee Name: *</label>
                     <input
                         type="text"
                         name="name"
@@ -70,7 +70,7 @@ const InternalLoginForm = () => {
                     {error.name && <p className='text-red-500'>{error.name}</p>}
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="mobile-number">Employee Mobile: *</label>
+                    <label className="text-gray-500" htmlFor="mobile-number">Employee Mobile: *</label>
                     <input
                         type="number"
                         name="number"
@@ -82,7 +82,7 @@ const InternalLoginForm = () => {
                     {error.number && <p className='text-red-500'>{error.number}</p>}
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="emailid">Email: *</label>
+                    <label className="text-gray-500" htmlFor="emailid">Email: *</label>
                     <input
                         type="email"
                         name="email"
@@ -94,7 +94,7 @@ const InternalLoginForm = () => {
                     {error.email && <p className='text-red-500'>{error.email}</p>}
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="password">Password: *</label>
+                    <label className="text-gray-500" htmlFor="password">Password: *</label>
                     <input
                         type="password"
                         name="password"
@@ -106,7 +106,7 @@ const InternalLoginForm = () => {
                     {error.password && <p className='text-red-500'>{error.password}</p>}
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="role">Role: *</label>
+                    <label className="text-gray-500" htmlFor="role">Role: *</label>
                     <select
                         name="role"
                         id="role"

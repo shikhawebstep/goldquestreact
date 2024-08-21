@@ -11,7 +11,7 @@ const PackageForm = ({ onSuccess }) => {
     const [adminId, setAdminId] = useState(null);
     const [storedToken, setStoredToken] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
-    const [formMessage, setFormMessage] = useState(""); 
+    const [formMessage, setFormMessage] = useState("");
 
     useEffect(() => {
         const adminData = JSON.parse(localStorage.getItem("admin"));
@@ -97,14 +97,20 @@ const PackageForm = ({ onSuccess }) => {
                             throw new Error(text);
                         });
                     }
+                    const newtoken = localStorage.getItem("_token");
                     return response.json();
+
                 })
                 .then(result => {
+                    
+                    const newToken = result._token && result.token; // Use result.token if result._token is not available
+                    if (newToken) {
+                        localStorage.setItem("_token", newToken); // Replace the old token with the new one
+                    }
                     console.log(result);
                     setError({});
                     setFormMessage(isEditMode ? 'Package updated successfully' : 'Package added successfully'); // Show success message
 
-                    // Update the package list without a refresh
                     if (isEditMode) {
                         const updatedPackages = packageList.map(pkg =>
                             pkg.id === result.id ? result : pkg

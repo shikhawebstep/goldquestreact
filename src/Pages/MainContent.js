@@ -17,7 +17,8 @@ import Invoice from '../Pages/Invoice';
 import Header from '../Dashboard/Header';
 import CustomerLogin from "../Pages/CustomerLogin";
 import EmailTemplate from "../Pages/EmailTemplate";
-
+import ClientManagementList from './ClientManagementList';
+import InactiveClients from './InactiveClients';
 const tabComponents = {
   dashboard: <DashBoard />,
   profile: <ClientManagement />,
@@ -34,6 +35,9 @@ const tabComponents = {
   update_password: <UpdatePassword />,
   invoice: <Invoice />,
   email_temp: <EmailTemplate />,
+  add_clients:<ClientManagement/>,
+  active_clients:<ClientManagementList/>,
+  inactive_clients:<InactiveClients/>
 };
 
 const MainContent = () => {

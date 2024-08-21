@@ -161,6 +161,10 @@ const ServiceList = () => {
                         return response.json();
                     })
                     .then(result => {
+                        const newToken = result._token && result.token; // Use result.token if result._token is not available
+                        if (newToken) {
+                            localStorage.setItem("_token", newToken); // Replace the old token with the new one
+                        }
                         console.log('Package deleted:', result);
                         fetchData(); // Refresh data after deletion
                         Swal.fire(

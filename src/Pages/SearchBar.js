@@ -3,7 +3,7 @@ import React from 'react'
 const SearchBar = () => {
     return (
         <>
-            <div className="md:flex justify-between items-center md:m-4 border-b-2 pb-4">
+            <div className="md:flex justify-between items-center md:my-4 border-b-2 pb-4">
                 <div className="col">
                     <form action="">
                         <div className="flex gap-5 justify-between">

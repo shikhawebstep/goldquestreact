@@ -2,8 +2,9 @@ import React, { useContext, useState } from 'react';
 import SidebarContext from './SidebarContext';
 import { BiSolidPackage } from "react-icons/bi";
 import { HomeIcon, UserIcon } from "@heroicons/react/24/outline";
-import { RiLoginCircleFill, RiLockPasswordFill, RiCustomerServiceFill } from "react-icons/ri";
-import { FaFileInvoiceDollar } from "react-icons/fa";
+import { IoMdPersonAdd } from "react-icons/io";
+import { RiLockPasswordFill, RiCustomerServiceFill } from "react-icons/ri";
+import { FaFileInvoiceDollar,FaEye ,FaEyeSlash  } from "react-icons/fa";
 import { TiCloudStorage } from "react-icons/ti";
 import { TbReportSearch } from "react-icons/tb";
 import { VscLinkExternal } from "react-icons/vsc";
@@ -15,7 +16,14 @@ import Logout from '../Dashboard/Logout';
 
 const tabNames = {
   dashboard: (<><HomeIcon className="h-6 w-6 mr-3 text-gray-600" />DashBoard</>),
-  profile: (<><UserIcon className="h-6 w-6 mr-3 text-gray-600" />Client Management</>),
+  profile: {
+    icon: (<><UserIcon className="h-6 w-6 mr-3 text-gray-600" />Client Management</>),
+    subItems: [
+      { id: 'add_clients', name: 'Add New Client', icon: <IoMdPersonAdd  className="h-5 w-5 mr-2 text-gray-500" /> },
+      { id: 'active_clients', name: 'Active Clients', icon: <FaEye  className="h-5 w-5 mr-2 text-gray-500" /> },
+      { id: 'inactive_clients', name: 'Inactive Clients', icon: <FaEyeSlash  className="h-5 w-5 mr-2 text-gray-500" /> }
+    ]
+  },
   package_management: (<><BiSolidPackage className="h-6 w-6 mr-3 text-gray-600" />Package Management</>),
   service_management: (<><GrServices className="h-6 w-6 mr-3 text-gray-600" />Service Management</>),
   customer_login: (<><RiCustomerServiceFill className="h-6 w-6 mr-3 text-gray-600" />Customer Login</>),
@@ -33,6 +41,7 @@ const tabNames = {
 
 const Sidebar = () => {
   const [toggle, setToggle] = useState(false);
+  const [expandedTab, setExpandedTab] = useState(null);
   const { activeTab, handleTabChange } = useContext(SidebarContext);
 
   const handleToggle = () => {
@@ -44,6 +53,10 @@ const Sidebar = () => {
     setToggle(!toggle); // Close the menu after selecting a tab
   };
 
+  const handleExpand = (tab) => {
+    setExpandedTab(expandedTab === tab ? null : tab); // Toggle expansion of sub-items
+  };
+
   return (
     <div className="w-full md:w-1/5 flex flex-col bg-white">
       <div className="px-3">
@@ -51,53 +64,108 @@ const Sidebar = () => {
           <h2 className="w-full text-green-600 text-5xl text-left font-bold pb-6 font-poppins">GoldQuest.</h2>
           <p className="text-gray-400 text-xl mb-7 text-left w-full">Background Verification Tracking System.</p>
           <div className='md:hidden sm:block'>
-          <div className='flex items-center justify-between border-b p-3'>
-               <div>Menu</div>
-            <div className='md:hidden sm:block' onClick={handleToggle} aria-label="Toggle Sidebar">
-            <span className='border-b-8 border-black w-8 block text-black mb-1 '></span>
-            <span className='border-b-8 border-black w-8 block text-black mb-1 '></span>
-            <span className='border-b-8 border-black w-8 block text-black mb-1 '></span>
-          </div>
-          
-          </div>
+            <div className='flex items-center justify-between border-b p-3'>
+              <div>Menu</div>
+              <div className='md:hidden sm:block' onClick={handleToggle} aria-label="Toggle Sidebar">
+                <span className='border-b-8 border-black w-8 block text-black mb-1'></span>
+                <span className='border-b-8 border-black w-8 block text-black mb-1'></span>
+                <span className='border-b-8 border-black w-8 block text-black mb-1'></span>
+              </div>
+            </div>
           </div>
           {
             toggle && (
-            <>
-              <ul className='  md:hidden'>
-                {Object.keys(tabNames).map((tab) => (
-                  <li
-                    key={tab}
-                    className={classNames(
-                      'w-full flex items-center p-3 cursor-pointer rounded-md my-2',
-                      { 'bg-green-200': activeTab === tab, 'hover:bg-green-200': activeTab !== tab }
-                    )}
-                    onClick={() => onTabChange(tab)}
-                  >
-                    {tabNames[tab]}
-                  </li>
-                ))}
+              <ul className='md:hidden'>
+                {Object.keys(tabNames).map((tab) => {
+                  const tabContent = tabNames[tab];
+                  return (
+                    <React.Fragment key={tab}>
+                      <li
+                        className={classNames(
+                          'w-full flex items-center p-3 cursor-pointer rounded-md my-2',
+                          { 'bg-green-200': activeTab === tab, 'hover:bg-green-200': activeTab !== tab }
+                        )}
+                        onClick={() => {
+                          if (tabContent.subItems) {
+                            handleExpand(tab);
+                          } else {
+                            onTabChange(tab);
+                          }
+                        }}
+                      >
+                        {tabContent.icon || tabContent}
+                      </li>
+                      {expandedTab === tab && tabContent.subItems && (
+                        <ul className="pl-6">
+                          {tabContent.subItems.map((subItem) => (
+                            <li
+                              key={subItem.id}
+                              className={classNames(
+                                'w-full flex items-center p-3 cursor-pointer rounded-md my-2',
+                                { 'bg-green-100': activeTab === subItem.id, 'hover:bg-green-100': activeTab !== subItem.id }
+                              )}
+                              onClick={() => {
+                                onTabChange(subItem.id);
+                                setToggle(false); // Optionally close the menu after selecting a sub-item
+                              }}
+                            >
+                              {subItem.icon}
+                              {subItem.name}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
               </ul>
-               
-                 </>
-
             )
           }
-               <ul className='hidden md:block'>
-                {Object.keys(tabNames).map((tab) => (
+          <ul className='hidden md:block'>
+            {Object.keys(tabNames).map((tab) => {
+              const tabContent = tabNames[tab];
+              return (
+                <React.Fragment key={tab}>
                   <li
-                    key={tab}
                     className={classNames(
                       'w-full flex items-center p-3 cursor-pointer rounded-md my-2',
                       { 'bg-green-200': activeTab === tab, 'hover:bg-green-200': activeTab !== tab }
                     )}
-                    onClick={() => onTabChange(tab)}
+                    onClick={() => {
+                      if (tabContent.subItems) {
+                        handleExpand(tab);
+                      } else {
+                        onTabChange(tab);
+                      }
+                    }}
                   >
-                    {tabNames[tab]}
+                    {tabContent.icon || tabContent}
                   </li>
-                ))}
-              </ul>
-              <Logout/>
+                  {expandedTab === tab && tabContent.subItems && (
+                    <ul className="pl-6">
+                      {tabContent.subItems.map((subItem) => (
+                        <li
+                          key={subItem.id}
+                          className={classNames(
+                            'w-full flex items-center p-3 cursor-pointer rounded-md my-2',
+                            { 'bg-green-100': activeTab === subItem.id, 'hover:bg-green-100': activeTab !== subItem.id }
+                          )}
+                          onClick={() => {
+                            onTabChange(subItem.id);
+                            setToggle(false); 
+                          }}
+                        >
+                          {subItem.icon}
+                          {subItem.name}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </ul>
+          <Logout />
         </div>
       </div>
     </div>

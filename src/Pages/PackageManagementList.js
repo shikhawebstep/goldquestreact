@@ -3,6 +3,7 @@ import PaginationContext from './PaginationContext';
 import Pagination from './Pagination';
 import { usePackage } from './PackageContext';
 import Swal from 'sweetalert2';
+import SearchBar from './SearchBar';
 
 const PackageManagementList = ({ refreshTrigger }) => {
     const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
@@ -37,6 +38,10 @@ const PackageManagementList = ({ refreshTrigger }) => {
                 return response.json();
             })
             .then((data) => {
+                const newToken = data._token && data.token; // Use result.token if result._token is not available
+                if (newToken) {
+                    localStorage.setItem("_token", newToken); // Replace the old token with the new one
+                }
                 console.log('Fetched data:', data);
                 setData(data.packages || []);
                 setTotalResults(data.totalResults || 0);
@@ -125,6 +130,7 @@ const PackageManagementList = ({ refreshTrigger }) => {
         <>
             <div className="overflow-x-auto py-4 px-4">
                 {error && <div className="text-red-500 text-center">{error}</div>}
+                <SearchBar/>
                 <table className="min-w-full">
                     <thead>
                         <tr className='bg-green-500'>

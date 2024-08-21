@@ -1,11 +1,10 @@
 import React, { useState } from "react";
-import ClientManagementData from "./ClientManagementData";
-
+import ClientManagementData from './ClientManagementData'
 const ClientManagement = () => {
   const [input, setInput] = useState({
     company_name: "",
     client_code: "",
-    package_name: "",
+    address: "",
     state_code: "",
     state: "",
     mobile_number: "",
@@ -21,10 +20,8 @@ const ClientManagement = () => {
     date_agreement: "",
     Agreement_Period: "",
     client_standard: "",
-    c_logo: "",
-    branch_name: "",
-    branch_email: "",
-    agr_upload: "",
+    c_logo: null,
+    agr_upload: null,
     required: "",
   });
 
@@ -34,9 +31,10 @@ const ClientManagement = () => {
 
   const handleChange = (e, index) => {
     const { name, value, type, files } = e.target;
-    if (name.startsWith('branch_')) {
+
+    if (name.startsWith("branch_")) {
       const newBranchForms = [...branchForms];
-      newBranchForms[index][name] = type === 'file' ? files[0] : value;
+      newBranchForms[index][name] = type === "file" ? files[0] : value;
       setBranchForms(newBranchForms);
     } else {
       setInput((prevInput) => ({
@@ -48,28 +46,29 @@ const ClientManagement = () => {
 
   const validate = () => {
     const newErrors = {};
-    if (!input.company_name) newErrors.company_name = 'This field is required*';
-    if (!input.client_code) newErrors.client_code = 'This field is required*';
-    if (!input.package_name) newErrors.package_name = 'This field is required*';
-    if (!input.state_code) newErrors.state_code = 'This field is required*';
-    if (!input.state) newErrors.state = 'This field is required*';
-    if (!input.mobile_number) newErrors.mobile_number = 'This field is required*';
-    if (!input.email) newErrors.email = 'This field is required*';
-    if (!input.cc1_email) newErrors.cc1_email = 'This field is required*';
-    if (!input.cc2_email) newErrors.cc2_email = 'This field is required*';
-    if (!input.contact_person) newErrors.contact_person = 'This field is required*';
-    if (!input.role) newErrors.role = 'This field is required*';
-    if (!input.name_of_escalation) newErrors.name_of_escalation = 'This field is required*';
-    if (!input.client_spoc) newErrors.client_spoc = 'This field is required*';
-    if (!input.gstin) newErrors.gstin = 'This field is required*';
-    if (!input.tat) newErrors.tat = 'This field is required*';
-    if (!input.date_agreement) newErrors.date_agreement = 'This field is required*';
-    if (!input.client_standard) newErrors.client_standard = 'This field is required*';
-    if (!input.Agreement_Period) newErrors.Agreement_Period = 'This field is required*';
 
+    if (!input.company_name) newErrors.company_name = "This field is required*";
+    if (!input.client_code) newErrors.client_code = "This field is required*";
+    if (!input.address) newErrors.address = "This field is required*";
+    if (!input.state_code) newErrors.state_code = "This field is required*";
+    if (!input.state) newErrors.state = "This field is required*";
+    if (!input.mobile_number) newErrors.mobile_number = "This field is required*";
+    if (!input.email) newErrors.email = "This field is required*";
+    if (!input.cc1_email) newErrors.cc1_email = "This field is required*";
+    if (!input.cc2_email) newErrors.cc2_email = "This field is required*";
+    if (!input.contact_person) newErrors.contact_person = "This field is required*";
+    if (!input.role) newErrors.role = "This field is required*";
+    if (!input.name_of_escalation) newErrors.name_of_escalation = "This field is required*";
+    if (!input.client_spoc) newErrors.client_spoc = "This field is required*";
+    if (!input.gstin) newErrors.gstin = "This field is required*";
+    if (!input.tat) newErrors.tat = "This field is required*";
+    if (!input.date_agreement) newErrors.date_agreement = "This field is required*";
+    if (!input.client_standard) newErrors.client_standard = "This field is required*";
+    if (!input.Agreement_Period) newErrors.Agreement_Period = "This field is required*";
+    if (!input.package_name) newErrors.package_name = "This field is required*";
     branchForms.forEach((form, index) => {
-      if (!form.branch_name) newErrors[`branch_name_${index}`] = 'This field is required*';
-      if (!form.branch_email) newErrors[`branch_email_${index}`] = 'This field is required*';
+      if (!form.branch_name) newErrors[`branch_name_${index}`] = "This field is required*";
+      if (!form.branch_email) newErrors[`branch_email_${index}`] = "This field is required*";
     });
 
     return newErrors;
@@ -81,37 +80,41 @@ const ClientManagement = () => {
     if (Object.keys(validationErrors).length === 0) {
       const adminData = JSON.parse(localStorage.getItem("admin"));
       const token = localStorage.getItem("_token");
-      const requestData = {
-        "admin_id": adminData,
-        "_token": token,
-        ...input,
-        branchForms
-      };
 
+      const requestData = {
+        admin_id: adminData,
+        _token: token,
+        ...input,
+        ...branchForms,
+      };
+   console.log(requestData)
       const requestOptions = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),
-        redirect: "follow"
+        redirect: "follow",
       };
 
-      fetch('https://goldquestreact.onrender.com/customer/create', requestOptions)
-        .then(response => {
+      fetch("https://goldquestreact.onrender.com/customer/create", requestOptions)
+        .then((response) => {
           if (!response.ok) {
-            return response.text().then(text => {
-              console.error('Server error:', text);
+            return response.text().then((text) => {
+              console.error("Server error:", text);
               throw new Error(text);
             });
           }
           return response.json();
         })
-        .then(result => {
+        .then((result) => {
           setErrors({});
           setSuccessMessage("Form submitted successfully!");
-          
+          setInput({
+            ...input,result
+          });
+          setBranchForms([{ branch_name: "", branch_email: "", c_logo: null }]);
         })
-        .catch(error => {
-          console.error('Error:', error);
+        .catch((error) => {
+          console.error("Error:", error);
         });
     } else {
       setErrors(validationErrors);
@@ -130,7 +133,7 @@ const ClientManagement = () => {
   return (
     <>
       <div className="py-4 md:py-16 m-4">
-        <h2 className="md:text-4xl text-2xl font-bold pb-8 md:pb-4 text-center">
+        <h2 className="md:text-4xl text-2xl md:mb-8 font-bold pb-8 md:pb-4 text-center">
           Client Management
         </h2>
         <div className="md:w-9/12 m-auto bg-white shadow-md rounded-md p-3 md:p-10">
@@ -142,7 +145,7 @@ const ClientManagement = () => {
           <form onSubmit={handleFormSubmit}>
             <div className="md:flex gap-5">
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="company_name">Company Name: *</label>
+                <label className="text-gray-500" htmlFor="company_name">Company Name: *</label>
                 <input
                   type="text"
                   name="company_name"
@@ -155,7 +158,7 @@ const ClientManagement = () => {
               </div>
 
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="client_code">Client Code: *</label>
+                <label className="text-gray-500" htmlFor="client_code">Client Code: *</label>
                 <input
                   type="text"
                   name="client_code"
@@ -170,20 +173,20 @@ const ClientManagement = () => {
 
             <div className="md:flex gap-5">
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="package_name">Address: *</label>
+                <label className="text-gray-500" htmlFor="address">Address: *</label>
                 <input
                   type="text"
-                  name="package_name"
-                  id="package_name"
+                  name="address"
+                  id="address"
                   className="border w-full rounded-md p-2 mt-2 outline-none"
-                  value={input.package_name}
+                  value={input.address}
                   onChange={handleChange}
                 />
-                {errors.package_name && <p className="text-red-500">{errors.package_name}</p>}
+                {errors.address && <p className="text-red-500">{errors.address}</p>}
               </div>
 
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="state">State: *</label>
+                <label className="text-gray-500" htmlFor="state">State: *</label>
                 <select
                   name="state"
                   id="state"
@@ -202,7 +205,7 @@ const ClientManagement = () => {
 
             <div className="md:flex gap-5">
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="state_code">State Code: *</label>
+                <label className="text-gray-500" htmlFor="state_code">State Code: *</label>
                 <input
                   type="text"
                   name="state_code"
@@ -214,7 +217,7 @@ const ClientManagement = () => {
                 {errors.state_code && <p className="text-red-500">{errors.state_code}</p>}
               </div>
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="mobile_number">Mobile: *</label>
+                <label className="text-gray-500" htmlFor="mobile_number">Mobile: *</label>
                 <input
                   type="tel"
                   name="mobile_number"
@@ -229,7 +232,7 @@ const ClientManagement = () => {
 
             <div className="md:flex gap-5">
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="email">Email: *</label>
+                <label className="text-gray-500" htmlFor="email">Email: *</label>
                 <input
                   type="email"
                   name="email"
@@ -242,7 +245,7 @@ const ClientManagement = () => {
               </div>
 
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="cc1_email">CC1 Email: *</label>
+                <label className="text-gray-500" htmlFor="cc1_email">CC1 Email: *</label>
                 <input
                   type="email"
                   name="cc1_email"
@@ -257,7 +260,7 @@ const ClientManagement = () => {
 
             <div className="md:flex gap-5">
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="cc2_email">CC2 Email: *</label>
+                <label className="text-gray-500" htmlFor="cc2_email">CC2 Email: *</label>
                 <input
                   type="email"
                   name="cc2_email"
@@ -270,7 +273,7 @@ const ClientManagement = () => {
               </div>
 
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="contact_person">Contact Person: *</label>
+                <label className="text-gray-500" htmlFor="contact_person">Contact Person: *</label>
                 <input
                   type="text"
                   name="contact_person"
@@ -285,7 +288,7 @@ const ClientManagement = () => {
 
             <div className="md:flex gap-5">
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="role">Role: *</label>
+                <label className="text-gray-500" htmlFor="role">Role: *</label>
                 <input
                   type="text"
                   name="role"
@@ -298,7 +301,7 @@ const ClientManagement = () => {
               </div>
 
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="name_of_escalation">Name of Escalation: *</label>
+                <label className="text-gray-500" htmlFor="name_of_escalation">Name of Escalation: *</label>
                 <input
                   type="text"
                   name="name_of_escalation"
@@ -313,7 +316,7 @@ const ClientManagement = () => {
 
             <div className="md:flex gap-5">
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="client_spoc">Client SPOC: *</label>
+                <label className="text-gray-500" htmlFor="client_spoc">Client SPOC: *</label>
                 <input
                   type="text"
                   name="client_spoc"
@@ -326,7 +329,7 @@ const ClientManagement = () => {
               </div>
 
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="gstin">GSTIN: *</label>
+                <label className="text-gray-500" htmlFor="gstin">GSTIN: *</label>
                 <input
                   type="text"
                   name="gstin"
@@ -341,7 +344,7 @@ const ClientManagement = () => {
 
             <div className="md:flex gap-5">
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="tat">TAT: *</label>
+                <label className="text-gray-500" htmlFor="tat">TAT: *</label>
                 <input
                   type="text"
                   name="tat"
@@ -354,7 +357,7 @@ const ClientManagement = () => {
               </div>
 
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="date_agreement">Date of Agreement: *</label>
+                <label className="text-gray-500" htmlFor="date_agreement">Date of Agreement: *</label>
                 <input
                   type="date"
                   name="date_agreement"
@@ -369,7 +372,7 @@ const ClientManagement = () => {
 
             <div className="md:flex gap-5">
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="Agreement_Period">Agreement Period: *</label>
+                <label className="text-gray-500" htmlFor="Agreement_Period">Agreement Period: *</label>
                 <input
                   type="text"
                   name="Agreement_Period"
@@ -382,7 +385,7 @@ const ClientManagement = () => {
               </div>
 
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="client_standard">Client Standard: *</label>
+                <label className="text-gray-500" htmlFor="client_standard">Client Standard: *</label>
                 <input
                   type="text"
                   name="client_standard"
@@ -396,7 +399,7 @@ const ClientManagement = () => {
             </div>
 
             <div className="mb-4">
-              <label htmlFor="c_logo">Company Logo:</label>
+              <label className="text-gray-500" htmlFor="c_logo">Company Logo:</label>
               <input
                 type="file"
                 name="c_logo"
@@ -406,9 +409,9 @@ const ClientManagement = () => {
               />
               {errors.c_logo && <p className="text-red-500">{errors.c_logo}</p>}
             </div>
-
+        
             <div className="mb-4">
-              <label htmlFor="agr_upload">Agreement Upload:</label>
+              <label className="text-gray-500" htmlFor="agr_upload">Agreement Upload:</label>
               <input
                 type="file"
                 name="agr_upload"
@@ -420,7 +423,7 @@ const ClientManagement = () => {
             </div>
 
             <div className="mb-4">
-              <label htmlFor="required">Additional login required?:</label>
+              <label className="text-gray-500" htmlFor="required">Additional login required?:</label>
               <div className="flex items-center gap-10 mt-4">
                 <div>
                   <input
@@ -448,7 +451,7 @@ const ClientManagement = () => {
             {branchForms.map((form, index) => (
               <div className="my-8" key={index}>
                 <div className="mb-4">
-                  <label htmlFor={`branch_name_${index}`}>Branch Name: *</label>
+                  <label className="text-gray-500" htmlFor={`branch_name_${index}`}>Branch Name: *</label>
                   <input
                     type="text"
                     name="branch_name"
@@ -460,7 +463,7 @@ const ClientManagement = () => {
                   {errors[`branch_name_${index}`] && <p className="text-red-500">{errors[`branch_name_${index}`]}</p>}
                 </div>
                 <div className="mb-4">
-                  <label htmlFor={`branch_email_${index}`}>Branch Head Email:</label>
+                  <label className="text-gray-500" htmlFor={`branch_email_${index}`}>Branch Head Email:</label>
                   <input
                     type="email"
                     name="branch_email"
@@ -471,42 +474,42 @@ const ClientManagement = () => {
                   />
                   {errors[`branch_email_${index}`] && <p className="text-red-500">{errors[`branch_email_${index}`]}</p>}
                 </div>
-                <div className="mb-4">
-                  <label htmlFor={`branch_c_logo_${index}`}>Branch Logo:</label>
-                  <input
-                    type="file"
-                    name="branch_c_logo"
-                    id={`branch_c_logo_${index}`}
-                    className="border w-full rounded-md p-2 mt-2 outline-none"
-                    onChange={(e) => handleChange(e, index)}
-                  />
-                </div>
-                <button
-                  type="button"
-                  className="text-red-500"
-                  onClick={() => deleteField(index)}
-                >
-                  Delete Branch
-                </button>
+            
+                {
+                  branchForms.length>1?(
+                    <button
+                    type="button"
+                    className="text-white bg-red-500 rounded-md p-3"
+                    onClick={() => deleteField(index)}
+                  >
+                    Delete Branch
+                  </button>
+                  ):('')
+                }
+               
               </div>
             ))}
 
             <button
               type="button"
-              className="bg-blue-500 text-white rounded-md px-4 py-2 mb-4"
+              id="AddMore"
               onClick={addMoreFields}
+              className="bg-green-400 w-full text-white p-3 rounded-md hover:bg-green-200"
             >
-              Add More Branches
+              Add More
             </button>
 
-            <button
-              type="submit"
-              className="bg-blue-500 text-white rounded-md px-4 py-2"
-            >
-              Submit
-            </button>
+            <div className="flex justify-center">
+              <button
+                type="submit"
+                className="bg-green-200 w-full text-white p-3 mt-5 rounded-md hover:bg-green-500"
+              >
+                Submit
+              </button>
+              </div>
           </form>
         </div>
+        <ClientManagementData/>
       </div>
     </>
   );

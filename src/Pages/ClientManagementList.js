@@ -16,6 +16,8 @@ const ClientManagementList = () => {
         const endIndex = startIndex + showPerPage;
         setPaginated(listData.slice(startIndex, endIndex));
     }, [currentItem, setTotalResults]);
+
+
     return (
         <>
             <div className="bg-white m-4 md:m-24 shadow-md rounded-md p-3">

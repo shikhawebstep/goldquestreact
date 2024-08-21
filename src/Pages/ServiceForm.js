@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useService } from './ServiceContext';
 const ServiceForm = () => {
-    const { selectedService, clearSelectedService, ServiceList, updateServiceList } = useService();
+    const { selectedService, updateServiceList } = useService();
 
     const [loading, setLoading] = useState(true);
     const [isEdit, setIsEdit] = useState(false);

@@ -8,6 +8,7 @@ const LoginForm = () => {
     username: '',
     password: '',
   });
+  const [message,setMessage]=useState('');
   const [error, setError] = useState({});
   const navigate = useNavigate(); 
   const location = useLocation(); 
@@ -41,15 +42,16 @@ const LoginForm = () => {
 
       axios.post('https://goldquestreact.onrender.com/admin/login', loginData)
         .then((response) => {
+          
           console.log('Login successful:', response.data);
           if (response.data.status) {
             const adminData = response.data.adminData;
             const _token = response.data.token;
-
+           
             
             localStorage.setItem('admin', JSON.stringify(adminData));
             localStorage.setItem('_token', _token);
-
+            setMessage('Login Successfull')
            
             console.log('Navigating to dashboard...');
             
@@ -140,7 +142,9 @@ const LoginForm = () => {
           <FaApple className="h-6 w-6 text-black-700 m-auto" />
         </button>
       </div>
+      {message && <p className="text-green-500 text-center mt-4">{message}</p>}
     </div>
+   
   );
 };
 

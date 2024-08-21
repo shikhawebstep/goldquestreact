@@ -135,22 +135,48 @@ const PackageManagementList = ({ refreshTrigger }) => {
                         </tr>
                     </thead>
                     <tbody>
-                        {paginatedData.map((item, index) => (
+                    {paginatedData.length > 0 ? (
+                        paginatedData.map((item, index) => (
                             <tr key={item.id}>
-                                <td className="py-2 px-4 border-b border-r border-l whitespace-nowrap">{(currentItem - 1) * showPerPage + index + 1}</td>
-                                <td className="py-2 px-4 border-b border-r border-l whitespace-nowrap">{item.title}</td>
-                                <td className="py-2 px-4 border-b border-r whitespace-nowrap">{item.description}</td>
+                                <td className="py-2 px-4 border-b border-r border-l whitespace-nowrap">
+                                    {(currentItem - 1) * showPerPage + index + 1}
+                                </td>
+                                <td className="py-2 px-4 border-b border-r border-l whitespace-nowrap">
+                                    {item.title}
+                                </td>
                                 <td className="py-2 px-4 border-b border-r whitespace-nowrap">
-                                    <button className='bg-green-500 hover:bg-green-200 rounded-md p-2 me-2 text-white' onClick={() => handleEdit(item)}>Edit</button>
-                                    <button className='bg-red-600 rounded-md p-2 text-white' onClick={() => handleDelete(item.id)}>Delete</button>
+                                    {item.description}
+                                </td>
+                                <td className="py-2 px-4 border-b border-r whitespace-nowrap">
+                                    <button
+                                        className='bg-green-500 hover:bg-green-200 rounded-md p-2 me-2 text-white'
+                                        onClick={() => handleEdit(item)}
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        className='bg-red-600 rounded-md p-2 text-white'
+                                        onClick={() => handleDelete(item.id)}
+                                    >
+                                        Delete
+                                    </button>
                                 </td>
                             </tr>
-                        ))}
-                    </tbody>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="4" className="py-6 px-4 text-center border-b border-r border-l">
+                                No data available
+                            </td>
+                        </tr>
+                    )}
+                </tbody>
+                
                 </table>
             </div>
             {loading && <div className="text-center">Loading...</div>}
-            <Pagination />
+            {paginatedData.length>0?(<Pagination />):('')}
+          
         </>
     );
 };

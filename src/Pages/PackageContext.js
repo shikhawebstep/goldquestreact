@@ -2,23 +2,35 @@ import React, { createContext, useState, useContext } from 'react';
 
 const PackageContext = createContext();
 
+export const usePackage = () => useContext(PackageContext);
+
 export const PackageProvider = ({ children }) => {
+    const [packageList, setPackageList] = useState([]);
     const [selectedPackage, setSelectedPackage] = useState(null);
-    const [packageList, setPackageList] = useState([]); // Store package list
+
+    const updatePackageList = (updatedPackages) => {
+        setPackageList(updatedPackages);
+    };
 
     const editPackage = (pkg) => {
         setSelectedPackage(pkg);
     };
 
-    const updatePackageList = (newList) => {
-        setPackageList(newList);
+    const clearSelectedPackage = () => {
+        setSelectedPackage(null);
     };
 
     return (
-        <PackageContext.Provider value={{ selectedPackage, editPackage, packageList, updatePackageList }}>
+        <PackageContext.Provider
+            value={{
+                packageList,
+                selectedPackage,
+                updatePackageList,
+                editPackage,
+                clearSelectedPackage
+            }}
+        >
             {children}
         </PackageContext.Provider>
     );
 };
-
-export const usePackage = () => useContext(PackageContext);

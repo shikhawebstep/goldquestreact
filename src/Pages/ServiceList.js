@@ -118,7 +118,7 @@ const ServiceList = () => {
         setPaginated(paginatedData);
     }, [currentPage, showPerPage, data, packages]);
 
-     //function to edit items
+    //function to edit items
     const handleEditService = ((service) => {
         editService(service);
         console.log('editing service:', service);
@@ -195,21 +195,33 @@ const ServiceList = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {paginated.map((item, index) => (
-                        <tr key={item.index}>
-                            <td className="py-2 px-4 border-l border-r border-b whitespace-nowrap">{item.index}</td>
-                            <td className="py-2 px-4 border-r border-b whitespace-nowrap">{item.title}</td>
-                            <td className="py-2 px-4 border-r border-b whitespace-nowrap">{item.description}</td>
-                            <td className="py-2 px-4 border-r border-b whitespace-nowrap">{item.packageTitle}</td>
-                            <td className="py-2 px-4 border-r border-b whitespace-nowrap text-center">
-                                <button className='bg-green-500 rounded-md hover:bg-green-200 p-2 text-white' onClick={(() => { handleEditService(item) })}>Edit</button>
-                                <button className='bg-red-600 rounded-md p-2 text-white ms-2' onClick={() => { handleDelete(item.id) }}>Delete</button>
+                    {paginated.length > 0 ? 
+                        (paginated.map((item, index) => (
+                            <tr key={item.index}>
+                                <td className="py-2 px-4 border-l border-r border-b whitespace-nowrap">{item.index}</td>
+                                <td className="py-2 px-4 border-r border-b whitespace-nowrap">{item.title}</td>
+                                <td className="py-2 px-4 border-r border-b whitespace-nowrap">{item.description}</td>
+                                <td className="py-2 px-4 border-r border-b whitespace-nowrap">{item.packageTitle}</td>
+                                <td className="py-2 px-4 border-r border-b whitespace-nowrap text-center">
+                                    <button className='bg-green-500 rounded-md hover:bg-green-200 p-2 text-white' onClick={(() => { handleEditService(item) })}>Edit</button>
+                                    <button className='bg-red-600 rounded-md p-2 text-white ms-2' onClick={() => { handleDelete(item.id) }}>Delete</button>
+                                </td>
+                            </tr>
+                        ))
+
+                    ) : (
+                        <tr>
+                            <td colSpan="6" className="py-6 px-4 border-l border-r text-center border-b whitespace-nowrap">
+                                No data available
                             </td>
                         </tr>
-                    ))}
+                    )}
                 </tbody>
             </table>
-            <Pagination />
+            {paginated.length>0?(
+                <Pagination />
+            ):('')}
+            
         </div>
     );
 };

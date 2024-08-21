@@ -25,7 +25,7 @@ const ClientManagement = () => {
     branch_name: "",
     branch_email: "",
     agr_upload: "",
-    required:"",
+    required: "",
   });
 
   const [branchForms, setBranchForms] = useState([{ branch_name: "", branch_email: "", c_logo: null }]);
@@ -34,7 +34,7 @@ const ClientManagement = () => {
 
   const handleChange = (e, index) => {
     const { name, value, type, files } = e.target;
-    if (name === 'branch_name' || name === 'branch_email' || name === 'c_logo') {
+    if (name.startsWith('branch_')) {
       const newBranchForms = [...branchForms];
       newBranchForms[index][name] = type === 'file' ? files[0] : value;
       setBranchForms(newBranchForms);
@@ -50,8 +50,6 @@ const ClientManagement = () => {
     const newErrors = {};
     if (!input.company_name) newErrors.company_name = 'This field is required*';
     if (!input.client_code) newErrors.client_code = 'This field is required*';
-    if (!input.contact_person) newErrors.contact_person = 'This field is required*';
-    if (!input.Agreement_Period) newErrors.Agreement_Period = 'This field is required*';
     if (!input.package_name) newErrors.package_name = 'This field is required*';
     if (!input.state_code) newErrors.state_code = 'This field is required*';
     if (!input.state) newErrors.state = 'This field is required*';
@@ -59,15 +57,15 @@ const ClientManagement = () => {
     if (!input.email) newErrors.email = 'This field is required*';
     if (!input.cc1_email) newErrors.cc1_email = 'This field is required*';
     if (!input.cc2_email) newErrors.cc2_email = 'This field is required*';
-    if (!input.branch_email) newErrors.branch_email = 'This field is required*';
-    if (!input.branch_name) newErrors.branch_name = 'This field is required*';
-    if (!input.client_standard) newErrors.client_standard = 'This field is required*';
+    if (!input.contact_person) newErrors.contact_person = 'This field is required*';
+    if (!input.role) newErrors.role = 'This field is required*';
+    if (!input.name_of_escalation) newErrors.name_of_escalation = 'This field is required*';
     if (!input.client_spoc) newErrors.client_spoc = 'This field is required*';
     if (!input.gstin) newErrors.gstin = 'This field is required*';
     if (!input.tat) newErrors.tat = 'This field is required*';
-    if (!input.name_of_escalation) newErrors.name_of_escalation = 'This field is required*';
     if (!input.date_agreement) newErrors.date_agreement = 'This field is required*';
-    if (!input.role) newErrors.role = 'This field is required*';
+    if (!input.client_standard) newErrors.client_standard = 'This field is required*';
+    if (!input.Agreement_Period) newErrors.Agreement_Period = 'This field is required*';
 
     branchForms.forEach((form, index) => {
       if (!form.branch_name) newErrors[`branch_name_${index}`] = 'This field is required*';
@@ -81,11 +79,40 @@ const ClientManagement = () => {
     e.preventDefault();
     const validationErrors = validate();
     if (Object.keys(validationErrors).length === 0) {
-      console.log(input);
-      console.log(branchForms);
-      setErrors({});
-      setSuccessMessage("Form submitted successfully!");
-      // Proceed with form submission
+      const adminData = JSON.parse(localStorage.getItem("admin"));
+      const token = localStorage.getItem("_token");
+      const requestData = {
+        "admin_id": adminData,
+        "_token": token,
+        ...input,
+        branchForms
+      };
+
+      const requestOptions = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestData),
+        redirect: "follow"
+      };
+
+      fetch('https://goldquestreact.onrender.com/customer/create', requestOptions)
+        .then(response => {
+          if (!response.ok) {
+            return response.text().then(text => {
+              console.error('Server error:', text);
+              throw new Error(text);
+            });
+          }
+          return response.json();
+        })
+        .then(result => {
+          setErrors({});
+          setSuccessMessage("Form submitted successfully!");
+          
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
     } else {
       setErrors(validationErrors);
     }
@@ -112,7 +139,7 @@ const ClientManagement = () => {
               {successMessage}
             </div>
           )}
-          <form action="" onSubmit={handleFormSubmit}>
+          <form onSubmit={handleFormSubmit}>
             <div className="md:flex gap-5">
               <div className="mb-4 md:w-6/12">
                 <label htmlFor="company_name">Company Name: *</label>
@@ -202,7 +229,7 @@ const ClientManagement = () => {
 
             <div className="md:flex gap-5">
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="email">To Email: *</label>
+                <label htmlFor="email">Email: *</label>
                 <input
                   type="email"
                   name="email"
@@ -213,6 +240,7 @@ const ClientManagement = () => {
                 />
                 {errors.email && <p className="text-red-500">{errors.email}</p>}
               </div>
+
               <div className="mb-4 md:w-6/12">
                 <label htmlFor="cc1_email">CC1 Email: *</label>
                 <input
@@ -240,6 +268,7 @@ const ClientManagement = () => {
                 />
                 {errors.cc2_email && <p className="text-red-500">{errors.cc2_email}</p>}
               </div>
+
               <div className="mb-4 md:w-6/12">
                 <label htmlFor="contact_person">Contact Person: *</label>
                 <input
@@ -267,8 +296,9 @@ const ClientManagement = () => {
                 />
                 {errors.role && <p className="text-red-500">{errors.role}</p>}
               </div>
+
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="name_of_escalation">Name of the Escalation Point of Contact:*</label>
+                <label htmlFor="name_of_escalation">Name of Escalation: *</label>
                 <input
                   type="text"
                   name="name_of_escalation"
@@ -283,7 +313,7 @@ const ClientManagement = () => {
 
             <div className="md:flex gap-5">
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="client_spoc">Name of The Client SPOC:*</label>
+                <label htmlFor="client_spoc">Client SPOC: *</label>
                 <input
                   type="text"
                   name="client_spoc"
@@ -294,6 +324,7 @@ const ClientManagement = () => {
                 />
                 {errors.client_spoc && <p className="text-red-500">{errors.client_spoc}</p>}
               </div>
+
               <div className="mb-4 md:w-6/12">
                 <label htmlFor="gstin">GSTIN: *</label>
                 <input
@@ -321,8 +352,9 @@ const ClientManagement = () => {
                 />
                 {errors.tat && <p className="text-red-500">{errors.tat}</p>}
               </div>
+
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="date_agreement">Date of Service Agreement: *</label>
+                <label htmlFor="date_agreement">Date of Agreement: *</label>
                 <input
                   type="date"
                   name="date_agreement"
@@ -337,7 +369,20 @@ const ClientManagement = () => {
 
             <div className="md:flex gap-5">
               <div className="mb-4 md:w-6/12">
-                <label htmlFor="client_standard">Client Standard Procedure: *</label>
+                <label htmlFor="Agreement_Period">Agreement Period: *</label>
+                <input
+                  type="text"
+                  name="Agreement_Period"
+                  id="Agreement_Period"
+                  className="border w-full rounded-md p-2 mt-2 outline-none"
+                  value={input.Agreement_Period}
+                  onChange={handleChange}
+                />
+                {errors.Agreement_Period && <p className="text-red-500">{errors.Agreement_Period}</p>}
+              </div>
+
+              <div className="mb-4 md:w-6/12">
+                <label htmlFor="client_standard">Client Standard: *</label>
                 <input
                   type="text"
                   name="client_standard"
@@ -348,53 +393,60 @@ const ClientManagement = () => {
                 />
                 {errors.client_standard && <p className="text-red-500">{errors.client_standard}</p>}
               </div>
-              <div className="mb-4 md:w-6/12">
-                <label htmlFor="Agreement_Period">Agreement Period: *</label>
-                <select
-                  name="Agreement_Period"
-                  id="Agreement_Period"
-                  className="w-full border p-2 rounded-md mt-2"
-                  value={input.Agreement_Period}
-                  onChange={handleChange}
-                >
-                  <option value="">Select Period</option>
-                  <option value="Period1">Period1</option>
-                  <option value="Period2">Period2</option>
-                  <option value="Period3">Period3</option>
-                </select>
-                {errors.Agreement_Period && <p className="text-red-500">{errors.Agreement_Period}</p>}
-              </div>
-
             </div>
+
             <div className="mb-4">
-              <label>Upload Agreement : *</label>
+              <label htmlFor="c_logo">Company Logo:</label>
               <input
                 type="file"
-                name="agr_upload"
-                id='agreement_upload'
+                name="c_logo"
+                id="c_logo"
                 className="border w-full rounded-md p-2 mt-2 outline-none"
                 onChange={handleChange}
               />
+              {errors.c_logo && <p className="text-red-500">{errors.c_logo}</p>}
             </div>
+
             <div className="mb-4">
-              <label htmlFor="" >Required Custom Template:*</label>
-              <select name="" id="" value={input.required} onChange={handleChange} className="border  rounded-md w-full mt-3 p-2">
-                <option value="Yes">Yes</option>
-                <option value="No">No</option>
-              </select>
+              <label htmlFor="agr_upload">Agreement Upload:</label>
+              <input
+                type="file"
+                name="agr_upload"
+                id="agr_upload"
+                className="border w-full rounded-md p-2 mt-2 outline-none"
+                onChange={handleChange}
+              />
+              {errors.agr_upload && <p className="text-red-500">{errors.agr_upload}</p>}
             </div>
+
             <div className="mb-4">
-            <label htmlFor=""  onChange={handleChange}>Additional login required?:</label>
-            <div className="flex items-center gap-10 mt-4"> <div > <input type="radio" name="yes" id="" className="me-2" />Yes</div>
-            <div className=""> <input type="radio" name="yes" id="" className="me-2" />No</div></div>
+              <label htmlFor="required">Additional login required?:</label>
+              <div className="flex items-center gap-10 mt-4">
+                <div>
+                  <input
+                    type="radio"
+                    name="required"
+                    value="Yes"
+                    checked={input.required === "Yes"}
+                    onChange={handleChange}
+                    className="me-2"
+                  />Yes
+                </div>
+                <div>
+                  <input
+                    type="radio"
+                    name="required"
+                    value="No"
+                    checked={input.required === "No"}
+                    onChange={handleChange}
+                    className="me-2"
+                  />No
+                </div>
+              </div>
+            </div>
 
-            
-
-             
-          </div>
             {branchForms.map((form, index) => (
-              <div className="my-8" id="AddMoreClient" key={index}>
-
+              <div className="my-8" key={index}>
                 <div className="mb-4">
                   <label htmlFor={`branch_name_${index}`}>Branch Name: *</label>
                   <input
@@ -418,36 +470,43 @@ const ClientManagement = () => {
                     onChange={(e) => handleChange(e, index)}
                   />
                   {errors[`branch_email_${index}`] && <p className="text-red-500">{errors[`branch_email_${index}`]}</p>}
-                  <button
-                    type="button"
-                    className="bg-red-400 mt-5 text-white p-3 rounded-md hover:bg-red-200"
-                    onClick={() => deleteField(index)}
-                  >
-                    Delete
-                  </button>
                 </div>
+                <div className="mb-4">
+                  <label htmlFor={`branch_c_logo_${index}`}>Branch Logo:</label>
+                  <input
+                    type="file"
+                    name="branch_c_logo"
+                    id={`branch_c_logo_${index}`}
+                    className="border w-full rounded-md p-2 mt-2 outline-none"
+                    onChange={(e) => handleChange(e, index)}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="text-red-500"
+                  onClick={() => deleteField(index)}
+                >
+                  Delete Branch
+                </button>
               </div>
             ))}
+
             <button
               type="button"
-              id="AddMore"
+              className="bg-blue-500 text-white rounded-md px-4 py-2 mb-4"
               onClick={addMoreFields}
-              className="bg-green-400 w-full text-white p-3 rounded-md hover:bg-green-200"
             >
-              Add More
+              Add More Branches
             </button>
 
-            <div className="flex justify-center">
-              <button
-                type="submit"
-                className="bg-green-200 w-full text-white p-3 mt-5 rounded-md hover:bg-green-500"
-              >
-                Submit
-              </button>
-            </div>
+            <button
+              type="submit"
+              className="bg-blue-500 text-white rounded-md px-4 py-2"
+            >
+              Submit
+            </button>
           </form>
         </div>
-        <ClientManagementData/>
       </div>
     </>
   );

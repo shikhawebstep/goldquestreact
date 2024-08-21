@@ -13,29 +13,28 @@ import { PaginationProvider } from './Pages/PaginationContext';
 import Admin from './Middleware/Admin';
 import { PackageProvider } from './Pages/PackageContext';
 import { ServiceProvider } from './Pages/ServiceContext';
+
 const App = () => {
   return (
- 
-<PaginationProvider>
-<ServiceProvider>
-<PackageProvider>
-    <Router basename='/demo/Goldquest/public/'>
-      <Routes>
-          <Route path='/' element={<Admin><Render /></Admin>}/>
-          <Route path='customerlogin' element={<CustomerLogin />} />
-          <Route path='/admin-login' element={<Login />} />
-          <Route path='forgotpassword' element={<ForgotPassword />} />
-          <Route path='forgotpassword/passwordreset' element={<PasswordReset />} />
-          <Route path='/newpassword' element={<SetNewPassword />} />
-          <Route path='/customer-login' element={<Login />} />
-          <Route path='/customer-dashboard' element={<Admin><CustomerDashboard /></Admin>} />
-          <Route path='/trackerstatus' element={<Admin><ExelTrackerStatus /></Admin>} />
-      </Routes>
-    </Router>
-    </PackageProvider>
-    </ServiceProvider>
+    <PaginationProvider>
+      <PackageProvider>
+        <ServiceProvider>
+          <Router basename='/demo/Goldquest'>
+            <Routes>
+              <Route path='/' element={<Admin><Render /></Admin>} />
+              <Route path='customerlogin' element={<CustomerLogin />} />
+              <Route path='/admin-login' element={<Login />} />
+              <Route path='forgotpassword' element={<ForgotPassword />} />
+              <Route path='forgotpassword/passwordreset' element={<PasswordReset />} />
+              <Route path='/newpassword' element={<SetNewPassword />} />
+              <Route path='/customer-login' element={<Login />} />
+              <Route path='/customer-dashboard' element={<Admin><CustomerDashboard /></Admin>} />
+              <Route path='/trackerstatus' element={<Admin><ExelTrackerStatus /></Admin>} />
+            </Routes>
+          </Router>
+        </ServiceProvider>
+      </PackageProvider>
     </PaginationProvider>
-    
   );
 }
 

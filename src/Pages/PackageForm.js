@@ -97,13 +97,12 @@ const PackageForm = ({ onSuccess }) => {
                             throw new Error(text);
                         });
                     }
-                    const newtoken = localStorage.getItem("_token");
                     return response.json();
 
                 })
                 .then(result => {
                     
-                    const newToken = result._token && result.token; // Use result.token if result._token is not available
+                    const newToken = result._token || result.token; // Use result.token if result._token is not available
                     if (newToken) {
                         localStorage.setItem("_token", newToken); // Replace the old token with the new one
                     }

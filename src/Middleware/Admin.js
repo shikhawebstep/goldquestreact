@@ -1,12 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios'; 
-
+import { LoaderContext } from '../LoaderContext';
+import Loader from '../Loader'
 const Admin = ({ children }) => {
-  const [loading, setLoading] = useState(true);
+
+
+  const {loading, setLoading} = useContext(LoaderContext);
+  
   const navigate = useNavigate();
   const location = useLocation();
-
+ 
   useEffect(() => {
     const checkAuthentication = async () => {
       const storedAdminData = localStorage.getItem("admin");
@@ -51,7 +55,11 @@ const Admin = ({ children }) => {
   }, [navigate, location]);
 
   if (loading) {
-    return <div className='m-auto w-full text-center'>Loading...</div>; 
+    return (
+    <>
+    <Loader/>
+    </>
+    );
   }
 
   return children; 

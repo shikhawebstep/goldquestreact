@@ -38,7 +38,7 @@ const PackageManagementList = ({ refreshTrigger }) => {
                 return response.json();
             })
             .then((data) => {
-                const newToken = data._token && data.token; // Use result.token if result._token is not available
+                const newToken = data._token || data.token; // Use result.token if result._token is not available
                 if (newToken) {
                     localStorage.setItem("_token", newToken); // Replace the old token with the new one
                 }

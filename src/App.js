@@ -13,9 +13,11 @@ import { PaginationProvider } from './Pages/PaginationContext';
 import Admin from './Middleware/Admin';
 import { PackageProvider } from './Pages/PackageContext';
 import { ServiceProvider } from './Pages/ServiceContext';
+import { LoaderProvider } from './LoaderContext';
 
 const App = () => {
   return (
+    <LoaderProvider>
     <PaginationProvider>
       <PackageProvider>
         <ServiceProvider>
@@ -35,6 +37,7 @@ const App = () => {
         </ServiceProvider>
       </PackageProvider>
     </PaginationProvider>
+    </LoaderProvider>
   );
 }
 

@@ -1,10 +1,12 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useMemo } from 'react';
 import PaginationContext from '../Pages/PaginationContext';
 import Pagination from '../Pages/Pagination';
 
 const BulkUploadList = () => {
   const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
-  const bulkList = [
+
+  // Wrap bulkList in useMemo to avoid unnecessary re-renders
+  const bulkList = useMemo(() => [
     {
       sl: "",
       org_name: "",
@@ -13,16 +15,16 @@ const BulkUploadList = () => {
       folder: "",
       remarks: "",
     },
-    
-  ];
+  ], []);
+
   const [paginated, setPaginated] = useState([]);
 
-    useEffect(() => {
-        setTotalResults(bulkList.length);
-        const startIndex = (currentItem - 1) * showPerPage;
-        const endIndex = startIndex + showPerPage;
-        setPaginated(bulkList.slice(startIndex, endIndex));
-    }, [currentItem, setTotalResults]);
+  useEffect(() => {
+    setTotalResults(bulkList.length);
+    const startIndex = (currentItem - 1) * showPerPage;
+    const endIndex = startIndex + showPerPage;
+    setPaginated(bulkList.slice(startIndex, endIndex));
+  }, [currentItem, setTotalResults, bulkList, showPerPage]);
 
   return (
     <>
@@ -59,9 +61,8 @@ const BulkUploadList = () => {
             )}
           </tbody>
         </table>
-        
       </div>
-      <Pagination/>
+      <Pagination />
     </>
   );
 }

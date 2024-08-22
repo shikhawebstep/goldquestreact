@@ -1,9 +1,9 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import PaginationContext from '../Pages/PaginationContext';
 import Pagination from '../Pages/Pagination';
 const DropBoxList = () => {
     const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
-    const reports = [
+    const reports =useMemo(()=> [
         {
             num: '01',
             photo: "26-06-2024",
@@ -23,7 +23,7 @@ const DropBoxList = () => {
             edit:"edit",
             delete:"delete",
         }
-    ];
+    ],[]);
     const [paginated, setPaginated] = useState([]);
 
     useEffect(() => {
@@ -31,7 +31,7 @@ const DropBoxList = () => {
         const startIndex = (currentItem - 1) * showPerPage;
         const endIndex = startIndex + showPerPage;
         setPaginated(reports.slice(startIndex, endIndex));
-    }, [currentItem, setTotalResults]);
+    }, [currentItem, setTotalResults,reports,showPerPage]);
     return (
         <>
 

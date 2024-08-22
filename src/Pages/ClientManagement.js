@@ -60,7 +60,7 @@ const ClientManagement = () => {
     if (!input.mobile_number){
       newErrors.mobile_number = "This field is required*";
     } 
-    else if(input.mobile_number.length !=10){
+    else if(input.mobile_number.length !==10){
       newErrors.mobile_number = "Please enter a valid phone number,containing 10 characters";
     }
     if (!input.email) newErrors.email = "This field is required*";

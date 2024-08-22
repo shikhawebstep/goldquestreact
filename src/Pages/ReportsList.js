@@ -1,11 +1,12 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import PaginationContext from './PaginationContext';
 import Pagination from './Pagination';
 
 const ReportsList = () => {
   const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
 
-    const reports = [
+    const reports =useMemo(()=>
+      [
         {
           num:'01',
           date: "26-06-2024",
@@ -51,16 +52,8 @@ const ReportsList = () => {
           generatedBy: "john smith",
           qcStatus: "No"
         },
-        {
-          num:'06',
-          date: "26-06-2024",
-          applicationId: "GQ-MANYATA-466",
-          applicantName: "Imran Umarsab Kerehittal Shek",
-          status: "completed",
-          generatedBy: "john smith",
-          qcStatus: "No"
-        }
-      ];
+       
+      ],[] ) ;
       const [paginatedData, setPaginatedData] = useState([]);
 
       useEffect(() => {

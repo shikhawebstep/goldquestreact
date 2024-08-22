@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import SearchBar from './SearchBar';
 import Pagination from './Pagination';
 import PaginationContext from './PaginationContext';
@@ -6,10 +6,10 @@ import PaginationContext from './PaginationContext';
 const ExternalLoginData = () => {
   const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
 
-  const LoginData = [
+  const LoginData =useMemo(()=> [
     { SL: "01", c_code: "NA_2423", company_name: "Antraweb Technologies Pvt Ltd", username: 'manisha.poojary@antraweb.com' },
     { SL: "02", c_code: "NA_2423", company_name: "Waterwala Labs Pvt Ltd", username: 'shruti@drinkprime.in' },
-  ];
+  ],[]);
   const [paginatedData, setPaginatedData] = useState([]);
 
   useEffect(() => {

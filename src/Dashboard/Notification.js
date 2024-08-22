@@ -3,7 +3,7 @@ import NotificationBox from './NotificationBox';
 import { IoNotificationsCircleSharp } from "react-icons/io5";
 
 const Notification = () => {
-  const [notifications, setNotifications] = useState([
+  const [notifications] = useState([
     { id: 1, message: 'Success! Your action was successful.', type: 'success' },
     { id: 2, message: 'Info! This is some information.', type: 'info' },
     { id: 3, message: 'Warning! Be careful with this.', type: 'warning' },

@@ -8,13 +8,13 @@ const ServiceList = () => {
     const { setTotalResults, showPerPage } = useContext(PaginationContext);
 
     const [data, setData] = useState([]);
-    const [packages, setPackages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [paginated, setPaginated] = useState([]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
+    const [currentPage] = useState(1);
+    const [setTotalPages] = useState(1);
     const { editService } = useService();
+
     const fetchData = useCallback(async () => {
         try {
             setLoading(true);
@@ -47,7 +47,6 @@ const ServiceList = () => {
                 title: item.title,
                 description: item.description,
                 id: item.id,
-                package_id: item.package_id
             }));
 
             setData(processedData);
@@ -59,72 +58,23 @@ const ServiceList = () => {
         } finally {
             setLoading(false);
         }
-    }, [setTotalResults, showPerPage]);
-
-    const fetchPackageData = useCallback(async () => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
-            const storedToken = localStorage.getItem("_token");
-
-            const queryParams = new URLSearchParams({
-                admin_id: admin_id || '',
-                _token: storedToken || ''
-            }).toString();
-
-            const res = await fetch(`https://goldquestreact.onrender.com/package/list?${queryParams}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!res.ok) {
-                throw new Error('Network response was not ok');
-            }
-
-            const result = await res.json();
-            console.log('Fetched packages data:', result);
-            setPackages(result.packages || []);
-        } catch (error) {
-            console.error('Fetch error:', error);
-            setError('Failed to load data');
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    }, [setTotalResults,setTotalPages, showPerPage]);
 
     useEffect(() => {
         fetchData();
-        fetchPackageData();
-    }, [fetchData, fetchPackageData]);
+    }, [fetchData]);
 
     useEffect(() => {
-        console.log('Packages data:', packages);
+        const start = (currentPage - 1) * showPerPage;
+        const end = start + showPerPage;
+        setPaginated(data.slice(start, end));
+    }, [data, currentPage, showPerPage]);
 
-        const startIndex = (currentPage - 1) * showPerPage;
-        const endIndex = startIndex + showPerPage;
-        const paginatedData = data.slice(startIndex, endIndex).map(service => {
-            console.log('service.package_id:', service.package_id);
-            const servicePackage = packages.find(pkg => String(pkg.id) === String(service.package_id));
-            console.log('servicePackage:', servicePackage);
-            return {
-                ...service,
-                packageTitle: servicePackage ? servicePackage.title : 'N/A'
-            };
-        });
-        setPaginated(paginatedData);
-    }, [currentPage, showPerPage, data, packages]);
-
-    //function to edit items
-    const handleEditService = ((service) => {
+    const handleEditService = (service) => {
         editService(service);
-        console.log('editing service:', service);
-    });
+        console.log('Editing service:', service);
+    };
 
-    //function to delete items
     const handleDelete = (serviceId) => {
         Swal.fire({
             title: 'Are you sure?',
@@ -184,6 +134,7 @@ const ServiceList = () => {
             }
         });
     };
+
     return (
         <div className='overflow-auto'>
             {loading && <p>Loading...</p>}
@@ -194,7 +145,6 @@ const ServiceList = () => {
                         <th className="py-2 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">SL</th>
                         <th className="py-2 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Service Name</th>
                         <th className="py-2 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Service Description</th>
-                        <th className="py-2 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Package</th>
                         <th className="py-2 px-4 text-white border-r border-b text-center uppercase whitespace-nowrap">Action</th>
                     </tr>
                 </thead>
@@ -205,14 +155,24 @@ const ServiceList = () => {
                                 <td className="py-2 px-4 border-l border-r border-b whitespace-nowrap">{item.index}</td>
                                 <td className="py-2 px-4 border-r border-b whitespace-nowrap">{item.title}</td>
                                 <td className="py-2 px-4 border-r border-b whitespace-nowrap">{item.description}</td>
-                                <td className="py-2 px-4 border-r border-b whitespace-nowrap">{item.packageTitle}</td>
                                 <td className="py-2 px-4 border-r border-b whitespace-nowrap text-center">
-                                    <button className='bg-green-500 rounded-md hover:bg-green-200 p-2 text-white' onClick={(() => { handleEditService(item) })}>Edit</button>
-                                    <button className='bg-red-600 rounded-md p-2 text-white ms-2' onClick={() => { handleDelete(item.id) }}>Delete</button>
+                                    <button
+                                        disabled={loading}
+                                        className='bg-green-500 rounded-md hover:bg-green-200 p-2 text-white'
+                                        onClick={() => handleEditService(item)}
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        disabled={loading}
+                                        className='bg-red-600 rounded-md p-2 text-white ms-2'
+                                        onClick={() => handleDelete(item.id)}
+                                    >
+                                        Delete
+                                    </button>
                                 </td>
                             </tr>
                         ))
-
                     ) : (
                         <tr>
                             <td colSpan="6" className="py-6 px-4 border-l border-r text-center border-b whitespace-nowrap">
@@ -222,10 +182,7 @@ const ServiceList = () => {
                     )}
                 </tbody>
             </table>
-            {paginated.length>0?(
-                <Pagination />
-            ):('')}
-            
+            {paginated.length > 0 && <Pagination />}
         </div>
     );
 };

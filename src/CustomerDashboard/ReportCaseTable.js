@@ -1,24 +1,19 @@
 import React, { useContext, useEffect, useState } from 'react';
 import PaginationContext from '../Pages/PaginationContext';
 import Pagination from '../Pages/Pagination';
+import { useMemo } from 'react';
 
 const ReportCaseTable = () => {
     const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
 
     const [expandedRows, setExpandedRows] = useState([]);
 
-    const ReportData = [
+    const ReportData =useMemo(()=> [
         { sl: "1",id: "GQ-NLT-9", applicant_name: "Neelakumar M", applicant_id: "	NA", iniation_date: "29-07-2024", report_date: "22-06-2024",let_em: "NIL",ex_em: "NIL", prev_emp_3:"null",prev_emp_4:"null",prev_emp_5:"null", per_add:"WIP",cur_add:"NIL",post_garduation:"WIP",graduation:"NIL",twelth:"NIL",tenth:"NIL",diploama:"NIL", nat_identity:"COMPLETED GREEN",nat_identity2:"NIL", overall_status:"WIP" },
         { sl: "1",id: "GQ-NLT-9", applicant_name: "Neelakumar M", applicant_id: "	NA", iniation_date: "29-07-2024", report_date: "22-06-2024",let_em: "NIL",ex_em: "NIL", prev_emp_3:"null",prev_emp_4:"null",prev_emp_5:"null", per_add:"WIP",cur_add:"NIL",post_garduation:"WIP",graduation:"NIL",twelth:"NIL",tenth:"NIL",diploama:"NIL", nat_identity:"COMPLETED GREEN",nat_identity2:"NIL", overall_status:"WIP" },
         { sl: "1",id: "GQ-NLT-9", applicant_name: "Neelakumar M", applicant_id: "	NA", iniation_date: "29-07-2024", report_date: "22-06-2024",let_em: "NIL",ex_em: "NIL", prev_emp_3:"null",prev_emp_4:"null",prev_emp_5:"null", per_add:"WIP",cur_add:"NIL",post_garduation:"WIP",graduation:"NIL",twelth:"NIL",tenth:"NIL",diploama:"NIL", nat_identity:"COMPLETED GREEN",nat_identity2:"NIL", overall_status:"WIP" },
-        { sl: "1",id: "GQ-NLT-9", applicant_name: "Neelakumar M", applicant_id: "	NA", iniation_date: "29-07-2024", report_date: "22-06-2024",let_em: "NIL",ex_em: "NIL", prev_emp_3:"null",prev_emp_4:"null",prev_emp_5:"null", per_add:"WIP",cur_add:"NIL",post_garduation:"WIP",graduation:"NIL",twelth:"NIL",tenth:"NIL",diploama:"NIL", nat_identity:"COMPLETED GREEN",nat_identity2:"NIL", overall_status:"WIP" },
-        { sl: "1",id: "GQ-NLT-9", applicant_name: "Neelakumar M", applicant_id: "	NA", iniation_date: "29-07-2024", report_date: "22-06-2024",let_em: "NIL",ex_em: "NIL", prev_emp_3:"null",prev_emp_4:"null",prev_emp_5:"null", per_add:"WIP",cur_add:"NIL",post_garduation:"WIP",graduation:"NIL",twelth:"NIL",tenth:"NIL",diploama:"NIL", nat_identity:"COMPLETED GREEN",nat_identity2:"NIL", overall_status:"WIP" },
-        { sl: "1",id: "GQ-NLT-9", applicant_name: "Neelakumar M", applicant_id: "	NA", iniation_date: "29-07-2024", report_date: "22-06-2024",let_em: "NIL",ex_em: "NIL", prev_emp_3:"null",prev_emp_4:"null",prev_emp_5:"null", per_add:"WIP",cur_add:"NIL",post_garduation:"WIP",graduation:"NIL",twelth:"NIL",tenth:"NIL",diploama:"NIL", nat_identity:"COMPLETED GREEN",nat_identity2:"NIL", overall_status:"WIP" },
-        { sl: "1",id: "GQ-NLT-9", applicant_name: "Neelakumar M", applicant_id: "	NA", iniation_date: "29-07-2024", report_date: "22-06-2024",let_em: "NIL",ex_em: "NIL", prev_emp_3:"null",prev_emp_4:"null",prev_emp_5:"null", per_add:"WIP",cur_add:"NIL",post_garduation:"WIP",graduation:"NIL",twelth:"NIL",tenth:"NIL",diploama:"NIL", nat_identity:"COMPLETED GREEN",nat_identity2:"NIL", overall_status:"WIP" },
-        { sl: "1",id: "GQ-NLT-9", applicant_name: "Neelakumar M", applicant_id: "	NA", iniation_date: "29-07-2024", report_date: "22-06-2024",let_em: "NIL",ex_em: "NIL", prev_emp_3:"null",prev_emp_4:"null",prev_emp_5:"null", per_add:"WIP",cur_add:"NIL",post_garduation:"WIP",graduation:"NIL",twelth:"NIL",tenth:"NIL",diploama:"NIL", nat_identity:"COMPLETED GREEN",nat_identity2:"NIL", overall_status:"WIP" },
-        { sl: "1",id: "GQ-NLT-9", applicant_name: "Neelakumar M", applicant_id: "	NA", iniation_date: "29-07-2024", report_date: "22-06-2024",let_em: "NIL",ex_em: "NIL", prev_emp_3:"null",prev_emp_4:"null",prev_emp_5:"null", per_add:"WIP",cur_add:"NIL",post_garduation:"WIP",graduation:"NIL",twelth:"NIL",tenth:"NIL",diploama:"NIL", nat_identity:"COMPLETED GREEN",nat_identity2:"NIL", overall_status:"WIP" },
-
-    ];
+       
+    ],[]);
     const [paginated, setPaginated] = useState([]);
 
     useEffect(() => {
@@ -26,7 +21,7 @@ const ReportCaseTable = () => {
         const startIndex = (currentItem - 1) * showPerPage;
         const endIndex = startIndex + showPerPage;
         setPaginated(ReportData.slice(startIndex, endIndex));
-    }, [currentItem, setTotalResults]);
+    }, [currentItem, setTotalResults,ReportData,showPerPage]);
 
     const handleToggle = (index) => {
         const newExpandedRows = expandedRows.includes(index)
@@ -35,9 +30,7 @@ const ReportCaseTable = () => {
         setExpandedRows(newExpandedRows);
     };
 
-    const deleteItem=()=>{
-        
-    }
+   
     return (
         <>
             <div className="overflow-x-auto my-14 mx-4 bg-white shadow-md rounded-md">

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect} from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios'; 
 import { LoaderContext } from '../LoaderContext';
@@ -52,7 +52,7 @@ const Admin = ({ children }) => {
     };
 
     checkAuthentication();
-  }, [navigate, location]);
+  }, [navigate,setLoading, location]);
 
   if (loading) {
     return (

@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { MdReport } from "react-icons/md";
 
 const ReportTable = () => {
-  const reports = [
+  const reports = useMemo(()=>[
     {
       num:'01',
       date: "26-06-2024",
@@ -57,7 +57,7 @@ const ReportTable = () => {
       generatedBy: "john smith",
       qcStatus: "No"
     }
-  ];
+  ],[]);
 
   return (
       <div className="overflow-x-auto py-6 px-4">

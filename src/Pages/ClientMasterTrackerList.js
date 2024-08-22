@@ -1,14 +1,14 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import PaginationContext from './PaginationContext';
 import SearchBar from './SearchBar'
 import Pagination from './Pagination'
 import { Link } from 'react-router-dom';
 const ClientMasterTrackerList = () => {
     const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
-    const LoginData = [
+    const LoginData =useMemo(()=> [
         { SL: "01", c_code: "NA_2423", company_name: "Antraweb Technologies Pvt Ltd", client_spoc: 'Manjunath', active_case: "14",check_in: "Check In",  },
         { SL: "02", c_code: "NA_2423", company_name: "Waterwala Labs Pvt Ltd", client_spoc: 'Raj Kumar', active_case: "124",check_in: "Check In",  },
-    ];
+    ],[]);
     const [paginated, setPaginated] = useState([]);
 
     useEffect(() => {
@@ -16,7 +16,7 @@ const ClientMasterTrackerList = () => {
         const startIndex = (currentItem - 1) * showPerPage;
         const endIndex = startIndex + showPerPage;
         setPaginated(LoginData.slice(startIndex, endIndex));
-    }, [currentItem, setTotalResults]);
+    }, [currentItem, setTotalResults,LoginData,showPerPage]);
     return (
         <>
             <div className="bg-white m-4 md:m-24 shadow-md rounded-md p-3">

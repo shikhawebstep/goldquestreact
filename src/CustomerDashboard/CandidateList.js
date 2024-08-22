@@ -1,9 +1,9 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import PaginationContext from '../Pages/PaginationContext';
 import Pagination from "../Pages/Pagination";
 const CandidateList = () => {
     const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
-    const reports = [
+    const reports = useMemo(()=> [
         {
             num: "01",
             applicantName: "Imran Umarsab Kerehittal",
@@ -19,82 +19,10 @@ const CandidateList = () => {
             link: "-link-",
             edit: "edit",
         },
-        {
-            num: "02",
-            applicantName: "Imran Umarsab Kerehittal",
-            emailid: "demo@gmail.com",
-            mobile_num: "6754328657",
-            services: "latest employeement",
-            doc: "Docs view",
-            app_date: "23/-06/2024 12:34 pm",
-            more: "view more",
-            rbgv: "_RBGV",
-            specialbgv: "SBGV",
-            spoc: "soujnya",
-            link: "-link-",
-            edit: "edit",
-        },
-        {
-            num: "03",
-            applicantName: "Imran Umarsab Kerehittal",
-            emailid: "demo@gmail.com",
-            mobile_num: "6754328657",
-            services: "latest employeement",
-            doc: "Docs view",
-            app_date: "23/-06/2024 12:34 pm",
-            more: "view more",
-            rbgv: "_RBGV",
-            specialbgv: "SBGV",
-            spoc: "soujnya",
-            link: "-link-",
-            edit: "edit",
-        },
-        {
-            num: "04",
-            applicantName: "Imran Umarsab Kerehittal",
-            emailid: "demo@gmail.com",
-            mobile_num: "6754328657",
-            services: "latest employeement",
-            doc: "Docs view",
-            app_date: "23/-06/2024 12:34 pm",
-            more: "view more",
-            rbgv: "_RBGV",
-            specialbgv: "SBGV",
-            spoc: "soujnya",
-            link: "-link-",
-            edit: "edit",
-        },
-        {
-            num: "05",
-            applicantName: "Imran Umarsab Kerehittal",
-            emailid: "demo@gmail.com",
-            mobile_num: "6754328657",
-            services: "latest employeement",
-            doc: "Docs view",
-            app_date: "23/-06/2024 12:34 pm",
-            more: "view more",
-            rbgv: "_RBGV",
-            specialbgv: "SBGV",
-            spoc: "soujnya",
-            link: "-link-",
-            edit: "edit",
-        },
-        {
-            num: "06",
-            applicantName: "Imran Umarsab Kerehittal",
-            emailid: "demo@gmail.com",
-            mobile_num: "6754328657",
-            services: "latest employeement",
-            doc: "Docs view",
-            app_date: "23/-06/2024 12:34 pm",
-            more: "view more",
-            rbgv: "_RBGV",
-            specialbgv: "SBGV",
-            spoc: "soujnya",
-            link: "-link-",
-            edit: "edit",
-        },
-    ];
+    
+     
+       
+    ],[]);
     const [paginated, setPaginated] = useState([]);
 
     useEffect(() => {
@@ -102,7 +30,7 @@ const CandidateList = () => {
         const startIndex = (currentItem - 1) * showPerPage;
         const endIndex = startIndex + showPerPage;
         setPaginated(reports.slice(startIndex, endIndex));
-    }, [currentItem, setTotalResults]);
+    }, [currentItem, setTotalResults,reports,showPerPage]);
     return (
         <>
             <div className="overflow-x-auto py-6 px-4 bg-white shadow-md rounded-md md:m-10 m-3">

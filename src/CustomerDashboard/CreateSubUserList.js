@@ -1,15 +1,15 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import PaginationContext from '../Pages/PaginationContext';
 import Pagination from '../Pages/Pagination';
 const CreateSubUserList = () => {
     const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
 
-    const userList=[
+    const userList=useMemo(()=>[
         {
          sl:1,
          Username:"info@rightpick.co.in"
         },
-    ]
+    ],[]);
     const [paginated, setPaginated] = useState([]);
 
     useEffect(() => {
@@ -17,7 +17,7 @@ const CreateSubUserList = () => {
         const startIndex = (currentItem - 1) * showPerPage;
         const endIndex = startIndex + showPerPage;
         setPaginated(userList.slice(startIndex, endIndex));
-    }, [currentItem, setTotalResults,userList]);
+    }, [currentItem, setTotalResults,userList,showPerPage]);
 
 
     return (

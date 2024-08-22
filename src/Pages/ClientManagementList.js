@@ -1,13 +1,13 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import PaginationContext from './PaginationContext';
 import SearchBar from './SearchBar'
 import Pagination from './Pagination'
 const ClientManagementList = () => {
     const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
-    const listData = [
+    const listData =useMemo(()=> [
         { SL: "01", c_code: "NA_2423", company_name: "Antraweb Technologies Pvt Ltd", client_spoc: 'Manjunath', service_agr: "14",contact_person: "Check In", role:"na",mobile:786865885,client_standard:"client standard",services:"service_2",r_bgv:"",s_bgv:""  },
         { SL: "02", c_code: "NA_2423", company_name: "Waterwala Labs Pvt Ltd", client_spoc: 'Raj Kumar', service_agr: "124",contact_person: "Check In", role:"na",mobile:786865885,client_standard:"client standard",services:"service_2",r_bgv:"",s_bgv:""  },
-    ];
+    ],[]);
     const [paginated, setPaginated] = useState([]);
 
     useEffect(() => {
@@ -15,7 +15,7 @@ const ClientManagementList = () => {
         const startIndex = (currentItem - 1) * showPerPage;
         const endIndex = startIndex + showPerPage;
         setPaginated(listData.slice(startIndex, endIndex));
-    }, [currentItem, setTotalResults]);
+    }, [currentItem, setTotalResults,listData,showPerPage]);
 
 
     return (

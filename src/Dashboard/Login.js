@@ -27,7 +27,7 @@ const Login = () => {
       navigate('/', { state: { from: location }, replace: true });
       return;
     }
-  },[])
+  },[location,navigate])
 
 
   return (

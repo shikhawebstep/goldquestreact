@@ -1,11 +1,11 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import PaginationContext from './PaginationContext';
 import Pagination from './Pagination';
 import SearchBar from './SearchBar';
 
 const Acknowledgement = () => {
   const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
-  const Emails = [
+  const Emails =useMemo(()=> [
     {
       sl: "1",
       clientcode: "GQ-XTSPL",
@@ -22,7 +22,7 @@ const Acknowledgement = () => {
       rcvd_date: "22/07/2024",
       send_approvals: "send"
     }
-  ];
+  ],[]);
 
   const [paginated, setPaginated] = useState([]);
 
@@ -31,7 +31,7 @@ const Acknowledgement = () => {
       const startIndex = (currentItem - 1) * showPerPage;
       const endIndex = startIndex + showPerPage;
       setPaginated(Emails.slice(startIndex, endIndex));
-  }, [currentItem, setTotalResults]);
+  }, [currentItem, setTotalResults,Emails,showPerPage]);
   return (
     <>
 

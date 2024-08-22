@@ -11,7 +11,6 @@ import ClientMasterTracker from '../Pages/ClientMasterTracker';
 import ExelTracker from '../Pages/ExelTracker';
 import TatDelay from '../Pages/TatDelay';
 import Acknowledgement from '../Pages/Acknowledgement';
-import TrackUserHistory from '../Pages/TrackUserHistory';
 import UpdatePassword from '../Pages/UpdatePassword';
 import Invoice from '../Pages/Invoice';
 import Header from '../Dashboard/Header';

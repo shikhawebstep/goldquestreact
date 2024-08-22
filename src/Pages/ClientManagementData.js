@@ -1,47 +1,178 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
 import PaginationContext from './PaginationContext';
 import Pagination from './Pagination';
+import Multiselect from 'multiselect-react-dropdown';
 
 const ClientManagementData = () => {
-    const { setTotalResults, currentItem ,showPerPage} = useContext(PaginationContext);
-    const Services = [
-        { service_name: "LATEST EMPLOYMENT-3", },
-        { service_name: "LATEST EMPLOYMENT-1", },
-    ];
-
+    const [selectedValue, setSelectedValue] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [service, setService] = useState([]);
+    const [packageList, setPackageList] = useState([]);
+    const [mergedData, setMergedData] = useState([]);
     const [paginated, setPaginated] = useState([]);
+    const [error, setError] = useState(null);
+    const { setTotalResults, currentItem, showPerPage } = useContext(PaginationContext);
+
+    const fetchServices = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
+            const storedToken = localStorage.getItem("_token");
+            const queryParams = new URLSearchParams({
+                admin_id: admin_id || '',
+                _token: storedToken || ''
+            }).toString();
+            const res = await fetch(`https://goldquestreact.onrender.com/service/list?${queryParams}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(`Network response was not ok: ${res.status} ${errorText}`);
+            }
+            const result = await res.json();
+            console.log('Fetched services:', result); // Log the response
+            if (!result || !Array.isArray(result.services)) {
+                throw new Error('Invalid response format');
+            }
+            const processedServices = (result.services || []).map((item, index) => ({
+                ...item,
+                index: index + 1,
+                service_name: item.service_name,
+            }));
+            setService(processedServices);
+        } catch (error) {
+            console.error("Error fetching services:", error);
+            setError(error.message);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+    
+
+    const fetchPackage = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
+            const storedToken = localStorage.getItem("_token");
+            if (!storedToken) {
+                throw new Error('No token found in local storage');
+            }
+            
+            const queryParams = new URLSearchParams({
+                admin_id: admin_id || '',
+                _token: storedToken || ''
+            }).toString();
+            const res = await fetch(`https://goldquestreact.onrender.com/package/list?${queryParams}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(`Network response was not ok: ${res.status} ${errorText}`);
+            }
+
+            const result = await res.json();
+            const processedPackages = (result.packages || []).map((item) => ({
+                ...item,
+                service_id: item.service_id,
+            }));
+            setPackageList(processedPackages);
+        } catch (error) {
+            console.error("Error fetching packages:", error);
+            setError(error.message);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+
+    const mergeServiceWithPackage = useCallback(() => {
+        const merged = service.map(serviceItem => ({
+            ...serviceItem,
+            packages: packageList.filter(pkg => pkg.service_id === serviceItem.id)
+        }));
+        setMergedData(merged);
+    }, [service, packageList]);
 
     useEffect(() => {
-        setTotalResults(Services.length);
+        fetchServices();
+        fetchPackage();
+    }, [fetchServices, fetchPackage]);
+
+    useEffect(() => {
+        if (service.length > 0 && packageList.length > 0) {
+            mergeServiceWithPackage();
+        }
+    }, [service, packageList, mergeServiceWithPackage]);
+
+    useEffect(() => {
+        setTotalResults(mergedData.length);
         const startIndex = (currentItem - 1) * showPerPage;
         const endIndex = startIndex + showPerPage;
-        setPaginated(Services.slice(startIndex, endIndex));
-    }, [currentItem, setTotalResults]);
+        setPaginated(mergedData.slice(startIndex, endIndex));
+    }, [currentItem, showPerPage, mergedData, setTotalResults]);
+
+    if (loading) {
+        return <p>Loading...</p>;
+    }
+
+    if (error) {
+        return <p>Error: {error}</p>;
+    }
+
+    const onSelect = (selectedList, selectedItem) => {
+        console.log('Selected:', selectedList, selectedItem);
+        setSelectedValue(selectedList);
+    };
+
+    const onRemove = (selectedList, removedItem) => {
+        console.log('Removed:', selectedList, removedItem);
+        setSelectedValue(selectedList);
+    };
 
     return (
         <div className="overflow-x-auto py-6 px-4 bg-white mt-10 md:w-9/12 m-auto">
             <table className="min-w-full">
                 <thead>
                     <tr className='bg-green-500'>
-                        <th className="py-3 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Services Name</th>
+                        <th className="py-3 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Service Name</th>
                         <th className="py-3 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Price</th>
-                        <th className="py-3 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Select Page</th>
+                        <th className="py-3 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Select Package</th>
                     </tr>
                 </thead>
                 <tbody>
                     {paginated.map((item, index) => (
                         <tr key={index}>
-                            <td className="py-3 px-4 border-l border-r border-b whitespace-nowrap"><input type="checkbox" name="" id="" className='me-2'/>{item.service_name}</td>
-                            <td className="py-3 px-4 border-r border-b whitespace-nowrap"></td>
+                            <td className="py-3 px-4 border-l border-r border-b whitespace-nowrap">
+                                <input type="checkbox" className='me-2' />
+                                {item.service_name}
+                            </td>
+                            <td className="py-3 px-4 border-r border-b whitespace-nowrap">
+                                <input type="number" name="" id="" className='outline-none' />
+                            </td>
                             <td className="py-3 px-4 border-r border-b whitespace-nowrap uppercase text-left">
-                            <input type="checkbox" name="" id="" className='me-2'/>Regular BGV
-                            <input type="checkbox" name="" id=""  className='me-2 ms-10'/>special BGV
+                                <Multiselect
+                                    options={item.packages.map(pkg => ({ name: pkg.title, id: pkg.id }))}
+                                    selectedValues={selectedValue}
+                                    onSelect={onSelect}
+                                    onRemove={onRemove}
+                                    displayValue="name"
+                                />
+
                             </td>
                         </tr>
                     ))}
                 </tbody>
             </table>
-            <Pagination/>
+            <Pagination />
         </div>
     );
 }

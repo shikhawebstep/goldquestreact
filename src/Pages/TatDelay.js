@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import PaginationContext from './PaginationContext';
 import SearchBar from './SearchBar'
 import Pagination from './Pagination'
@@ -6,12 +6,13 @@ import Pagination from './Pagination'
 const TatDelay = () => {
   const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
 
-  const tatData = [
-    { sl: "01", tatDays: "12", initiationDate: "NA", applicationId: "GQ-NTIPL-667", employeeName: "Mohammed Zeeshanulla", exceedDays: "-201" },
-    { sl: "02", tatDays: "12", initiationDate: "NA", applicationId: "GQ-NTIPL-667", employeeName: "Mohammed Zeeshanulla", exceedDays: "-201" },
-    { sl: "03", tatDays: "12", initiationDate: "NA", applicationId: "GQ-NTIPL-667", employeeName: "Mohammed Zeeshanulla", exceedDays: "-201" },
-   
-  ];
+  const tatData =useMemo(()=>
+    [
+      { sl: "01", tatDays: "12", initiationDate: "NA", applicationId: "GQ-NTIPL-667", employeeName: "Mohammed Zeeshanulla", exceedDays: "-201" },
+      { sl: "02", tatDays: "12", initiationDate: "NA", applicationId: "GQ-NTIPL-667", employeeName: "Mohammed Zeeshanulla", exceedDays: "-201" },
+      { sl: "03", tatDays: "12", initiationDate: "NA", applicationId: "GQ-NTIPL-667", employeeName: "Mohammed Zeeshanulla", exceedDays: "-201" },
+     
+    ],[]);
   const [paginated, setPaginated] = useState([]);
 
   useEffect(() => {

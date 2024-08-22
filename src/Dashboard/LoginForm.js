@@ -8,11 +8,10 @@ const LoginForm = () => {
     username: '',
     password: '',
   });
-  const [message,setMessage]=useState('');
+  const [message, setMessage] = useState('');
   const [error, setError] = useState({});
   const navigate = useNavigate(); 
   const location = useLocation(); 
-
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -42,17 +41,15 @@ const LoginForm = () => {
 
       axios.post('https://goldquestreact.onrender.com/admin/login', loginData)
         .then((response) => {
-          
           console.log('Login successful:', response.data);
           if (response.data.status) {
             const adminData = response.data.adminData;
             const _token = response.data.token;
-           
             
             localStorage.setItem('admin', JSON.stringify(adminData));
             localStorage.setItem('_token', _token);
-            setMessage('Login Successfull')
-           
+            setMessage('Login Successful');
+            
             console.log('Navigating to dashboard...');
             
             navigate('/', { state: { from: location }, replace: true });
@@ -108,9 +105,13 @@ const LoginForm = () => {
             <input className="mr-2 leading-tight" type="checkbox" />
             <span className="text-sm">Remember me</span>
           </label>
-          <a href="#" className="inline-block align-baseline font-bold text-sm text-red-500 hover:text-blue-800">
+          <button
+            type="button"
+            className="inline-block align-baseline font-bold text-sm text-red-500 hover:text-blue-800"
+            onClick={() => alert('Forgot Password functionality is not yet implemented.')}
+          >
             Forgot Password?
-          </a>
+          </button>
         </div>
         <div className="flex items-center justify-between">
           <button
@@ -123,7 +124,14 @@ const LoginForm = () => {
       </form>
       <div className="text-center my-4">
         <p className="text-sm">
-          Don't have an account? <a href="#" className="text-red-500 hover:text-blue-800">Sign up</a>
+          Don't have an account? 
+          <button
+            type="button"
+            className="text-red-500 hover:text-blue-800 font-bold"
+            onClick={() => alert('Sign up functionality is not yet implemented.')}
+          >
+            Sign up
+          </button>
         </p>
       </div>
       <div className="flex items-center justify-between my-4">
@@ -144,7 +152,6 @@ const LoginForm = () => {
       </div>
       {message && <p className="text-green-500 text-center mt-4">{message}</p>}
     </div>
-   
   );
 };
 

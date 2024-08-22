@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import PaginationContext from './PaginationContext';
 
 const Pagination = () => {
-  const { currentItem, setCurrentItem, showPerPage, setShowPerPage, totalResults, setTotalResults, totalPages} = useContext(PaginationContext);
+  const { currentItem, setCurrentItem, showPerPage, totalResults, totalPages} = useContext(PaginationContext);
 
   const showNext = () => {
     if (currentItem < totalPages) {

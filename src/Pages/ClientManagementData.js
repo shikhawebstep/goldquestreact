@@ -2,20 +2,22 @@ import React, { useEffect, useState, useContext, useCallback } from 'react';
 import PaginationContext from './PaginationContext';
 import Pagination from './Pagination';
 import Multiselect from 'multiselect-react-dropdown';
+import { useClient } from './ClientManagementContext';
 
 const ClientManagementData = () => {
-    const [selectedValue, setSelectedValue] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { setClientData } = useClient();
+
     const [service, setService] = useState([]);
     const [packageList, setPackageList] = useState([]);
-    const [mergedData, setMergedData] = useState([]);
     const [paginated, setPaginated] = useState([]);
     const [error, setError] = useState(null);
+    const [loading] = useState(false);
+    const [selectedPackages, setSelectedPackages] = useState({});
+    const [priceData, setPriceData] = useState({});
     const { setTotalResults, currentItem, showPerPage } = useContext(PaginationContext);
 
     const fetchServices = useCallback(async () => {
         try {
-            setLoading(true);
             setError(null);
             const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
             const storedToken = localStorage.getItem("_token");
@@ -34,36 +36,31 @@ const ClientManagementData = () => {
                 throw new Error(`Network response was not ok: ${res.status} ${errorText}`);
             }
             const result = await res.json();
-            console.log('Fetched services:', result); // Log the response
             if (!result || !Array.isArray(result.services)) {
                 throw new Error('Invalid response format');
             }
-            const processedServices = (result.services || []).map((item, index) => ({
+            const processedServices = (result.services || []).map((item) => ({
                 ...item,
-                index: index + 1,
                 service_name: item.title,
                 service_id: item.id,
+                price: '', // Initialize price
+                selectedPackages: [] // Initialize selected packages
             }));
             setService(processedServices);
         } catch (error) {
             console.error("Error fetching services:", error);
             setError(error.message);
-        } finally {
-            setLoading(false);
         }
     }, []);
 
-
     const fetchPackage = useCallback(async () => {
         try {
-            setLoading(true);
             setError(null);
             const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
             const storedToken = localStorage.getItem("_token");
             if (!storedToken) {
                 throw new Error('No token found in local storage');
             }
-
             const queryParams = new URLSearchParams({
                 admin_id: admin_id || '',
                 _token: storedToken || '',
@@ -74,51 +71,21 @@ const ClientManagementData = () => {
                     'Content-Type': 'application/json'
                 }
             });
-
             if (!res.ok) {
                 const errorText = await res.text();
                 throw new Error(`Network response was not ok: ${res.status} ${errorText}`);
             }
-
             const result = await res.json();
-
             const processedPackages = (result.packages || []).map((item) => ({
                 ...item,
-                service_id: item.id, 
+                service_id: item.id,
             }));
-            console.log('Fetched packages', result.packages);
             setPackageList(processedPackages);
         } catch (error) {
             console.error("Error fetching packages:", error);
             setError(error.message);
-        } finally {
-            setLoading(false);
         }
     }, []);
-
-    const mergeServiceWithPackage = useCallback(() => {
-        const merged = service.map(serviceItem => {
-            if (!serviceItem || !serviceItem.id) {
-                console.error('Service item is missing or undefined:', serviceItem);
-                return serviceItem;
-            }
-
-            const relatedPackages = packageList.filter(pkg => {
-                return pkg.id === serviceItem.id;
-            });
-            console.log(relatedPackages);
-            console.log(`Service: ${serviceItem.service_name}`, 'Related Packages:', relatedPackages);
-
-            return {
-                ...serviceItem,
-                packages: relatedPackages
-            };
-        });
-
-        setMergedData(merged);
-        console.log('Merged Data:', merged);
-    }, [service, packageList]);
-
 
     useEffect(() => {
         fetchServices();
@@ -126,17 +93,29 @@ const ClientManagementData = () => {
     }, [fetchServices, fetchPackage]);
 
     useEffect(() => {
-        if (service.length > 0 && packageList.length > 0) {
-            mergeServiceWithPackage();
-        }
-    }, [service, packageList, mergeServiceWithPackage]);
-
-    useEffect(() => {
-        setTotalResults(mergedData.length);
+        const updatedServiceData = service.map((item, index) => {
+            const packages = (selectedPackages[index] || []).reduce((acc, pkgId) => {
+                const pkg = packageList.find(p => p.id === pkgId);
+                if (pkg) {
+                    acc[pkg.title] = ''; 
+                }
+                return acc;
+            }, {});
+    
+            return {
+                serviceId: item.service_id,
+                serviceTitle: item.title, 
+                price: priceData[index]?.price || '',
+                packages: packages,
+            };
+        });
+    
+        setClientData(updatedServiceData);
+        setTotalResults(updatedServiceData.length);
         const startIndex = (currentItem - 1) * showPerPage;
         const endIndex = startIndex + showPerPage;
-        setPaginated(mergedData.slice(startIndex, endIndex));
-    }, [currentItem, showPerPage, mergedData, setTotalResults]);
+        setPaginated(updatedServiceData.slice(startIndex, endIndex));
+    }, [currentItem, showPerPage, service, selectedPackages, priceData, setTotalResults, setClientData, packageList]);
 
     if (loading) {
         return <p>Loading...</p>;
@@ -146,18 +125,52 @@ const ClientManagementData = () => {
         return <p>Error: {error}</p>;
     }
 
-    const onSelect = (selectedList, selectedItem) => {
-        console.log('Selected:', selectedList, selectedItem);
-        setSelectedValue(selectedList);
+    const handlePackageSelect = (selectedList, rowIndex) => {
+        const updatedPackages = selectedList.map(item => item.id);
+        setSelectedPackages(prev => ({
+            ...prev,
+            [rowIndex]: updatedPackages,
+        }));
+
+        setService(prevService => {
+            const updatedService = [...prevService];
+            updatedService[rowIndex].selectedPackages = updatedPackages;
+            return updatedService;
+        });
     };
 
-    const onRemove = (selectedList, removedItem) => {
-        console.log('Removed:', selectedList, removedItem);
-        setSelectedValue(selectedList);
+    const handlePackageRemove = (selectedList, rowIndex) => {
+        const updatedPackages = selectedList.map(item => item.id);
+        setSelectedPackages(prev => ({
+            ...prev,
+            [rowIndex]: updatedPackages,
+        }));
+
+        setService(prevService => {
+            const updatedService = [...prevService];
+            updatedService[rowIndex].selectedPackages = updatedPackages;
+            return updatedService;
+        });
+    };
+
+    const handleChange = (e, index) => {
+        const { name, value } = e.target;
+        setPriceData(prev => ({
+            ...prev,
+            [index]: {
+                ...prev[index],
+                [name]: value
+            }
+        }));
+        setService(prevService => {
+            const updatedService = [...prevService];
+            updatedService[index].price = value;
+            return updatedService;
+        });
     };
 
     return (
-        <div className="overflow-x-auto py-6 px-4 bg-white mt-10 md:w-9/12 m-auto">
+        <div className="overflow-x-auto py-6 px-4 bg-white mt-10 m-auto">
             <table className="min-w-full">
                 <thead>
                     <tr className='bg-green-500'>
@@ -171,21 +184,27 @@ const ClientManagementData = () => {
                         <tr key={index}>
                             <td className="py-3 px-4 border-l border-r border-b whitespace-nowrap">
                                 <input type="checkbox" className='me-2' />
-                                {item.title}
+                                {item.serviceTitle}
                             </td>
                             <td className="py-3 px-4 border-r border-b whitespace-nowrap">
-                                <input type="number" name="" id="" className='outline-none' />
+                                <input
+                                    type="number"
+                                    name="price"
+                                    value={priceData[index]?.price || ''}
+                                    onChange={(e) => handleChange(e, index)}
+                                    className='outline-none'
+                                />
                             </td>
                             <td className="py-3 px-4 border-r border-b whitespace-nowrap uppercase text-left">
                                 <Multiselect
-                                    options={item.packages.map(pkg => ({ name: pkg.title, id: pkg.id }))}
-                                    selectedValues={selectedValue}
-                                    onSelect={onSelect}
-                                    onRemove={onRemove}
+                                    options={packageList.map((pkg) => ({ name: pkg.title, id: pkg.id }))}
+                                    selectedValues={packageList
+                                        .filter(pkg => (selectedPackages[index] || []).includes(pkg.id))
+                                        .map(pkg => ({ name: pkg.title, id: pkg.id }))}
+                                    onSelect={(selectedList) => handlePackageSelect(selectedList, index)}
+                                    onRemove={(selectedList) => handlePackageRemove(selectedList, index)}
                                     displayValue="name"
-                                    displayId="id"
                                 />
-
                             </td>
                         </tr>
                     ))}

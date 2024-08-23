@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import ClientManagementData from './ClientManagementData'
+import { useClient } from "./ClientManagementContext";
 const ClientManagement = () => {
+  const {setClientData,clientData} =useClient();
   const [input, setInput] = useState({
     company_name: "",
     client_code: "",
@@ -8,7 +10,6 @@ const ClientManagement = () => {
     state_code: "",
     state: "",
     mobile_number: "",
-    contact_person: "",
     role: "",
     name_of_escalation: "",
     client_spoc: "",
@@ -24,6 +25,7 @@ const ClientManagement = () => {
     custom_address: "",
     username: "",
     package_name: "",
+  
   });
 
   const [branchForms, setBranchForms] = useState([{ branch_name: "", branch_email: "" }]);
@@ -37,25 +39,23 @@ const ClientManagement = () => {
 
   const handleChange = (e, index) => {
     const { name, value, type, files } = e.target;
-
+    
     if (name.startsWith("branch_")) {
       const newBranchForms = [...branchForms];
       newBranchForms[index][name] = type === "file" ? files[0] : value;
       setBranchForms(newBranchForms);
-
-    }
-    else if (name.startsWith("email")) {
+    } else if (name.startsWith("email")) {
       const newEmails = [...emails];
       newEmails[index][name] = type === "file" ? files[0] : value;
-      setEmails(newEmails)
-    }
-    else {
+      setEmails(newEmails);
+    } else {
       setInput((prevInput) => ({
         ...prevInput,
         [name]: type === "file" ? files[0] : value,
       }));
     }
   };
+  
 
   const validate = () => {
     const newErrors = {};
@@ -63,7 +63,6 @@ const ClientManagement = () => {
     if (!input.company_name) newErrors.company_name = "This field is required*";
     if (!input.client_code) newErrors.client_code = "This field is required*";
     if (!input.address) newErrors.address = "This field is required*";
-    if (!input.state_code) newErrors.state_code = "This field is required*";
     if (!input.state) newErrors.state = "This field is required*";
     if (!input.mobile_number) {
       newErrors.mobile_number = "This field is required*";
@@ -71,9 +70,7 @@ const ClientManagement = () => {
     else if (input.mobile_number.length !== 10) {
       newErrors.mobile_number = "Please enter a valid phone number,containing 10 characters";
     }
-    if (!input.email) newErrors.email = "This field is required*";
 
-    if (!input.contact_person) newErrors.contact_person = "This field is required*";
     if (!input.role) newErrors.role = "This field is required*";
     if (!input.name_of_escalation) newErrors.name_of_escalation = "This field is required*";
     if (!input.client_spoc) newErrors.client_spoc = "This field is required*";
@@ -97,6 +94,7 @@ const ClientManagement = () => {
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
+
     const validationErrors = validate();
     console.log('Validation Errors:', validationErrors);
 
@@ -109,7 +107,9 @@ const ClientManagement = () => {
         _token: token,
         ...input,
         branches: branchForms,
-        emails: emails // Ensure you're including branchForms properly
+        emails: emails,
+        clientData:clientData
+         // Ensure you're including branchForms properly
       };
 
       console.log('Request Data:', requestData);
@@ -162,6 +162,7 @@ const ClientManagement = () => {
           });
           setEmails([{ email: "" }])
           setBranchForms([{ branch_name: "", branch_email: "" }]);
+          
           setErrors({});
         })
         .catch((error) => {
@@ -567,7 +568,7 @@ const ClientManagement = () => {
             >
               Add More
             </button>
-
+            <ClientManagementData />
             <div className="flex justify-center">
               <button
                 type="submit"
@@ -576,9 +577,10 @@ const ClientManagement = () => {
                 Submit
               </button>
             </div>
+            
           </form>
         </div>
-        <ClientManagementData />
+        
       </div>
     </>
   );

@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import './index.css'; 
+import './index.css';
 import Render from './Pages/Render';
 import ForgotPassword from './Pages/ForgotPassword';
 import CustomerLogin from './Pages/CustomerLogin';
@@ -14,29 +14,32 @@ import Admin from './Middleware/Admin';
 import { PackageProvider } from './Pages/PackageContext';
 import { ServiceProvider } from './Pages/ServiceContext';
 import { LoaderProvider } from './LoaderContext';
+import { ClientProvider } from './Pages/ClientManagementContext';
 
 const App = () => {
   return (
     <LoaderProvider>
-    <PaginationProvider>
-      <PackageProvider>
-        <ServiceProvider>
-          <Router basename='/demo/Goldquest'>
-            <Routes>
-              <Route path='/' element={<Admin><Render /></Admin>} />
-              <Route path='customerlogin' element={<CustomerLogin />} />
-              <Route path='/admin-login' element={<Login />} />
-              <Route path='forgotpassword' element={<ForgotPassword />} />
-              <Route path='forgotpassword/passwordreset' element={<PasswordReset />} />
-              <Route path='/newpassword' element={<SetNewPassword />} />
-              <Route path='/customer-login' element={<Login />} />
-              <Route path='/customer-dashboard' element={<Admin><CustomerDashboard /></Admin>} />
-              <Route path='/trackerstatus' element={<Admin><ExelTrackerStatus /></Admin>} />
-            </Routes>
-          </Router>
-        </ServiceProvider>
-      </PackageProvider>
-    </PaginationProvider>
+      <PaginationProvider>
+        <ClientProvider>
+          <PackageProvider>
+            <ServiceProvider>
+              <Router basename='/demo/Goldquest'>
+                <Routes>
+                  <Route path='/' element={<Admin><Render /></Admin>} />
+                  <Route path='customerlogin' element={<CustomerLogin />} />
+                  <Route path='/admin-login' element={<Login />} />
+                  <Route path='forgotpassword' element={<ForgotPassword />} />
+                  <Route path='forgotpassword/passwordreset' element={<PasswordReset />} />
+                  <Route path='/newpassword' element={<SetNewPassword />} />
+                  <Route path='/customer-login' element={<Login />} />
+                  <Route path='/customer-dashboard' element={<Admin><CustomerDashboard /></Admin>} />
+                  <Route path='/trackerstatus' element={<Admin><ExelTrackerStatus /></Admin>} />
+                </Routes>
+              </Router>
+            </ServiceProvider>
+          </PackageProvider>
+        </ClientProvider>
+      </PaginationProvider>
     </LoaderProvider>
   );
 }

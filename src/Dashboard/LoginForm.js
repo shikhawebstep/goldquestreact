@@ -9,7 +9,7 @@ const LoginForm = () => {
     username: '',
     password: '',
   });
-  const [message, setMessage] = useState('');
+  const [message, ] = useState('');
   const [error, setError] = useState({});
   const navigate = useNavigate();
   const location = useLocation();

@@ -3,6 +3,8 @@ import { useService } from './ServiceContext';
 
 const ServiceForm = () => {
     const { selectedService, updateServiceList } = useService();
+    const [adminId, setAdminId] = useState(null);
+    const [storedToken, setStoredToken] = useState(null);
 
     const [isEdit, setIsEdit] = useState(false);
     const [serviceInput, setServiceInput] = useState({
@@ -13,6 +15,10 @@ const ServiceForm = () => {
     const [formMessage, setFormMessage] = useState("");
 
     useEffect(() => {
+        const adminData = JSON.parse(localStorage.getItem("admin"));
+        const token = localStorage.getItem("_token");
+        if (adminData) setAdminId(adminData.id);
+        if (token) setStoredToken(token);
         if (selectedService) {
             setServiceInput({
                 name: selectedService.title || '',
@@ -47,16 +53,22 @@ const ServiceForm = () => {
     };
 
     const handleSubmit = (e) => {
+        const adminData = JSON.parse(localStorage.getItem("admin"));
+        const token = localStorage.getItem("_token");
+
+        if (adminData) setAdminId(adminData.id);
+        if (token) setStoredToken(token);
         e.preventDefault();
         const validateError = validate();
 
         if (Object.keys(validateError).length === 0) {
+
             const adminData = JSON.parse(localStorage.getItem("admin"));
             const storedToken = localStorage.getItem("_token");
 
-            if (!adminData || !storedToken) {
+           if (!adminId || !token) {
                 setFormMessage("Admin ID or token is missing.");
-                setTimeout(() => setFormMessage(""), 5000);
+                setTimeout(() => setFormMessage(""), 5000); // Clear message after 5 seconds
                 return;
             }
 
@@ -79,8 +91,24 @@ const ServiceForm = () => {
                 : `https://goldquestreact.onrender.com/service/create`;
 
             fetch(url, requestOptions)
-                .then((response) => response.ok ? response.json() : Promise.reject(response))
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        const errorData = JSON.parse(text);
+                        setFormMessage(`An error occurred: ${errorData.message}`); // Show error message
+                        setTimeout(() => setFormMessage(""), 5000); // Clear message after 5 seconds
+                        throw new Error(text);
+                    });
+                }
+                return response.json();
+            })
                 .then((result) => {
+                    const newToken = result._token || result.token; // Use result.token if result._token is not available
+                    if (newToken) {
+                        localStorage.setItem("_token", newToken); // Replace the old token with the new one
+                    }
+                    setError({});
+                    
                     setFormMessage(isEdit ? 'Service Updated successfully!' : 'Service created successfully!');
 
                     if (isEdit) {
@@ -93,9 +121,8 @@ const ServiceForm = () => {
                     setTimeout(() => setFormMessage(""), 5000);
                 })
                 .catch((error) => {
-                    console.error('Fetch error:', error);
-                    setFormMessage(`An error occurred: ${error.message}`);
-                    setTimeout(() => setFormMessage(""), 5000);
+                    console.error(error);
+                   
                 });
         } else {
             setError(validateError);

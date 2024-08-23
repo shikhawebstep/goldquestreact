@@ -41,7 +41,8 @@ const ClientManagementData = () => {
             const processedServices = (result.services || []).map((item, index) => ({
                 ...item,
                 index: index + 1,
-                service_name: item.service_name,
+                service_name: item.title,
+                service_id: item.id,
             }));
             setService(processedServices);
         } catch (error) {
@@ -51,7 +52,7 @@ const ClientManagementData = () => {
             setLoading(false);
         }
     }, []);
-    
+
 
     const fetchPackage = useCallback(async () => {
         try {
@@ -62,10 +63,10 @@ const ClientManagementData = () => {
             if (!storedToken) {
                 throw new Error('No token found in local storage');
             }
-            
+
             const queryParams = new URLSearchParams({
                 admin_id: admin_id || '',
-                _token: storedToken || ''
+                _token: storedToken || '',
             }).toString();
             const res = await fetch(`https://goldquestreact.onrender.com/package/list?${queryParams}`, {
                 method: 'GET',
@@ -80,10 +81,12 @@ const ClientManagementData = () => {
             }
 
             const result = await res.json();
+
             const processedPackages = (result.packages || []).map((item) => ({
                 ...item,
-                service_id: item.service_id,
+                service_id: item.id, 
             }));
+            console.log('Fetched packages', result.packages);
             setPackageList(processedPackages);
         } catch (error) {
             console.error("Error fetching packages:", error);
@@ -93,14 +96,29 @@ const ClientManagementData = () => {
         }
     }, []);
 
-
     const mergeServiceWithPackage = useCallback(() => {
-        const merged = service.map(serviceItem => ({
-            ...serviceItem,
-            packages: packageList.filter(pkg => pkg.service_id === serviceItem.id)
-        }));
+        const merged = service.map(serviceItem => {
+            if (!serviceItem || !serviceItem.id) {
+                console.error('Service item is missing or undefined:', serviceItem);
+                return serviceItem;
+            }
+
+            const relatedPackages = packageList.filter(pkg => {
+                return pkg.id === serviceItem.id;
+            });
+            console.log(relatedPackages);
+            console.log(`Service: ${serviceItem.service_name}`, 'Related Packages:', relatedPackages);
+
+            return {
+                ...serviceItem,
+                packages: relatedPackages
+            };
+        });
+
         setMergedData(merged);
+        console.log('Merged Data:', merged);
     }, [service, packageList]);
+
 
     useEffect(() => {
         fetchServices();
@@ -153,7 +171,7 @@ const ClientManagementData = () => {
                         <tr key={index}>
                             <td className="py-3 px-4 border-l border-r border-b whitespace-nowrap">
                                 <input type="checkbox" className='me-2' />
-                                {item.service_name}
+                                {item.title}
                             </td>
                             <td className="py-3 px-4 border-r border-b whitespace-nowrap">
                                 <input type="number" name="" id="" className='outline-none' />
@@ -165,6 +183,7 @@ const ClientManagementData = () => {
                                     onSelect={onSelect}
                                     onRemove={onRemove}
                                     displayValue="name"
+                                    displayId="id"
                                 />
 
                             </td>

@@ -1,7 +1,8 @@
 import axios from 'axios';
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom'; 
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FaGoogle, FaFacebook, FaApple } from 'react-icons/fa';
+import Swal from 'sweetalert2';
 
 const LoginForm = () => {
   const [input, setInput] = useState({
@@ -10,8 +11,8 @@ const LoginForm = () => {
   });
   const [message, setMessage] = useState('');
   const [error, setError] = useState({});
-  const navigate = useNavigate(); 
-  const location = useLocation(); 
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -41,26 +42,46 @@ const LoginForm = () => {
 
       axios.post('https://goldquestreact.onrender.com/admin/login', loginData)
         .then((response) => {
-          console.log('Login successful:', response.data);
-          if (response.data.status) {
+          if (!response.data.status) {
+            Swal.fire({
+              title: 'Error!',
+              text: `An error occurred: ${response.data.message}`,
+              icon: 'error',
+              confirmButtonText: 'Ok'
+            });
+
+          } else {
+            console.log('Login successful:', response.data);
+
             const adminData = response.data.adminData;
             const _token = response.data.token;
-            
+
             localStorage.setItem('admin', JSON.stringify(adminData));
             localStorage.setItem('_token', _token);
-            setMessage('Login Successful');
-            
+
+            Swal.fire({
+              title: "Success",
+              text: 'Login Successfull',
+              icon: "success",
+              confirmButtonText: "Ok"
+            })
+
             console.log('Navigating to dashboard...');
-            
+
             navigate('/', { state: { from: location }, replace: true });
             setError({});
-          } else {
-            alert(`Error: ${response.data.message}`);
           }
         })
         .catch((error) => {
-          console.error('Login failed:', error);
+          Swal.fire({
+            title: 'Error!',
+            text: `Error: ${error.response?.data?.message || error.message}`,
+            icon: 'error',
+            confirmButtonText: 'Ok'
+          });
+          console.error('Login failed:', error); // Log the error details
         });
+
     } else {
       setError(errors);
     }
@@ -124,7 +145,7 @@ const LoginForm = () => {
       </form>
       <div className="text-center my-4">
         <p className="text-sm">
-          Don't have an account? 
+          Don't have an account?
           <button
             type="button"
             className="text-red-500 hover:text-blue-800 font-bold"
@@ -150,7 +171,7 @@ const LoginForm = () => {
           <FaApple className="h-6 w-6 text-black-700 m-auto" />
         </button>
       </div>
-      {message && <p className="text-green-500 text-center mt-4">{message}</p>}
+      {message && <p className="text-red-500 text-center mt-4">{message}</p>}
     </div>
   );
 };

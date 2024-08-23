@@ -9,7 +9,7 @@ const PackageForm = ({ onSuccess }) => {
     });
     const [error, setError] = useState({});
     const [adminId, setAdminId] = useState(null);
-    const [storedToken, setStoredToken] = useState(null);
+    const [, setStoredToken] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
     const [formMessage, setFormMessage] = useState("");
 
@@ -19,7 +19,6 @@ const PackageForm = ({ onSuccess }) => {
 
         if (adminData) setAdminId(adminData.id);
         if (token) setStoredToken(token);
-
         if (selectedPackage) {
             setPackageInput({
                 name: selectedPackage.title || "",
@@ -56,10 +55,14 @@ const PackageForm = ({ onSuccess }) => {
 
     const handlePackageFormSubmit = (e) => {
         e.preventDefault();
+        const adminData = JSON.parse(localStorage.getItem("admin"));
+        const token = localStorage.getItem("_token");
 
+        if (adminData) setAdminId(adminData.id);
+        if (token) setStoredToken(token);
         const validationErrors = validateInputs();
         if (Object.keys(validationErrors).length === 0) {
-            if (!adminId || !storedToken) {
+            if (!adminId || !token) {
                 setFormMessage("Admin ID or token is missing.");
                 setTimeout(() => setFormMessage(""), 5000); // Clear message after 5 seconds
                 return;
@@ -73,7 +76,7 @@ const PackageForm = ({ onSuccess }) => {
                 title: packageInput.name,
                 description: packageInput.message,
                 admin_id: adminId,
-                _token: storedToken,
+                _token: token,
             });
 
             console.log('Request body:', raw);
@@ -93,20 +96,20 @@ const PackageForm = ({ onSuccess }) => {
                 .then(response => {
                     if (!response.ok) {
                         return response.text().then(text => {
-                            console.error('Server error:', text);
+                            const errorData = JSON.parse(text);
+                            setFormMessage(`An error occurred: ${errorData.message}`); // Show error message
+                            setTimeout(() => setFormMessage(""), 5000); // Clear message after 5 seconds
                             throw new Error(text);
                         });
                     }
                     return response.json();
-
                 })
                 .then(result => {
-                    
+
                     const newToken = result._token || result.token; // Use result.token if result._token is not available
                     if (newToken) {
                         localStorage.setItem("_token", newToken); // Replace the old token with the new one
                     }
-                    console.log(result);
                     setError({});
                     setFormMessage(isEditMode ? 'Package updated successfully' : 'Package added successfully'); // Show success message
 
@@ -136,9 +139,8 @@ const PackageForm = ({ onSuccess }) => {
                     setTimeout(() => setFormMessage(""), 5000); // Clear message after 5 seconds
                 })
                 .catch(error => {
-                    console.error('Fetch error:', error);
-                    setFormMessage(`An error occurred: ${error.message}`); // Show error message
-                    setTimeout(() => setFormMessage(""), 5000); // Clear message after 5 seconds
+                    console.log(error);
+                   
                 });
         } else {
             setError(validationErrors);

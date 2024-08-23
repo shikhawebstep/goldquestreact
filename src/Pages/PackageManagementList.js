@@ -99,13 +99,23 @@ const PackageManagementList = ({ refreshTrigger }) => {
                     .then(response => {
                         if (!response.ok) {
                             return response.text().then(text => {
-                                console.error('Server error:', text);
+                                const errorData = JSON.parse(text);
+                                Swal.fire(
+                                    'Error!',
+                                    `An error occurred: ${errorData.message}`,
+                                    'error'
+                                );
                                 throw new Error(text);
                             });
                         }
                         return response.json();
                     })
                     .then(result => {
+                        const newToken = result._token || result.token; // Use result.token if result._token is not available
+                        if (newToken) {
+                            localStorage.setItem("_token", newToken); // Replace the old token with the new one
+                        }
+                        setError({});
                         console.log('Package deleted:', result);
                         fetchData(); // Refresh data after deletion
                         Swal.fire(
@@ -116,11 +126,7 @@ const PackageManagementList = ({ refreshTrigger }) => {
                     })
                     .catch(error => {
                         console.error('Fetch error:', error);
-                        Swal.fire(
-                            'Error!',
-                            `An error occurred: ${error.message}`,
-                            'error'
-                        );
+
                     });
             }
         });

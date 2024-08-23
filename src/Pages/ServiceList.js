@@ -57,8 +57,9 @@ const ServiceList = () => {
             setError('Failed to load data');
         } finally {
             setLoading(false);
+            setError(null)
         }
-    }, [setTotalResults,setTotalPages, showPerPage]);
+    }, [setTotalResults, setTotalPages, showPerPage]);
 
     useEffect(() => {
         fetchData();
@@ -104,7 +105,12 @@ const ServiceList = () => {
                     .then(response => {
                         if (!response.ok) {
                             return response.text().then(text => {
-                                console.error('Server error:', text);
+                                const errorData = JSON.parse(text);
+                                Swal.fire(
+                                    'Error!',
+                                    `An error occurred: ${errorData.message}`,
+                                    'error'
+                                );
                                 throw new Error(text);
                             });
                         }
@@ -115,6 +121,7 @@ const ServiceList = () => {
                         if (newToken) {
                             localStorage.setItem("_token", newToken); // Replace the old token with the new one
                         }
+                        setError({});
                         console.log('Package deleted:', result);
                         fetchData(); // Refresh data after deletion
                         Swal.fire(
@@ -125,11 +132,7 @@ const ServiceList = () => {
                     })
                     .catch(error => {
                         console.error('Fetch error:', error);
-                        Swal.fire(
-                            'Error!',
-                            `An error occurred: ${error.message}`,
-                            'error'
-                        );
+
                     });
             }
         });
@@ -149,7 +152,7 @@ const ServiceList = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {paginated.length > 0 ? 
+                    {paginated.length > 0 ?
                         (paginated.map((item, index) => (
                             <tr key={item.index}>
                                 <td className="py-2 px-4 border-l border-r border-b whitespace-nowrap">{item.index}</td>
@@ -173,13 +176,13 @@ const ServiceList = () => {
                                 </td>
                             </tr>
                         ))
-                    ) : (
-                        <tr>
-                            <td colSpan="6" className="py-6 px-4 border-l border-r text-center border-b whitespace-nowrap">
-                                No data available
-                            </td>
-                        </tr>
-                    )}
+                        ) : (
+                            <tr>
+                                <td colSpan="6" className="py-6 px-4 border-l border-r text-center border-b whitespace-nowrap">
+                                    No data available
+                                </td>
+                            </tr>
+                        )}
                 </tbody>
             </table>
             {paginated.length > 0 && <Pagination />}

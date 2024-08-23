@@ -43,6 +43,7 @@ const Admin = ({ children }) => {
         }
       } catch (error) {
         console.error('Error validating login:', error);
+        localStorage.clear();
         redirectToLogin();
       }
     };

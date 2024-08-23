@@ -5,8 +5,9 @@ import Multiselect from 'multiselect-react-dropdown';
 import { useClient } from './ClientManagementContext';
 
 const ClientManagementData = () => {
-    const { setClientData } = useClient();
+    const [validationErrors, setValidationErrors] = useState({});
 
+    const { setClientData } = useClient();
     const [service, setService] = useState([]);
     const [packageList, setPackageList] = useState([]);
     const [paginated, setPaginated] = useState([]);
@@ -91,6 +92,25 @@ const ClientManagementData = () => {
         fetchServices();
         fetchPackage();
     }, [fetchServices, fetchPackage]);
+   
+
+    const validateServices = () => {
+        const errors = {};
+        service.forEach((item, index) => {
+            if (!priceData[index]?.price) {
+                errors[index] = errors[index] || {};
+                errors[index].price = 'Please enter a price';
+            }
+            if ((selectedPackages[index] || []).length === 0) {
+                errors[index] = errors[index] || {};
+                errors[index].packages = 'Please select at least one package';
+            }
+        });
+        setValidationErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+    
+
 
     useEffect(() => {
         const updatedServiceData = service.map((item, index) => {
@@ -110,7 +130,7 @@ const ClientManagementData = () => {
             };
         });
     
-        setClientData(updatedServiceData);
+        setClientData(updatedServiceData,validateServices);
         setTotalResults(updatedServiceData.length);
         const startIndex = (currentItem - 1) * showPerPage;
         const endIndex = startIndex + showPerPage;
@@ -194,6 +214,7 @@ const ClientManagementData = () => {
                                     onChange={(e) => handleChange(e, index)}
                                     className='outline-none'
                                 />
+                           
                             </td>
                             <td className="py-3 px-4 border-r border-b whitespace-nowrap uppercase text-left">
                                 <Multiselect

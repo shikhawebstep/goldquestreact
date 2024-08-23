@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import ClientManagementData from './ClientManagementData'
 import { useClient } from "./ClientManagementContext";
 const ClientManagement = () => {
-  const {setClientData,clientData} =useClient();
+  const {clientData,setClientData} =useClient();
   const [input, setInput] = useState({
     company_name: "",
     client_code: "",
@@ -59,38 +59,32 @@ const ClientManagement = () => {
 
   const validate = () => {
     const newErrors = {};
-
-    if (!input.company_name) newErrors.company_name = "This field is required*";
-    if (!input.client_code) newErrors.client_code = "This field is required*";
-    if (!input.address) newErrors.address = "This field is required*";
-    if (!input.state) newErrors.state = "This field is required*";
-    if (!input.mobile_number) {
-      newErrors.mobile_number = "This field is required*";
+    const requiredFields = [
+      "company_name", "client_code", "address", "state", "mobile_number", 
+      "role", "name_of_escalation", "client_spoc", "gstin", "tat", 
+      "date_agreement", "client_standard", "Agreement_Period", "package_name"
+    ];
+  
+    requiredFields.forEach(field => {
+      if (!input[field]) newErrors[field] = "This field is required*";
+    });
+  
+    if (input.mobile_number && input.mobile_number.length !== 10) {
+      newErrors.mobile_number = "Please enter a valid phone number, containing 10 characters";
     }
-    else if (input.mobile_number.length !== 10) {
-      newErrors.mobile_number = "Please enter a valid phone number,containing 10 characters";
-    }
-
-    if (!input.role) newErrors.role = "This field is required*";
-    if (!input.name_of_escalation) newErrors.name_of_escalation = "This field is required*";
-    if (!input.client_spoc) newErrors.client_spoc = "This field is required*";
-    if (!input.gstin) newErrors.gstin = "This field is required*";
-    if (!input.tat) newErrors.tat = "This field is required*";
-    if (!input.date_agreement) newErrors.date_agreement = "This field is required*";
-    if (!input.client_standard) newErrors.client_standard = "This field is required*";
-    if (!input.Agreement_Period) newErrors.Agreement_Period = "This field is required*";
-    if (!input.package_name) newErrors.package_name = "This field is required*";
-
+  
     branchForms.forEach((form, index) => {
       if (!form.branch_name) newErrors[`branch_name_${index}`] = "This field is required*";
       if (!form.branch_email) newErrors[`branch_email_${index}`] = "This field is required*";
     });
+  
     emails.forEach((email, index) => {
       if (!email.email) newErrors[`email${index}`] = "This field is required*";
-    })
-
+    });
+  
     return newErrors;
   };
+  
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
@@ -169,7 +163,7 @@ const ClientManagement = () => {
           console.error("Error:", error);
         });
     } else {
-      setErrors(validationErrors);
+      setErrors(validationErrors,clientData);
     }
   };
 
@@ -291,9 +285,9 @@ const ClientManagement = () => {
                 {errors.mobile_number && <p className="text-red-500">{errors.mobile_number}</p>}
               </div>
             </div>
+            <div className="my-8 grid gap-5 grid-cols-2 items-center flex-wrap" >
             {emails.map((form, index) => (
-              <div className="my-8 flex gap-5 items-center" key={index}>
-                <div className="mb-4 md:w-5/12">
+                <div className="mb-4  " key={index}>
                   <label className="text-gray-500" htmlFor={`email${index}`}>
                     Email: *{index + 1}
                   </label>
@@ -308,18 +302,16 @@ const ClientManagement = () => {
                   {errors[`email${index}`] && ( 
                     <p className="text-red-500">{errors[`email${index}`]}</p>
                   )}
-                </div>
+             
                 {emails.length > 1 && (
-                  <button className="bg-red-500 rounded-md p-4 text-white" type="button" onClick={(()=>deleteEmails(index))}>Delete</button>
+                  <button className="bg-red-500 rounded-md p-4 mt-5 text-white" type="button" onClick={(()=>deleteEmails(index))}>Delete</button>
                 )}
+               </div>
 
-              </div>
             ))}
-            <button className="bg-green-500 text-white rounded-3 p-4 rounded-md" type="button" onClick={addMoreEmails}>ADD MORE</button>
-
-
-
-
+         
+            <button className="bg-green-500 text-white rounded-3 p-3 rounded-md" type="button" onClick={addMoreEmails}>ADD MORE</button>
+            </div> 
 
             <div className="md:flex gap-5">
               <div className="mb-4 md:w-6/12">

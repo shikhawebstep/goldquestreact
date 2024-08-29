@@ -1,8 +1,12 @@
-import React, { useState } from "react";
+import React, { useState,useMemo } from "react";
+import countryList from 'react-select-country-list'
 import ClientManagementData from './ClientManagementData'
 import { useClient } from "./ClientManagementContext";
 const ClientManagement = () => {
-  const {clientData,setClientData} =useClient();
+  const options = useMemo(() => countryList().getData(), [])
+
+
+  const {clientData,validationsErrors} =useClient();
   const [input, setInput] = useState({
     company_name: "",
     client_code: "",
@@ -38,7 +42,7 @@ const ClientManagement = () => {
   const [successMessage, setSuccessMessage] = useState("");
 
   const handleChange = (e, index) => {
-    const { name, value, type, files } = e.target;
+    const { name, value, type, files, selectedOptions } = e.target;
     
     if (name.startsWith("branch_")) {
       const newBranchForms = [...branchForms];
@@ -56,13 +60,14 @@ const ClientManagement = () => {
     }
   };
   
+  
 
   const validate = () => {
     const newErrors = {};
     const requiredFields = [
       "company_name", "client_code", "address", "state", "mobile_number", 
-      "role", "name_of_escalation", "client_spoc", "gstin", "tat", 
-      "date_agreement", "client_standard", "Agreement_Period", "package_name"
+      "role", "name_of_escalation", "client_spoc", "gstin", "tat","state_code",
+      "date_agreement", "client_standard", "Agreement_Period", "package_name",
     ];
   
     requiredFields.forEach(field => {
@@ -88,34 +93,32 @@ const ClientManagement = () => {
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-
+  
     const validationErrors = validate();
     console.log('Validation Errors:', validationErrors);
-
+  
     if (Object.keys(validationErrors).length === 0) {
       const adminData = JSON.parse(localStorage.getItem("admin"));
       const token = localStorage.getItem("_token");
-
+  
       const requestData = {
         admin_id: adminData,
         _token: token,
         ...input,
         branches: branchForms,
         emails: emails,
-        clientData:clientData
-         // Ensure you're including branchForms properly
+        clientData: clientData,
       };
-
+  
       console.log('Request Data:', requestData);
-
+  
       const requestOptions = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),
         redirect: "follow",
       };
-      console.log(JSON.stringify(requestData, null, 2));
-
+      
       fetch("https://goldquestreact.onrender.com/customer/create", requestOptions)
         .then((response) => {
           if (!response.ok) {
@@ -128,7 +131,7 @@ const ClientManagement = () => {
         })
         .then((result) => {
           console.log('Form Submit Result:', result);
-
+  
           setSuccessMessage("Form submitted successfully!");
           setInput({
             company_name: "",
@@ -137,7 +140,6 @@ const ClientManagement = () => {
             state_code: "",
             state: "",
             mobile_number: "",
-            contact_person: "",
             role: "",
             name_of_escalation: "",
             client_spoc: "",
@@ -163,9 +165,10 @@ const ClientManagement = () => {
           console.error("Error:", error);
         });
     } else {
-      setErrors(validationErrors,clientData);
+      setErrors(validationErrors,validationsErrors);
     }
   };
+  
 
 
   const addMoreFields = () => {
@@ -242,18 +245,14 @@ const ClientManagement = () => {
 
               <div className="mb-4 md:w-6/12">
                 <label className="text-gray-500" htmlFor="state">State: *</label>
-                <select
-                  name="state"
-                  id="state"
-                  className="w-full border p-2 rounded-md mt-2"
-                  value={input.state}
-                  onChange={handleChange}
-                >
-                  <option value="">Select State</option>
-                  <option value="State1">State1</option>
-                  <option value="State2">State2</option>
-                  <option value="State3">State3</option>
-                </select>
+                <select name="state" id="state" className="w-full border p-2 rounded-md mt-2" value={input.state} onChange={handleChange}>
+                {options.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              
                 {errors.state && <p className="text-red-500">{errors.state}</p>}
               </div>
             </div>
@@ -310,7 +309,7 @@ const ClientManagement = () => {
 
             ))}
          
-            <button className="bg-green-500 text-white rounded-3 p-3 rounded-md" type="button" onClick={addMoreEmails}>ADD MORE</button>
+            <button className="bg-green-500 text-white rounded-3 p-2 mt-3 rounded-md" type="button" onClick={addMoreEmails}>ADD MORE</button>
             </div> 
 
             <div className="md:flex gap-5">
@@ -541,7 +540,7 @@ const ClientManagement = () => {
                   branchForms.length > 1 ? (
                     <button
                       type="button"
-                      className="text-white bg-red-500 rounded-md p-3 md:w-2/12"
+                      className="text-white bg-red-500 rounded-md mt-3 p-3 md:w-2/12"
                       onClick={() => deleteField(index)}
                     >
                       Delete Branch
@@ -556,7 +555,7 @@ const ClientManagement = () => {
               type="button"
               id="AddMore"
               onClick={addMoreFields}
-              className="bg-green-400 w-auto text-white p-3 rounded-md hover:bg-green-200"
+              className="bg-green-400 w-auto text-white p-2 rounded-md hover:bg-green-200"
             >
               Add More
             </button>

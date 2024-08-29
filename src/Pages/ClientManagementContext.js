@@ -1,16 +1,18 @@
 import React, { createContext, useContext, useState } from "react";
 
-// Create the context
+
 const ClientManagementContext = createContext();
 
-// Custom hook to use the ClientManagementContext
+
 export const useClient = () => useContext(ClientManagementContext);
 
-// Provider component
+
 export const ClientProvider = ({ children }) => {
   const [clientData, setClientData] = useState([]);
+  const [validationsErrors, setValidationsErrors] = useState({});
+
   return (
-    <ClientManagementContext.Provider value={{ clientData, setClientData ,}}>
+    <ClientManagementContext.Provider value={{ clientData, setClientData, validationsErrors, setValidationsErrors }}>
       {children}
     </ClientManagementContext.Provider>
   );

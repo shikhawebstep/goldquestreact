@@ -5,14 +5,12 @@ import Multiselect from 'multiselect-react-dropdown';
 import { useClient } from './ClientManagementContext';
 
 const ClientManagementData = () => {
-    const [validationErrors, setValidationErrors] = useState({});
-
-    const { setClientData } = useClient();
+    const { setClientData, validationsErrors, setValidationsErrors } = useClient();
     const [service, setService] = useState([]);
     const [packageList, setPackageList] = useState([]);
     const [paginated, setPaginated] = useState([]);
     const [error, setError] = useState(null);
-    const [loading] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [selectedPackages, setSelectedPackages] = useState({});
     const [priceData, setPriceData] = useState({});
     const { setTotalResults, currentItem, showPerPage } = useContext(PaginationContext);
@@ -20,6 +18,7 @@ const ClientManagementData = () => {
     const fetchServices = useCallback(async () => {
         try {
             setError(null);
+            setLoading(true);
             const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
             const storedToken = localStorage.getItem("_token");
             const queryParams = new URLSearchParams({
@@ -51,6 +50,8 @@ const ClientManagementData = () => {
         } catch (error) {
             console.error("Error fetching services:", error);
             setError(error.message);
+        } finally {
+            setLoading(false);
         }
     }, []);
 
@@ -92,24 +93,26 @@ const ClientManagementData = () => {
         fetchServices();
         fetchPackage();
     }, [fetchServices, fetchPackage]);
-   
 
     const validateServices = () => {
         const errors = {};
         service.forEach((item, index) => {
-            if (!priceData[index]?.price) {
+            const selectedPackageCount = (selectedPackages[index] || []).length;
+            const enteredPrice = priceData[index]?.price;
+
+            if (selectedPackageCount > 0 && !enteredPrice) {
                 errors[index] = errors[index] || {};
-                errors[index].price = 'Please enter a price';
+                errors[index].price = 'Please enter a price if a package is selected';
             }
-            if ((selectedPackages[index] || []).length === 0) {
+
+            if (enteredPrice && selectedPackageCount === 0) {
                 errors[index] = errors[index] || {};
-                errors[index].packages = 'Please select at least one package';
+                errors[index].packages = 'Please select at least one package if a price is entered';
             }
         });
-        setValidationErrors(errors);
+        setValidationsErrors(errors);
         return Object.keys(errors).length === 0;
     };
-    
 
 
     useEffect(() => {
@@ -117,20 +120,21 @@ const ClientManagementData = () => {
             const packages = (selectedPackages[index] || []).reduce((acc, pkgId) => {
                 const pkg = packageList.find(p => p.id === pkgId);
                 if (pkg) {
-                    acc[pkg.title] = ''; 
+                    acc[pkg.id] = '';
                 }
                 return acc;
             }, {});
-    
+
             return {
                 serviceId: item.service_id,
-                serviceTitle: item.title, 
+                serviceTitle: item.title,
                 price: priceData[index]?.price || '',
                 packages: packages,
             };
         });
-    
-        setClientData(updatedServiceData,validateServices);
+
+        setClientData(updatedServiceData);
+        setValidationsErrors (validateServices)
         setTotalResults(updatedServiceData.length);
         const startIndex = (currentItem - 1) * showPerPage;
         const endIndex = startIndex + showPerPage;
@@ -190,7 +194,7 @@ const ClientManagementData = () => {
     };
 
     return (
-        <div className="overflow-x-auto py-6 px-4 bg-white mt-10 m-auto">
+        <div className="overflow-x-auto py-6 px-0 bg-white mt-10 m-auto">
             <table className="min-w-full">
                 <thead>
                     <tr className='bg-green-500'>
@@ -214,7 +218,7 @@ const ClientManagementData = () => {
                                     onChange={(e) => handleChange(e, index)}
                                     className='outline-none'
                                 />
-                           
+                                {validationsErrors[index]?.price && <span className="text-red-500">{validationsErrors[index].price}</span>}
                             </td>
                             <td className="py-3 px-4 border-r border-b whitespace-nowrap uppercase text-left">
                                 <Multiselect
@@ -225,7 +229,9 @@ const ClientManagementData = () => {
                                     onSelect={(selectedList) => handlePackageSelect(selectedList, index)}
                                     onRemove={(selectedList) => handlePackageRemove(selectedList, index)}
                                     displayValue="name"
+                                    className='text-left'
                                 />
+                                {validationsErrors[index]?.packages && <span className="text-red-500">{validationsErrors[index].packages}</span>}
                             </td>
                         </tr>
                     ))}
@@ -234,6 +240,6 @@ const ClientManagementData = () => {
             <Pagination />
         </div>
     );
-}
+};
 
 export default ClientManagementData;

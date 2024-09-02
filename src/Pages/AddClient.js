@@ -1,50 +1,71 @@
 import React, { useState } from 'react';
 
-const App = () => {
-  const [forms, setForms] = useState([{ id: Date.now() }]);
+const AddClient = () => {
+  const [input, setInput] = useState({
+    image: '',
+  });
 
-  const addForm = () => {
-    setForms([...forms, { id: Date.now() }]);
+  const [error, setError] = useState({});
+
+  const handleChange = (e) => {
+    const { name, files } = e.target;
+    setInput((prev) => ({
+      ...prev,
+      [name]: files[0], 
+    }));
   };
 
-  const removeForm = (id) => {
-    setForms(forms.filter((form) => form.id !== id));
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!input.image) {
+      setError({ image: 'Please upload a file first.' });
+      return;
+    }
+
+    setError({});
+
+    const formData = new FormData();
+    formData.append('image', input.image);
+
+    try {
+      const response = await fetch('https://goldquestreact.onrender.com/customer/image-upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        console.log('File uploaded successfully');
+        setInput({ image: null });
+      } else {
+        console.error('File upload failed');
+      }
+    } catch (error) {
+      console.error('Error during file upload:', error);
+    }
   };
 
   return (
-    <div className="my-8">
-      {forms.map((form) => (
-        <Form key={form.id} id={form.id} removeForm={removeForm} />
-      ))}
-      <button type="button" className="bg-green-400 text-white p-3 rounded-md hover:bg-green-200" onClick={addForm}>
-        Add More
-      </button>
-    </div>
+    <>
+      <form className='border p-3 rounded-md' onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <input
+            type="file"
+            name="image"
+            id="agreement"
+            className='w-full p-3 border rounded-md mb-2'
+            onChange={handleChange}
+          />
+          {error.image && <span className="text-red-500">{error.image}</span>}
+          <button type="submit" className='p-3 bg-green-500 text-white border-0 rounded-md'>
+            Submit
+          </button>
+        </div>
+      
+        {input.image && <p>Selected file: {input.image.name}</p>}
+      </form>
+    </>
   );
 };
 
-const Form = ({ id, removeForm }) => (
-  <div className="mb-8">
-    <form action="" id={`form-${id}`}>
-      <div className="mb-4">
-        <label htmlFor={`client-logo-${id}`}>Client Logo:</label>
-        <input type="file" id={`client-logo-${id}`} className="border w-full rounded-md p-2 mt-2 outline-none" />
-      </div>
-      <div className="md:flex gap-5">
-        <div className="mb-4 md:w-6/12">
-          <label htmlFor={`branch-name-${id}`}>Branch Name *</label>
-          <input type="text" id={`branch-name-${id}`} className="border w-full rounded-md p-2 mt-2 outline-none" />
-        </div>
-        <div className="mb-4 md:w-6/12">
-          <label htmlFor={`branch-head-email-${id}`}>Branch Head Email</label>
-          <input type="email" id={`branch-head-email-${id}`} className="border w-full rounded-md p-2 mt-2 outline-none" />
-        </div>
-      </div>
-    </form>
-    <button type="button" className="bg-red-400 text-white p-3 rounded-md hover:bg-red-200 ms-4" onClick={() => removeForm(id)}>
-      Delete
-    </button>
-  </div>
-);
-
-export default App;
+export default AddClient;

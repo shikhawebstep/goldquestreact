@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useService } from './ServiceContext';
+import Swal from 'sweetalert2';
 
 const ServiceForm = () => {
     const { selectedService, updateServiceList } = useService();
     const [adminId, setAdminId] = useState(null);
     const [storedToken, setStoredToken] = useState(null);
-
     const [isEdit, setIsEdit] = useState(false);
     const [serviceInput, setServiceInput] = useState({
         name: "",
@@ -53,20 +53,11 @@ const ServiceForm = () => {
     };
 
     const handleSubmit = (e) => {
-        const adminData = JSON.parse(localStorage.getItem("admin"));
-        const token = localStorage.getItem("_token");
-
-        if (adminData) setAdminId(adminData.id);
-        if (token) setStoredToken(token);
         e.preventDefault();
         const validateError = validate();
 
         if (Object.keys(validateError).length === 0) {
-
-            const adminData = JSON.parse(localStorage.getItem("admin"));
-            const storedToken = localStorage.getItem("_token");
-
-           if (!adminId || !token) {
+            if (!adminId || !storedToken) {
                 setFormMessage("Admin ID or token is missing.");
                 setTimeout(() => setFormMessage(""), 5000); // Clear message after 5 seconds
                 return;
@@ -81,7 +72,7 @@ const ServiceForm = () => {
                     id: selectedService?.id || '',
                     title: serviceInput.name,
                     description: serviceInput.d_name,
-                    admin_id: adminData.id,
+                    admin_id: adminId,
                     _token: storedToken,
                 }),
             };
@@ -91,25 +82,31 @@ const ServiceForm = () => {
                 : `https://goldquestreact.onrender.com/service/create`;
 
             fetch(url, requestOptions)
-            .then(response => {
-                if (!response.ok) {
-                    return response.text().then(text => {
-                        const errorData = JSON.parse(text);
-                        setFormMessage(`An error occurred: ${errorData.message}`); // Show error message
-                        setTimeout(() => setFormMessage(""), 5000); // Clear message after 5 seconds
-                        throw new Error(text);
-                    });
-                }
-                return response.json();
-            })
+                .then(response => {
+                    if (!response.ok) {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: `An error occurred: ${response.statusText}`,
+                            icon: 'error',
+                            confirmButtonText: 'Ok'
+                        });
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
                 .then((result) => {
                     const newToken = result._token || result.token; // Use result.token if result._token is not available
                     if (newToken) {
                         localStorage.setItem("_token", newToken); // Replace the old token with the new one
                     }
                     setError({});
-                    
-                    setFormMessage(isEdit ? 'Service Updated successfully!' : 'Service created successfully!');
+
+                    Swal.fire({
+                        title: "Success",
+                        text: isEdit ? 'Service updated successfully' : 'Service added successfully',
+                        icon: "success",
+                        confirmButtonText: "Ok"
+                    });
 
                     if (isEdit) {
                         updateServiceList(prevList => prevList.map(service => service.id === result.id ? result : service));
@@ -117,12 +114,15 @@ const ServiceForm = () => {
                         updateServiceList(prevList => [...prevList, result]);
                     }
 
+                    // Reset the form
                     setServiceInput({ name: "", d_name: "" });
-                    setTimeout(() => setFormMessage(""), 5000);
+                    setIsEdit(false); // Reset to 'Add' mode
+                    setFormMessage("");
                 })
                 .catch((error) => {
                     console.error(error);
-                   
+                    setFormMessage("An error occurred. Please try again.");
+                    setTimeout(() => setFormMessage(""), 5000); // Clear message after 5 seconds
                 });
         } else {
             setError(validateError);
@@ -154,7 +154,7 @@ const ServiceForm = () => {
                 {error.d_name && <p className='text-red-500'>{error.d_name}</p>}
             </div>
             <button className="bg-green-500 hover:bg-green-200 text-white w-full rounded-md p-3" type='submit'>
-                {isEdit ? 'Update' : 'Submit'}
+                {isEdit ? 'Update' : 'Add'}
             </button>
             {formMessage && <p className="mt-4 text-center text-green-600">{formMessage}</p>}
         </form>

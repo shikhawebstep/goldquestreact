@@ -33,6 +33,12 @@ const PackageManagementList = ({ refreshTrigger }) => {
         })
             .then((response) => {
                 if (!response.ok) {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: `An error occurred: ${response.message}`,
+                        icon: 'error',
+                        confirmButtonText: 'Ok'
+                    });
                     throw new Error('Network response was not ok');
                 }
                 return response.json();
@@ -136,7 +142,7 @@ const PackageManagementList = ({ refreshTrigger }) => {
         <>
             <div className="overflow-x-auto py-4 px-4">
                 {error && <div className="text-red-500 text-center">{error}</div>}
-                <SearchBar/>
+                <SearchBar />
                 <table className="min-w-full">
                     <thead>
                         <tr className='bg-green-500'>
@@ -147,48 +153,48 @@ const PackageManagementList = ({ refreshTrigger }) => {
                         </tr>
                     </thead>
                     <tbody>
-                    {paginatedData.length > 0 ? (
-                        paginatedData.map((item, index) => (
-                            <tr key={item.id}>
-                                <td className="py-2 px-4 border-b border-r border-l whitespace-nowrap">
-                                    {(currentItem - 1) * showPerPage + index + 1}
-                                </td>
-                                <td className="py-2 px-4 border-b border-r border-l whitespace-nowrap">
-                                    {item.title}
-                                </td>
-                                <td className="py-2 px-4 border-b border-r whitespace-nowrap">
-                                    {item.description}
-                                </td>
-                                <td className="py-2 px-4 border-b border-r whitespace-nowrap">
-                                    <button
-                                        className='bg-green-500 hover:bg-green-200 rounded-md p-2 me-2 text-white'
-                                        onClick={() => handleEdit(item)}
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        className='bg-red-600 rounded-md p-2 text-white'
-                                        onClick={() => handleDelete(item.id)}
-                                    >
-                                        Delete
-                                    </button>
+                        {paginatedData.length > 0 ? (
+                            paginatedData.map((item, index) => (
+                                <tr key={item.id}>
+                                    <td className="py-2 px-4 border-b border-r border-l whitespace-nowrap">
+                                        {(currentItem - 1) * showPerPage + index + 1}
+                                    </td>
+                                    <td className="py-2 px-4 border-b border-r border-l whitespace-nowrap">
+                                        {item.title}
+                                    </td>
+                                    <td className="py-2 px-4 border-b border-r whitespace-nowrap">
+                                        {item.description}
+                                    </td>
+                                    <td className="py-2 px-4 border-b border-r whitespace-nowrap">
+                                        <button
+                                            className='bg-green-500 hover:bg-green-200 rounded-md p-2 me-2 text-white'
+                                            onClick={() => handleEdit(item)}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            className='bg-red-600 rounded-md p-2 text-white'
+                                            onClick={() => handleDelete(item.id)}
+                                        >
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="4" className="py-6 px-4 text-center border-b border-r border-l">
+                                    No data available
                                 </td>
                             </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan="4" className="py-6 px-4 text-center border-b border-r border-l">
-                                No data available
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-                
+                        )}
+                    </tbody>
+
                 </table>
             </div>
             {loading && <div className="text-center">Loading...</div>}
-            {paginatedData.length>0?(<Pagination />):('')}
-          
+            {paginatedData.length > 0 ? (<Pagination />) : ('')}
+
         </>
     );
 };

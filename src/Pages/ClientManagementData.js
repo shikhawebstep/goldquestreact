@@ -43,6 +43,7 @@ const ClientManagementData = () => {
                 ...item,
                 service_name: item.title,
                 service_id: item.id,
+                service_title: item.title,
                 price: '', // Initialize price
                 selectedPackages: [] // Initialize selected packages
             }));
@@ -134,7 +135,7 @@ const ClientManagementData = () => {
         });
 
         setClientData(updatedServiceData);
-        setValidationsErrors (validateServices)
+        setValidationsErrors(validateServices)
         setTotalResults(updatedServiceData.length);
         const startIndex = (currentItem - 1) * showPerPage;
         const endIndex = startIndex + showPerPage;
@@ -204,40 +205,47 @@ const ClientManagementData = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {paginated.map((item, index) => (
-                        <tr key={index}>
-                            <td className="py-3 px-4 border-l border-r border-b whitespace-nowrap">
-                                <input type="checkbox" className='me-2' />
-                                {item.serviceTitle}
-                            </td>
-                            <td className="py-3 px-4 border-r border-b whitespace-nowrap">
-                                <input
-                                    type="number"
-                                    name="price"
-                                    value={priceData[index]?.price || ''}
-                                    onChange={(e) => handleChange(e, index)}
-                                    className='outline-none'
-                                />
-                                {validationsErrors[index]?.price && <span className="text-red-500">{validationsErrors[index].price}</span>}
-                            </td>
-                            <td className="py-3 px-4 border-r border-b whitespace-nowrap uppercase text-left">
-                                <Multiselect
-                                    options={packageList.map((pkg) => ({ name: pkg.title, id: pkg.id }))}
-                                    selectedValues={packageList
-                                        .filter(pkg => (selectedPackages[index] || []).includes(pkg.id))
-                                        .map(pkg => ({ name: pkg.title, id: pkg.id }))}
-                                    onSelect={(selectedList) => handlePackageSelect(selectedList, index)}
-                                    onRemove={(selectedList) => handlePackageRemove(selectedList, index)}
-                                    displayValue="name"
-                                    className='text-left'
-                                />
-                                {validationsErrors[index]?.packages && <span className="text-red-500">{validationsErrors[index].packages}</span>}
-                            </td>
-                        </tr>
-                    ))}
+                    {paginated.length > 0 ?
+                        (paginated.map((item, index) => (
+                            <tr key={index}>
+                                <td className="py-3 px-4 border-l border-r border-b whitespace-nowrap">
+                                    <input type="checkbox" className='me-2' />
+                                    {item.serviceTitle}
+                                </td>
+                                <td className="py-3 px-4 border-r border-b whitespace-nowrap">
+                                    <input type="number"
+                                        name="price"
+                                        value={priceData[index]?.price || ''}
+                                        onChange={(e) => handleChange(e, index)}
+                                        className='outline-none'
+                                    />
+                                    {validationsErrors[index]?.price && <span className="text-red-500">{validationsErrors[index].price}</span>}
+                                </td>
+                                <td className="py-3 px-4 border-r border-b whitespace-nowrap uppercase text-left">
+                                    <Multiselect
+                                        options={packageList.map((pkg) => ({ name: pkg.title, id: pkg.id }))}
+                                        selectedValues={packageList
+                                            .filter(pkg => (selectedPackages[index] || []).includes(pkg.id))
+                                            .map(pkg => ({ name: pkg.title, id: pkg.id }))}
+                                        onSelect={(selectedList) => handlePackageSelect(selectedList, index)}
+                                        onRemove={(selectedList) => handlePackageRemove(selectedList, index)}
+                                        displayValue="name"
+                                        className='text-left'
+                                    />
+                                    {validationsErrors[index]?.packages && <span className="text-red-500">{validationsErrors[index].packages}</span>}
+                                </td>
+                            </tr>
+                        ))) : (
+                            <p className=' flex items-center mt-5 justify-center w-full text-center'>No Data Available</p>
+
+                        )
+
+                    }
+
                 </tbody>
             </table>
-            <Pagination />
+            {paginated.length > 0 ? (<Pagination />) : ''}
+
         </div>
     );
 };

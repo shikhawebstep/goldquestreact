@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { usePackage } from './PackageContext';
+import Swal from 'sweetalert2';
 
 const PackageForm = ({ onSuccess }) => {
     const { selectedPackage, clearSelectedPackage, packageList, updatePackageList } = usePackage();
@@ -95,12 +96,13 @@ const PackageForm = ({ onSuccess }) => {
             fetch(url, requestOptions)
                 .then(response => {
                     if (!response.ok) {
-                        return response.text().then(text => {
-                            const errorData = JSON.parse(text);
-                            setFormMessage(`An error occurred: ${errorData.message}`); // Show error message
-                            setTimeout(() => setFormMessage(""), 5000); // Clear message after 5 seconds
-                            throw new Error(text);
-                        });
+                        Swal.fire({
+                            title: 'Error!',
+                            text: `An error occurred: ${response.message}`,
+                            icon: 'error',
+                            confirmButtonText: 'Ok'
+                          });
+                          throw new Error('Network response was not ok');
                     }
                     return response.json();
                 })
@@ -111,8 +113,12 @@ const PackageForm = ({ onSuccess }) => {
                         localStorage.setItem("_token", newToken); // Replace the old token with the new one
                     }
                     setError({});
-                    setFormMessage(isEditMode ? 'Package updated successfully' : 'Package added successfully'); // Show success message
-
+                    Swal.fire({
+                        title: "Success",
+                        text:  isEditMode?'Package Edit Successfully':'Package added successfully',
+                        icon: "success",
+                        confirmButtonText: "Ok"
+                      })
                     if (isEditMode) {
                         const updatedPackages = packageList.map(pkg =>
                             pkg.id === result.id ? result : pkg

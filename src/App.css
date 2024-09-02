@@ -20,3 +20,35 @@ div#root {
     margin: auto;
 }
 /* this is my demo comment */
+
+  [role='tooltip'].popup-content {
+    width: 500px;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 3px;
+    left: 40% !important;
+}
+  
+.fullwidth   [role='tooltip'].popup-content {
+    width: 1000px !important;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 3px;
+    left: 20% !important;
+}
+  
+  [data-popup='tooltip'].popup-overlay {
+    background: #000000c7;
+}
+div#popup-2 {
+    width: 65% !important;
+    left: 20% !important;
+    overflow: scroll;
+    height: 100%;
+    top: 0 !important;
+}
+@media(max-width:767px){
+    div#popup-2 {
+        margin: 0 auto;
+        width: 90%;
+        left: 0 !important;
+        top: 0 !important;
+        right: 0;
+    }
+}

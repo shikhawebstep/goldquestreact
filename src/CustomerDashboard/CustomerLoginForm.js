@@ -1,25 +1,34 @@
-import React, { useState } from 'react'
-import { FaGoogle, FaFacebook, FaApple } from 'react-icons/fa'
-import customerlogo from '../Images/Logo.png'
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { FaGoogle, FaFacebook, FaApple } from 'react-icons/fa';
+import customerlogo from '../Images/Logo.png';
+
 const CustomerLoginForm = () => {
+    const location = useLocation();
+    const query = new URLSearchParams(location.search);
+    const emailFromQuery = query.get('email') || '';
+
     const [input, setInput] = useState({
-        username: "",
+        username: emailFromQuery, // Pre-fill the username field with the email from query
         password: "",
     });
     const [error, setError] = useState({});
+    const [passwordVisible, setPasswordVisible] = useState(false);
+
     const handleChange = (event) => {
         const { name, value } = event.target;
         setInput((prevInput) => ({
-            ...prevInput, [name]: value,
-        }))
+            ...prevInput,
+            [name]: value,
+        }));
     };
+
     const validateError = () => {
         const newErrors = {};
-        if (!input.username) { newErrors.username = 'This is Rquired' }
-        if (!input.password) { newErrors.password = 'This is Rquired' }
+        if (!input.username) { newErrors.username = 'This is required'; }
+        if (!input.password) { newErrors.password = 'This is required'; }
         return newErrors;
-    }
-
+    };
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -27,46 +36,59 @@ const CustomerLoginForm = () => {
         if (Object.keys(errors).length === 0) {
             console.log(input);
             setError({});
-        }
-        else {
+        } else {
             setError(errors);
         }
     };
 
     return (
         <>
-            <div className="w-full max-w-7xl">
-                <form onSubmit={handleSubmit}>
-                    <div className="block mb-8">
-                        <img src={customerlogo} alt="" />
+            <div className="w-full max-w-7xl mx-auto p-4">
+                <form onSubmit={handleSubmit} aria-live="polite">
+                    <div className="block mb-8 text-center">
+                        <img src={customerlogo} alt="Customer Logo" />
                     </div>
                     <div className="mb-4">
                         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
                             Username
                         </label>
-                        <input className=" appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        <input 
+                            className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="username"
                             type="text"
                             placeholder="Username"
                             onChange={handleChange}
                             value={input.username}
-                            name='username' />
-                        {error.username && <p className='text-red-500'>{error.username}</p>}
+                            name='username'
+                            aria-describedby="username-error"
+                        />
+                        {error.username && <p id="username-error" className='text-red-500'>{error.username}</p>}
                     </div>
                     <div className="mb-6">
                         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
                             Password
                         </label>
-                        <input className=" appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
-                            id="password"
-                            type="password"
-                            name='password'
-                            value={input.password}
-                            onChange={handleChange}
-                            placeholder="******************" />
-
-                        {error.password && <p className='text-red-500'>{error.password}</p>}
-
+                        <div className="relative">
+                            <input 
+                                className="appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+                                id="password"
+                                type={passwordVisible ? 'text' : 'password'}
+                                name='password'
+                                value={input.password}
+                                onChange={handleChange}
+                                placeholder="******************"
+                                aria-describedby="password-error"
+                            />
+                            <button 
+                                type="button"
+                                onClick={() => setPasswordVisible(!passwordVisible)}
+                                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-700"
+                                aria-label={passwordVisible ? 'Hide password' : 'Show password'}
+                            >
+                                {passwordVisible ? 'Hide' : 'Show'}
+                            </button>
+                        </div>
+                        {error.password && <p id="password-error" className='text-red-500'>{error.password}</p>}
                     </div>
                     <div className="flex items-center justify-between mb-4">
                         <label className="block text-gray-700 text-sm font-bold">
@@ -78,7 +100,7 @@ const CustomerLoginForm = () => {
                         </a>
                     </div>
                     <div className="flex items-center justify-between">
-                        <button className="bg-green-500 hover:bg-green-700  text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full" type="submit">
+                        <button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full" type="submit">
                             Sign In
                         </button>
                     </div>
@@ -92,19 +114,19 @@ const CustomerLoginForm = () => {
                     <div className="w-1/4 border-t border-gray-300"></div>
                 </div>
                 <div className="flex justify-center gap-4">
-                    <button className="bg-white border border-blue-500 rounded-sm p-3 w-4/12 text-center">
+                    <button className="bg-white border border-blue-500 rounded-sm p-3 w-12 text-center">
                         <FaGoogle className="h-6 w-6 text-blue-700 m-auto" />
                     </button>
-                    <button className="bg-white border border-blue-500 rounded-sm p-3 w-4/12 text-center">
+                    <button className="bg-white border border-blue-500 rounded-sm p-3 w-12 text-center">
                         <FaFacebook className="h-6 w-6 text-gray-700 m-auto" />
                     </button>
-                    <button className="bg-white border border-blue-500 rounded-sm p-3 w-4/12 text-center">
+                    <button className="bg-white border border-blue-500 rounded-sm p-3 w-12 text-center">
                         <FaApple className="h-6 w-6 text-black-700 m-auto" />
                     </button>
                 </div>
             </div>
         </>
-    )
-}
+    );
+};
 
-export default CustomerLoginForm
+export default CustomerLoginForm;

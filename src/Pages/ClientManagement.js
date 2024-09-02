@@ -1,12 +1,13 @@
-import React, { useState,useMemo } from "react";
-import countryList from 'react-select-country-list'
-import ClientManagementData from './ClientManagementData'
+import React, { useState, useMemo } from "react";
+import countryList from 'react-select-country-list';
+import ClientManagementData from './ClientManagementData';
 import { useClient } from "./ClientManagementContext";
+import Swal from 'sweetalert2';
+
 const ClientManagement = () => {
-  const options = useMemo(() => countryList().getData(), [])
+  const options = useMemo(() => countryList().getData(), []);
+  const { clientData } = useClient();
 
-
-  const {clientData,validationsErrors} =useClient();
   const [input, setInput] = useState({
     company_name: "",
     client_code: "",
@@ -14,179 +15,164 @@ const ClientManagement = () => {
     state_code: "",
     state: "",
     mobile_number: "",
-    role: "",
     name_of_escalation: "",
     client_spoc: "",
+    contact_person: "",
     gstin: "",
     tat: "",
     date_agreement: "",
-    Agreement_Period: "",
+    agreement_period: "",
     client_standard: "",
-    c_logo: '',
-    agr_upload: '',
-    additional_login: "",
-    required_template: "no",
+    custom_logo: "",
+    agr_upload: "",
+    additional_login: "no",
+    custom_template: "",
     custom_address: "",
     username: "",
-    package_name: "",
-  
+    clientData:[
+      
+    ]
   });
 
   const [branchForms, setBranchForms] = useState([{ branch_name: "", branch_email: "" }]);
-  const [emails, setEmails] = useState([
-    {
-      email: "",
-    }
-  ])
+  const [emails, setEmails] = useState([""]); // Change to an array of strings
   const [errors, setErrors] = useState({});
-  const [successMessage, setSuccessMessage] = useState("");
 
   const handleChange = (e, index) => {
-    const { name, value, type, files, selectedOptions } = e.target;
-    
+    const { name, value } = e.target;
+
     if (name.startsWith("branch_")) {
       const newBranchForms = [...branchForms];
-      newBranchForms[index][name] = type === "file" ? files[0] : value;
+      newBranchForms[index][name] = value;
       setBranchForms(newBranchForms);
     } else if (name.startsWith("email")) {
       const newEmails = [...emails];
-      newEmails[index][name] = type === "file" ? files[0] : value;
+      newEmails[index] = value;
       setEmails(newEmails);
     } else {
       setInput((prevInput) => ({
         ...prevInput,
-        [name]: type === "file" ? files[0] : value,
+        [name]: value,
       }));
     }
   };
-  
-  
 
   const validate = () => {
     const newErrors = {};
     const requiredFields = [
-      "company_name", "client_code", "address", "state", "mobile_number", 
-      "role", "name_of_escalation", "client_spoc", "gstin", "tat","state_code",
-      "date_agreement", "client_standard", "Agreement_Period", "package_name",
+      "company_name", "client_code", "address", "state_code", "state", "mobile_number",
+      "name_of_escalation", "client_spoc", "contact_person", "gstin", "tat",
+      "date_agreement", "agreement_period", "client_standard", "agr_upload",
+      "additional_login", "custom_template",
     ];
-  
+
     requiredFields.forEach(field => {
       if (!input[field]) newErrors[field] = "This field is required*";
     });
-  
+
     if (input.mobile_number && input.mobile_number.length !== 10) {
       newErrors.mobile_number = "Please enter a valid phone number, containing 10 characters";
     }
-  
+
     branchForms.forEach((form, index) => {
       if (!form.branch_name) newErrors[`branch_name_${index}`] = "This field is required*";
       if (!form.branch_email) newErrors[`branch_email_${index}`] = "This field is required*";
     });
-  
+
     emails.forEach((email, index) => {
-      if (!email.email) newErrors[`email${index}`] = "This field is required*";
+      if (!email) newErrors[`email${index}`] = "This field is required*";
     });
-  
+
     return newErrors;
   };
-  
+
+  // Map emails to an array of strings
+  const newData = emails.map(email => email);
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-  
+
     const validationErrors = validate();
     console.log('Validation Errors:', validationErrors);
-  
+
     if (Object.keys(validationErrors).length === 0) {
       const adminData = JSON.parse(localStorage.getItem("admin"));
       const token = localStorage.getItem("_token");
-  
+
       const requestData = {
-        admin_id: adminData,
-        _token: token,
+        admin_id: adminData.id,
         ...input,
+        _token: token,
         branches: branchForms,
-        emails: emails,
+        emails: newData, // Pass emails as an array of strings
         clientData: clientData,
       };
-  
+
       console.log('Request Data:', requestData);
-  
+
       const requestOptions = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),
         redirect: "follow",
       };
-      
+      console.log(requestOptions.body);
+
       fetch("https://goldquestreact.onrender.com/customer/create", requestOptions)
         .then((response) => {
           if (!response.ok) {
-            return response.text().then((text) => {
-              console.error("Server error:", text);
-              throw new Error(text);
+            return response.text().then(text => {
+                const errorData = JSON.parse(text);
+                Swal.fire(
+                    'Error!',
+                    `An error occurred: ${errorData.message}`,
+                    'error'
+                );
+                throw new Error(text);
             });
           }
           return response.json();
         })
         .then((result) => {
           console.log('Form Submit Result:', result);
-  
-          setSuccessMessage("Form submitted successfully!");
-          setInput({
-            company_name: "",
-            client_code: "",
-            address: "",
-            state_code: "",
-            state: "",
-            mobile_number: "",
-            role: "",
-            name_of_escalation: "",
-            client_spoc: "",
-            gstin: "",
-            tat: "",
-            date_agreement: "",
-            Agreement_Period: "",
-            client_standard: "",
-            c_logo: '',
-            agr_upload: '',
-            additional_login: "",
-            required_template: "",
-            custom_address: "",
-            username: "",
-            package_name: ""
+          Swal.fire({
+            title: "Success",
+            text: 'Client Created Successfully',
+            icon: "success",
+            confirmButtonText: "Ok"
           });
-          setEmails([{ email: "" }])
+
+          // Reset form state
+          setInput({});
+          setEmails([""]); // Reset to initial state
           setBranchForms([{ branch_name: "", branch_email: "" }]);
-          
           setErrors({});
         })
         .catch((error) => {
           console.error("Error:", error);
         });
     } else {
-      setErrors(validationErrors,validationsErrors);
+      setErrors(validationErrors);
     }
   };
-  
-
 
   const addMoreFields = () => {
     setBranchForms([...branchForms, { branch_name: "", branch_email: "" }]);
-
   };
+
   const addMoreEmails = () => {
-    setEmails([...emails, { email: "" }]);
-  }
+    setEmails([...emails, ""]); // Add an empty string to the array
+  };
 
   const deleteField = (index) => {
     const newBranchForms = branchForms.filter((_, i) => i !== index);
     setBranchForms(newBranchForms);
   };
-  const deleteEmails=(index)=>{
+
+  const deleteEmails = (index) => {
     const newEmails = emails.filter((_, i) => i !== index);
     setEmails(newEmails);
-  }
+  };
 
   return (
     <>
@@ -195,11 +181,7 @@ const ClientManagement = () => {
           Client Management
         </h2>
         <div className="md:w-9/12 m-auto bg-white shadow-md rounded-md p-3 md:p-10">
-          {successMessage && (
-            <div className="mb-4 p-3 text-green-800 bg-green-100 border border-green-200 rounded">
-              {successMessage}
-            </div>
-          )}
+
           <form onSubmit={handleFormSubmit} >
             <div className="md:flex gap-5">
               <div className="mb-4 md:w-6/12">
@@ -228,7 +210,6 @@ const ClientManagement = () => {
                 {errors.client_code && <p className="text-red-500">{errors.client_code}</p>}
               </div>
             </div>
-
             <div className="md:flex gap-5">
               <div className="mb-4 md:w-6/12">
                 <label className="text-gray-500" htmlFor="address">Address: *</label>
@@ -242,17 +223,45 @@ const ClientManagement = () => {
                 />
                 {errors.address && <p className="text-red-500">{errors.address}</p>}
               </div>
+              <div className="mb-4 md:w-6/12">
+                <label className="text-gray-500" htmlFor="mobile_number">Mobile: *</label>
+                <input
+                  type="number"
+                  name="mobile_number"
+                  id="mobile_number"
+                  className="border w-full rounded-md p-2 mt-2 outline-none"
+                  value={input.mobile_number}
+                  onChange={handleChange}
+                />
+                {errors.mobile_number && <p className="text-red-500">{errors.mobile_number}</p>}
+              </div>
 
+            </div>
+
+            <div className="md:flex gap-5">
+
+              <div className="mb-4 md:w-6/12">
+                <label htmlFor="contact_person">Contact Person: *</label>
+                <input
+                  type="text"
+                  name="contact_person"
+                  id="contact_person"
+                  className="border w-full rounded-md p-2 mt-2 outline-none"
+                  value={input.contact_person}
+                  onChange={handleChange}
+                />
+                {errors.contact_person && <p className="text-red-500">{errors.contact_person}</p>}
+              </div>
               <div className="mb-4 md:w-6/12">
                 <label className="text-gray-500" htmlFor="state">State: *</label>
                 <select name="state" id="state" className="w-full border p-2 rounded-md mt-2" value={input.state} onChange={handleChange}>
-                {options.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              
+                  {options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+
                 {errors.state && <p className="text-red-500">{errors.state}</p>}
               </div>
             </div>
@@ -270,75 +279,54 @@ const ClientManagement = () => {
                 />
                 {errors.state_code && <p className="text-red-500">{errors.state_code}</p>}
               </div>
-
               <div className="mb-4 md:w-6/12">
-                <label className="text-gray-500" htmlFor="mobile_number">Mobile: *</label>
-                <input
-                  type="number"
-                  name="mobile_number"
-                  id="mobile_number"
-                  className="border w-full rounded-md p-2 mt-2 outline-none"
-                  value={input.mobile_number}
-                  onChange={handleChange}
-                />
-                {errors.mobile_number && <p className="text-red-500">{errors.mobile_number}</p>}
-              </div>
+              <label className="text-gray-500" htmlFor="name_of_escalation">Name of the Escalation Point of Contact:*</label>
+              <input
+                type="text"
+                name="name_of_escalation"
+                id="name_of_escalation"
+                className="border w-full rounded-md p-2 mt-2 outline-none"
+                value={input.name_of_escalation}
+                onChange={handleChange}
+              />
+              {errors.name_of_escalation && <p className="text-red-500">{errors.name_of_escalation}</p>}
             </div>
-            <div className="my-8 grid gap-5 grid-cols-2 items-center flex-wrap" >
-            {emails.map((form, index) => (
-                <div className="mb-4  " key={index}>
-                  <label className="text-gray-500" htmlFor={`email${index}`}>
-                    Email: *{index + 1}
-                  </label>
-                  <input
-                    type="text"
-                    name="email"
-                    id={`email${index}`}
-                    className="border w-full rounded-md p-2 mt-2 outline-none"
-                    value={form.email} 
-                    onChange={(e) => handleChange(e, index)}
-                  />
-                  {errors[`email${index}`] && ( 
-                    <p className="text-red-500">{errors[`email${index}`]}</p>
-                  )}
-             
-                {emails.length > 1 && (
-                  <button className="bg-red-500 rounded-md p-4 mt-5 text-white" type="button" onClick={(()=>deleteEmails(index))}>Delete</button>
+
+            </div>
+            <div className="my-8 grid gap-5 grid-cols-2 items-center flex-wrap">
+            {emails.map((email, index) => (
+              <div className="mb-4 flex gap-3 items-center " key={index} >
+                <label className="text-gray-500 block text-sm whitespace-nowrap" htmlFor={`email${index}`}>
+                  Email: *{index + 1}
+                </label>
+                <input
+                  type="text"
+                  name={`email${index}`}
+                  id={`email${index}`}
+                  className="border w-full rounded-md p-2 mt-2 outline-none"
+                  value={email}
+                  onChange={(e) => handleChange(e, index)}
+                />
+                 {errors[`email${index}`] && (
+                  <p className="text-red-500 whitespace-nowrap">{errors[`email${index}`]}</p>
                 )}
-               </div>
-
+              
+                {index > 0 && (
+                  <button
+                    className="bg-red-500 rounded-md p-3  text-white"
+                    type="button"
+                    onClick={() => deleteEmails(index)}
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
             ))}
-         
-            <button className="bg-green-500 text-white rounded-3 p-2 mt-3 rounded-md" type="button" onClick={addMoreEmails}>ADD MORE</button>
-            </div> 
-
-            <div className="md:flex gap-5">
-              <div className="mb-4 md:w-6/12">
-                <label className="text-gray-500" htmlFor="role">Role: *</label>
-                <input
-                  type="text"
-                  name="role"
-                  id="role"
-                  className="border w-full rounded-md p-2 mt-2 outline-none"
-                  value={input.role}
-                  onChange={handleChange}
-                />
-                {errors.role && <p className="text-red-500">{errors.role}</p>}
-              </div>
-
-              <div className="mb-4 md:w-6/12">
-                <label className="text-gray-500" htmlFor="name_of_escalation">Name of the Escalation Point of Contact:*</label>
-                <input
-                  type="text"
-                  name="name_of_escalation"
-                  id="name_of_escalation"
-                  className="border w-full rounded-md p-2 mt-2 outline-none"
-                  value={input.name_of_escalation}
-                  onChange={handleChange}
-                />
-                {errors.name_of_escalation && <p className="text-red-500">{errors.name_of_escalation}</p>}
-              </div>
+            
+              <button className="bg-green-500 text-white rounded-3 p-2 mt-0 rounded-md" type="button" onClick={addMoreEmails}>ADD MORE</button>
             </div>
+
+           
 
             <div className="md:flex gap-5">
               <div className="mb-4 md:w-6/12">
@@ -407,15 +395,15 @@ const ClientManagement = () => {
                 {errors.client_standard && <p className="text-red-500">{errors.client_standard}</p>}
               </div>
               <div className="mb-4 md:w-6/12">
-                <label className="text-gray-500" htmlFor="Agreement_Period">Agreement Period: *</label>
+                <label className="text-gray-500" htmlFor="agreement_period">Agreement Period: *</label>
 
-                <select name="Agreement_Period" className="border w-full rounded-md p-2 mt-2 outline-none" id="Agreement_Period" onChange={handleChange} value={input.Agreement_Period}>
+                <select name="agreement_period" className="border w-full rounded-md p-2 mt-2 outline-none" id="agreement_period" onChange={handleChange} value={input.agreement_period}>
                   <option value="Unless terminated" selected>Unless terminated</option>
                   <option value="1 year">1 year</option>
                   <option value="2 year">2 year</option>
                   <option value="3 year">3 year</option>
                 </select>
-                {errors.Agreement_Period && <p className="text-red-500">{errors.Agreement_Period}</p>}
+                {errors.agreement_period && <p className="text-red-500">{errors.agreement_period}</p>}
               </div>
             </div>
             <div className="mb-4">
@@ -429,31 +417,21 @@ const ClientManagement = () => {
               />
               {errors.agr_upload && <p className="text-red-500">{errors.agr_upload}</p>}
             </div>
+
             <div className="mb-4">
-              <label className="text-gray-500" htmlFor="agr_upload">Agreement Upload:</label>
-              <input
-                type="text"
-                name="package_name"
-                id="package_name"
-                className="border w-full rounded-md p-2 mt-2 outline-none"
-                onChange={handleChange}
-              />
-              {errors.package_name && <p className="text-red-500">{errors.package_name}</p>}
-            </div>
-            <div className="mb-4">
-              <label className="text-gray-500" htmlFor="required_template">Required Custom Template:*</label>
-              <select name="required_template" id="required_template" value={input.required_template} className="border w-full rounded-md p-2 mt-2 outline-none" onChange={handleChange}>
+              <label className="text-gray-500" htmlFor="custom_template">Required Custom Template:*</label>
+              <select name="custom_template" id="custom_template" value={input.custom_template} className="border w-full rounded-md p-2 mt-2 outline-none" onChange={handleChange}>
                 <option value="yes">yes</option>
-                <option value="no">no</option>
+                <option value="no" selected>no</option>
               </select>
-              {input.required_template === 'yes' && (
+              {input.custom_template === 'yes' && (
                 <>
                   <div className="mb-4 mt-4">
                     <label htmlFor="custom_logo" className="text-gray-500">Upload Custom Logo :*</label>
                     <input
                       type="file"
-                      name="c_logo"
-                      id="c_logo"
+                      name="custom_logo"
+                      id="custom_logo"
                       onChange={handleChange}
                       className="border w-full rounded-md p-2 mt-2 outline-none"
                     />
@@ -568,10 +546,10 @@ const ClientManagement = () => {
                 Submit
               </button>
             </div>
-            
+
           </form>
         </div>
-        
+
       </div>
     </>
   );

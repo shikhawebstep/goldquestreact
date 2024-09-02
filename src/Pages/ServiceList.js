@@ -12,7 +12,6 @@ const ServiceList = () => {
     const [error, setError] = useState(null);
     const [paginated, setPaginated] = useState([]);
     const [currentPage] = useState(1);
-    const [setTotalPages] = useState(1);
     const { editService } = useService();
 
     const fetchData = useCallback(async () => {
@@ -34,12 +33,24 @@ const ServiceList = () => {
                 }
             });
 
-            if (!res.ok) {
-                throw new Error('Network response was not ok');
+            const result = await res.json();
+
+            if (!res.ok || !result.status) {
+                // Display the error message only once
+                Swal.fire({
+                    title: 'Error!',
+                    text: result.message || 'An error occurred',
+                    icon: 'error',
+                    confirmButtonText: 'Ok'
+                });
+                setError(result.message || 'An error occurred');
+                return;
             }
 
-            const result = await res.json();
-            console.log('Fetched services data:', result);
+            const newToken = result._token || result.token;
+            if (newToken) {
+                localStorage.setItem('_token', newToken);
+            }
 
             const processedData = (result.services || []).map((item, index) => ({
                 ...item,
@@ -51,15 +62,13 @@ const ServiceList = () => {
 
             setData(processedData);
             setTotalResults(processedData.length);
-            setTotalPages(Math.ceil(processedData.length / showPerPage));
         } catch (error) {
             console.error('Fetch error:', error);
             setError('Failed to load data');
         } finally {
             setLoading(false);
-            setError(null)
         }
-    }, [setTotalResults, setTotalPages, showPerPage]);
+    }, [setTotalResults]);
 
     useEffect(() => {
         fetchData();
@@ -117,22 +126,20 @@ const ServiceList = () => {
                         return response.json();
                     })
                     .then(result => {
-                        const newToken = result._token || result.token; // Use result.token if result._token is not available
+                        const newToken = result._token || result.token;
                         if (newToken) {
-                            localStorage.setItem("_token", newToken); // Replace the old token with the new one
+                            localStorage.setItem("_token", newToken);
                         }
-                        setError({});
-                        console.log('Package deleted:', result);
-                        fetchData(); // Refresh data after deletion
+                        console.log('Service deleted:', result);
+                        fetchData();
                         Swal.fire(
                             'Deleted!',
-                            'Your package has been deleted.',
+                            'Your service has been deleted.',
                             'success'
                         );
                     })
                     .catch(error => {
                         console.error('Fetch error:', error);
-
                     });
             }
         });
@@ -178,7 +185,7 @@ const ServiceList = () => {
                         ))
                         ) : (
                             <tr>
-                                <td colSpan="6" className="py-6 px-4 border-l border-r text-center border-b whitespace-nowrap">
+                                <td colSpan="4" className="py-6 px-4 border-l border-r text-center border-b whitespace-nowrap">
                                     No data available
                                 </td>
                             </tr>

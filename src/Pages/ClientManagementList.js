@@ -22,8 +22,6 @@ const ClientManagementList = () => {
     const [error, setError] = useState(null);
     const [showAllServicesState, setShowAllServicesState] = useState({});
 
-
-
     // fetch clients
     const fetchData = useCallback(() => {
         setLoading(true);
@@ -282,13 +280,7 @@ const ClientManagementList = () => {
                                                                 <p className='whitespace-nowrap text-left text-red-500'>Service not available</p>
                                                             )}
 
-                                                            {service.packages && Object.keys(service.packages).length > 0 ? (
-                                                                <p className='whitespace-nowrap text-left'>
-                                                                    Packages: {Object.values(service.packages).filter(Boolean).join(', ')}
-                                                                </p>
-                                                            ) : (
-                                                                <p className='whitespace-nowrap text-left text-red-500'>No packages available</p>
-                                                            )}
+                                                            
                                                         </>
                                                     </div>
                                                 ))}

@@ -31,7 +31,6 @@ export const ClientEditForm = () => {
                             onChange={handleClientChange}
                         />
                     </div>
-
                     <div className="mb-4 md:w-6/12">
                         <label className="text-gray-500" htmlFor="client_code">Client Code: *</label>
                         <input

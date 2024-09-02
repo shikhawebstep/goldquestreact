@@ -131,14 +131,14 @@ const ClientManagement = () => {
                 throw new Error(text);
             });
           }
-          const newToken = response._token || response.token;
-          if (newToken) {
-              localStorage.setItem("_token", newToken);
-          }
+        
           return response.json();
         })
         .then((result) => {
-
+          const newToken = result._token || result.token;
+          if (newToken) {
+              localStorage.setItem("_token", newToken);
+          }
           console.log('Form Submit Result:', result);
           Swal.fire({
             title: "Success",

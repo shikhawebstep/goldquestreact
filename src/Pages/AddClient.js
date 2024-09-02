@@ -11,7 +11,7 @@ const AddClient = () => {
     const { name, files } = e.target;
     setInput((prev) => ({
       ...prev,
-      [name]: files[0], 
+      [name]: files[0],
     }));
   };
 
@@ -61,7 +61,7 @@ const AddClient = () => {
             Submit
           </button>
         </div>
-      
+
         {input.image && <p>Selected file: {input.image.name}</p>}
       </form>
     </>

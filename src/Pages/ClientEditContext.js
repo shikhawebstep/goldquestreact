@@ -10,6 +10,7 @@ export const ClientEditProvider = ({ children }) => {
         company_name: '',
         client_code: '',
         address: '',
+        emails:'',
         mobile_number: '',
         contact_person: '',
         state: '',

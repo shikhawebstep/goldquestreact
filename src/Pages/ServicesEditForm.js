@@ -31,6 +31,10 @@ const ServicesEditForm = () => {
                 const errorText = await serviceRes.text();
                 throw new Error(`Network response for services was not ok: ${serviceRes.status} ${errorText}`);
             }
+            const newToken = serviceRes._token || serviceRes.token; // Use result.token if result._token is not available
+            if (newToken) {
+                localStorage.setItem("_token", newToken); // Replace the old token with the new one
+            }
             const serviceResult = await serviceRes.json();
             if (!serviceResult || !Array.isArray(serviceResult.services)) {
                 throw new Error('Invalid service response format');
@@ -56,6 +60,7 @@ const ServicesEditForm = () => {
                 const errorText = await packageRes.text();
                 throw new Error(`Network response for packages was not ok: ${packageRes.status} ${errorText}`);
             }
+    
             const packageResult = await packageRes.json();
             const processedPackages = (packageResult.packages || []).map((item) => ({
                 ...item,

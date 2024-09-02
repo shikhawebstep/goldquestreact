@@ -18,20 +18,18 @@ body{
 div#root {
     max-width: 2000px;
     margin: auto;
+
 }
 /* this is my demo comment */
 
-  [role='tooltip'].popup-content {
-    width: 500px;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 3px;
-    left: 40% !important;
-}
-  
-.fullwidth   [role='tooltip'].popup-content {
-    width: 1000px !important;
+[role='tooltip'].popup-content {
+    width: 60%;
     box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 3px;
     left: 20% !important;
+    background-color: transparent  !important;
+    border: none  !important;
 }
+
   
   [data-popup='tooltip'].popup-overlay {
     background: #000000c7;

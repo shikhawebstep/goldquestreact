@@ -63,11 +63,7 @@ const PackageForm = ({ onSuccess }) => {
         if (token) setStoredToken(token);
         const validationErrors = validateInputs();
         if (Object.keys(validationErrors).length === 0) {
-            if (!adminId || !token) {
-                setFormMessage("Admin ID or token is missing.");
-                setTimeout(() => setFormMessage(""), 5000); // Clear message after 5 seconds
-                return;
-            }
+          
 
             const myHeaders = new Headers();
             myHeaders.append("Content-Type", "application/json");
@@ -96,14 +92,16 @@ const PackageForm = ({ onSuccess }) => {
             fetch(url, requestOptions)
                 .then(response => {
                     if (!response.ok) {
-                        Swal.fire({
-                            title: 'Error!',
-                            text: `An error occurred: ${response.message}`,
-                            icon: 'error',
-                            confirmButtonText: 'Ok'
-                          });
-                          throw new Error('Network response was not ok');
-                    }
+                        return response.text().then(text => {
+                            const errorData = JSON.parse(text);
+                            Swal.fire(
+                                'Error!',
+                                `An error occurred: ${errorData.message}`,
+                                'error'
+                            );
+                            throw new Error(text);
+                        });
+                      }
                     return response.json();
                 })
                 .then(result => {

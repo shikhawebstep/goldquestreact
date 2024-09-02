@@ -49,7 +49,10 @@ const LoginForm = () => {
               icon: 'error',
               confirmButtonText: 'Ok'
             });
-
+            const newToken = response._token || response.token;
+            if (newToken) {
+                localStorage.setItem("_token", newToken);
+            }
           } else {
             console.log('Login successful:', response.data);
 

@@ -2,10 +2,10 @@ import React from 'react'
 import { useEditBranch } from './BranchEditContext'
 
 const BranchEditForm = () => {
-    const { branchEditData, setBranchEditData, handleInputChange, handleEditBranch }=useEditBranch()
+    const { branchEditData, handleInputChange, handleEditBranch }=useEditBranch()
     return (
         <>
-            <form onSubmit={handleEditBranch} className='mt-9 p-4'>
+            <form onSubmit={handleEditBranch} className='mt-9 p-4 md:w-8/12 m-auto bg-white rounded-md  '>
                 <div className="mb-3">
                     <label htmlFor="name" className='d-block'>Branch Name:</label>
                     <input

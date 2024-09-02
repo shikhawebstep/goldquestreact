@@ -1,30 +1,41 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState, useEffect } from 'react';
+import { useLocation, Link } from 'react-router-dom';
+
 const EmailLogin = () => {
+  const location = useLocation();
+  const query = new URLSearchParams(location.search);
+  const emailFromQuery = query.get('email') || '';
+
   const [input, setInput] = useState({
-    email: "",
+    email: emailFromQuery,
     password: "",
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState({});
+
+  // Update input state when emailFromQuery changes
+  useEffect(() => {
+    setInput(prev => ({
+      ...prev,
+      email: emailFromQuery,
+    }));
+  }, [emailFromQuery]);
+
   const validations = () => {
     const newErrors = {};
     if (!input.email) {
-      newErrors.email = 'This field is Required!'
+      newErrors.email = 'This field is required!';
     }
     if (!input.password) {
-      newErrors.password = 'This field is Required!'
-    }
-    else if (input.password.length <= 8) {
-      newErrors.password = 'Password has Maximum 8 Characters*'
-    }
-    else {
-
+      newErrors.password = 'This field is required!';
+    } else if (input.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters long';
     }
     return newErrors;
-  }
-  const handelChange = (e) => {
+  };
+
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setInput((prev) => ({
+    setInput(prev => ({
       ...prev, [name]: value,
     }));
   };
@@ -35,11 +46,10 @@ const EmailLogin = () => {
     if (Object.keys(validateError).length === 0) {
       console.log(input);
       setError({});
-    }
-    else {
+    } else {
       setError(validateError);
     }
-  }
+  };
 
   return (
     <>
@@ -49,7 +59,8 @@ const EmailLogin = () => {
           <input type="email"
             name="email"
             id="EmailId"
-            onChange={handelChange}
+            onChange={handleChange}
+            value={input.email}
             className='outline-none p-3 border mt-3 w-full rounded-md' />
           {error.email && <p className='text-red-500'>{error.email}</p>}
         </div>
@@ -58,7 +69,8 @@ const EmailLogin = () => {
           <input type="password"
             name="password"
             id="YourPassword"
-            onChange={handelChange}
+            onChange={handleChange}
+            value={input.password}
             className='outline-none p-3 border mt-3 w-full rounded-md' />
           {error.password && <p className='text-red-500'>{error.password}</p>}
 

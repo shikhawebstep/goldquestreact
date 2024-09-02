@@ -4,12 +4,21 @@ import countryList from 'react-select-country-list';
 import ServicesEditForm from './ServicesEditForm';
 
 export const ClientEditForm = () => {
+  
+
     const options = useMemo(() => countryList().getData(), []);
     const { clientData, handleClientChange, handleClientSubmit } = useEditClient();
-
+    let emails = [];
+    try {
+        if (clientData.emails) {
+            emails = JSON.parse(clientData.emails);
+        }
+    } catch (error) {
+        console.error('Error parsing emails:', error);
+    }
     return (
         <>
-            <form onSubmit={handleClientSubmit} className='p-5' >
+            <form onSubmit={handleClientSubmit} className='p-5 bg-white rounded-md' >
                 <div className="md:flex gap-5">
                     <div className="mb-4 md:w-6/12">
                         <label className="text-gray-500" htmlFor="company_name">Company Name: *</label>
@@ -195,6 +204,27 @@ export const ClientEditForm = () => {
                         onChange={handleClientChange}
                     />
                 </div>
+                <div className="mb-4">
+                <label className="text-gray-500" htmlFor="agr_upload">Emails</label>
+                <div className="flex gap-3 flex-wrap">
+                {emails.length > 0 ? (
+                    emails.map((email, index) => (
+                        <input
+                            key={index}
+                            type="email"
+                            name={`email-${index}`}
+                            id={`email-${index}`}
+                            value={email}
+                            className="border w-3/12 rounded-md p-2 mt-2 outline-none"
+                            onChange={(e) => handleClientChange(e, index)}
+                        />
+                    ))
+                ) : (
+                    <p>No emails available</p>
+                )}
+                </div>
+              
+            </div>
 
                 <div className="mb-4">
                     <label className="text-gray-500" htmlFor="custom_template">Required Custom Template:*</label>

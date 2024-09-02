@@ -12,7 +12,6 @@ const ServiceForm = () => {
         d_name: "",
     });
     const [error, setError] = useState({});
-    const [formMessage, setFormMessage] = useState("");
 
     useEffect(() => {
         const adminData = JSON.parse(localStorage.getItem("admin"));
@@ -57,12 +56,7 @@ const ServiceForm = () => {
         const validateError = validate();
 
         if (Object.keys(validateError).length === 0) {
-            if (!adminId || !storedToken) {
-                setFormMessage("Admin ID or token is missing.");
-                setTimeout(() => setFormMessage(""), 5000); // Clear message after 5 seconds
-                return;
-            }
-
+         
             const requestOptions = {
                 method: isEdit ? "PUT" : "POST",
                 headers: {
@@ -84,14 +78,16 @@ const ServiceForm = () => {
             fetch(url, requestOptions)
                 .then(response => {
                     if (!response.ok) {
-                        Swal.fire({
-                            title: 'Error!',
-                            text: `An error occurred: ${response.statusText}`,
-                            icon: 'error',
-                            confirmButtonText: 'Ok'
+                        return response.text().then(text => {
+                            const errorData = JSON.parse(text);
+                            Swal.fire(
+                                'Error!',
+                                `An error occurred: ${errorData.message}`,
+                                'error'
+                            );
+                            throw new Error(text);
                         });
-                        throw new Error('Network response was not ok');
-                    }
+                      }
                     return response.json();
                 })
                 .then((result) => {
@@ -117,12 +113,9 @@ const ServiceForm = () => {
                     // Reset the form
                     setServiceInput({ name: "", d_name: "" });
                     setIsEdit(false); // Reset to 'Add' mode
-                    setFormMessage("");
                 })
                 .catch((error) => {
                     console.error(error);
-                    setFormMessage("An error occurred. Please try again.");
-                    setTimeout(() => setFormMessage(""), 5000); // Clear message after 5 seconds
                 });
         } else {
             setError(validateError);
@@ -156,7 +149,6 @@ const ServiceForm = () => {
             <button className="bg-green-500 hover:bg-green-200 text-white w-full rounded-md p-3" type='submit'>
                 {isEdit ? 'Update' : 'Add'}
             </button>
-            {formMessage && <p className="mt-4 text-center text-green-600">{formMessage}</p>}
         </form>
     );
 };

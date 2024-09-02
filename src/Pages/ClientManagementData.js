@@ -35,10 +35,15 @@ const ClientManagementData = () => {
                 const errorText = await res.text();
                 throw new Error(`Network response was not ok: ${res.status} ${errorText}`);
             }
+            const newToken = res._token || res.token;
+            if (newToken) {
+                localStorage.setItem("_token", newToken);
+            }
             const result = await res.json();
             if (!result || !Array.isArray(result.services)) {
                 throw new Error('Invalid response format');
             }
+           
             const processedServices = (result.services || []).map((item) => ({
                 ...item,
                 service_name: item.title,
@@ -77,6 +82,10 @@ const ClientManagementData = () => {
             if (!res.ok) {
                 const errorText = await res.text();
                 throw new Error(`Network response was not ok: ${res.status} ${errorText}`);
+            }
+            const newToken = res._token || res.token;
+            if (newToken) {
+                localStorage.setItem("_token", newToken);
             }
             const result = await res.json();
             const processedPackages = (result.packages || []).map((item) => ({

@@ -77,7 +77,7 @@ const ExternalLoginData = () => {
     <div className="bg-white m-4 md:m-24 shadow-md rounded-md p-3">
       <SearchBar />
       {loading ? (
-        <p>Loading...</p>
+        <p className='text-center'>Loading...</p>
       ) : error ? (
         <p>{error}</p>
       ) : (
@@ -102,6 +102,7 @@ const ExternalLoginData = () => {
                   <td className="py-2 px-4 border-b border-r whitespace-nowrap text-center uppercase text-blue-500 font-bold">
                     <Link 
                       to={`/customerlogin?email=${encodeURIComponent(item.email)}`}
+                      target='_blank'
                       className="hover:underline"
                     >
                       Go

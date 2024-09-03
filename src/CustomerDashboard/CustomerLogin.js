@@ -2,7 +2,7 @@ import React from 'react'
 import active_client from '../Images/Login.jpeg';
 import CustomerLoginForm from './CustomerLoginForm';
 import loginImg from '../Images/customerlogin.png'
-const Login = () => {
+const CustomerLogin = () => {
   return (
     <>
       <div className="bg-cover md:h-lvh bg-center flex items-center justify-center p-4 md:p-14" style={{ backgroundImage: `url(${active_client})` }}>
@@ -20,4 +20,4 @@ const Login = () => {
   )
 }
 
-export default Login
+export default CustomerLogin

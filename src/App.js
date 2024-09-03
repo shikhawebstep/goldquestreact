@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './index.css';
 import Render from './Pages/Render';
 import ForgotPassword from './Pages/ForgotPassword';
-import CustomerLogin from './Pages/CustomerLogin';
+import CustomerLogin from './CustomerDashboard/CustomerLogin';
 import PasswordReset from './Pages/PasswordReset';
 import SetNewPassword from './Pages/SetNewPassword';
 import Login from './Dashboard/Login';
@@ -31,7 +31,7 @@ const App = () => {
                   <Router basename='/demo/Goldquest'>
                     <Routes>
                       <Route path='/' element={<Admin><Render /></Admin>} />
-                      <Route path='customerlogin' element={<CustomerLogin />} />
+                      <Route path='/customer-login' element={<CustomerLogin />} />
                       <Route path='/admin-login' element={<Login />} />
                       <Route path='forgotpassword' element={<ForgotPassword />} />
                       <Route path='forgotpassword/passwordreset' element={<PasswordReset />} />

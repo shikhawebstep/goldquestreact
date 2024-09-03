@@ -35,15 +35,10 @@ const ClientManagementData = () => {
                 const errorText = await res.text();
                 throw new Error(`Network response was not ok: ${res.status} ${errorText}`);
             }
-            const newToken = res._token || res.token;
-            if (newToken) {
-                localStorage.setItem("_token", newToken);
-            }
             const result = await res.json();
             if (!result || !Array.isArray(result.services)) {
                 throw new Error('Invalid response format');
             }
-           
             const processedServices = (result.services || []).map((item) => ({
                 ...item,
                 service_name: item.title,
@@ -83,10 +78,6 @@ const ClientManagementData = () => {
                 const errorText = await res.text();
                 throw new Error(`Network response was not ok: ${res.status} ${errorText}`);
             }
-            const newToken = res._token || res.token;
-            if (newToken) {
-                localStorage.setItem("_token", newToken);
-            }
             const result = await res.json();
             const processedPackages = (result.packages || []).map((item) => ({
                 ...item,
@@ -124,13 +115,12 @@ const ClientManagementData = () => {
         return Object.keys(errors).length === 0;
     };
 
-
     useEffect(() => {
         const updatedServiceData = service.map((item, index) => {
             const packages = (selectedPackages[index] || []).reduce((acc, pkgId) => {
                 const pkg = packageList.find(p => p.id === pkgId);
                 if (pkg) {
-                    acc[pkg.id] = '';
+                    acc[pkg.id] = pkg.title;
                 }
                 return acc;
             }, {});
@@ -144,7 +134,7 @@ const ClientManagementData = () => {
         });
 
         setClientData(updatedServiceData);
-        setValidationsErrors(validateServices)
+        setValidationsErrors(validateServices);
         setTotalResults(updatedServiceData.length);
         const startIndex = (currentItem - 1) * showPerPage;
         const endIndex = startIndex + showPerPage;
@@ -214,15 +204,16 @@ const ClientManagementData = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {paginated.length > 0 ?
-                        (paginated.map((item, index) => (
+                    {paginated.length > 0 ? (
+                        paginated.map((item, index) => (
                             <tr key={index}>
                                 <td className="py-3 px-4 border-l border-r border-b whitespace-nowrap">
                                     <input type="checkbox" className='me-2' />
                                     {item.serviceTitle}
                                 </td>
                                 <td className="py-3 px-4 border-r border-b whitespace-nowrap">
-                                    <input type="number"
+                                    <input
+                                        type="number"
                                         name="price"
                                         value={priceData[index]?.price || ''}
                                         onChange={(e) => handleChange(e, index)}
@@ -232,7 +223,7 @@ const ClientManagementData = () => {
                                 </td>
                                 <td className="py-3 px-4 border-r border-b whitespace-nowrap uppercase text-left">
                                     <Multiselect
-                                        options={packageList.map((pkg) => ({ name: pkg.title, id: pkg.id }))}
+                                        options={packageList.map(pkg => ({ name: pkg.title, id: pkg.id }))}
                                         selectedValues={packageList
                                             .filter(pkg => (selectedPackages[index] || []).includes(pkg.id))
                                             .map(pkg => ({ name: pkg.title, id: pkg.id }))}
@@ -244,17 +235,15 @@ const ClientManagementData = () => {
                                     {validationsErrors[index]?.packages && <span className="text-red-500">{validationsErrors[index].packages}</span>}
                                 </td>
                             </tr>
-                        ))) : (
-                            <p className=' flex items-center mt-5 justify-center w-full text-center'>No Data Available</p>
-
-                        )
-
-                    }
-
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="3" className='flex items-center mt-5 justify-center w-full text-center'>No Data Available</td>
+                        </tr>
+                    )}
                 </tbody>
             </table>
-            {paginated.length > 0 ? (<Pagination />) : ''}
-
+            {paginated.length > 0 && <Pagination />}
         </div>
     );
 };

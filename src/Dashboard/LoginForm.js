@@ -5,6 +5,8 @@ import { FaGoogle, FaFacebook, FaApple } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 
 const LoginForm = () => {
+ 
+
   const [input, setInput] = useState({
     username: '',
     password: '',
@@ -61,7 +63,6 @@ const LoginForm = () => {
 
             localStorage.setItem('admin', JSON.stringify(adminData));
             localStorage.setItem('_token', _token);
-
             Swal.fire({
               title: "Success",
               text: 'Login Successfull',

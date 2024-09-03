@@ -1,10 +1,10 @@
 import React from 'react'
-import ClienttMasterTrackerList from './ClientMasterTrackerList'
+import ClientMasterTrackerList from './ClientMasterTrackerList'
 
 const ClientMasterTracker = () => {
   return (
     <>
-      <ClienttMasterTrackerList />
+      <ClientMasterTrackerList />
     </>
   )
 }

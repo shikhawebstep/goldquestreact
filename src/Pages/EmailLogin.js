@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 const EmailLogin = () => {
   const location = useLocation();
   const query = new URLSearchParams(location.search);
   const emailFromQuery = query.get('email') || '';
+  const navigate = useNavigate();
 
   const [input, setInput] = useState({
     email: emailFromQuery,
     password: "",
   });
+
   const [error, setError] = useState({});
 
-  // Update input state when emailFromQuery changes
   useEffect(() => {
     setInput(prev => ({
       ...prev,
@@ -43,9 +45,69 @@ const EmailLogin = () => {
   const handleSubmitForm = (e) => {
     e.preventDefault();
     const validateError = validations();
+
     if (Object.keys(validateError).length === 0) {
-      console.log(input);
-      setError({});
+      const myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+
+      const raw = JSON.stringify({
+        "username": input.email,
+        "password": input.password,
+      });
+
+      const requestOptions = {
+        method: "POST",
+        headers: myHeaders,
+        body: raw,
+        redirect: "follow"
+      };
+
+      fetch("https://goldquestreact.onrender.com/branch/login", requestOptions)
+        .then(res => res.json())
+        .then(response => {
+          if (!response.status) {
+            Swal.fire({
+              title: 'Error!',
+              text: `An error occurred: ${response.message}`,
+              icon: 'error',
+              confirmButtonText: 'Ok'
+            });
+            const newToken = response.branch_token || response.token;
+            if (newToken) {
+              localStorage.setItem("branch_token", newToken);
+            }
+          } else {
+            console.log('Login successful:', response);
+
+            const branchData = response.branchData;
+            const branch_token = response.token;
+
+            localStorage.setItem('branch', JSON.stringify(branchData));
+            localStorage.setItem('branch_token', branch_token);
+
+            Swal.fire({
+              title: "Success",
+              text: 'Login Successful',
+              icon: "success",
+              confirmButtonText: "Ok"
+            });
+
+            console.log('Navigating to Customer dashboard...');
+
+            navigate('/customer-dashboard', { state: { from: location }, replace: true });
+            setError({});
+          }
+        })
+        .catch(error => {
+          Swal.fire({
+            title: 'Error!',
+            text: `Error: ${error.response?.data?.message || error.message}`,
+            icon: 'error',
+            confirmButtonText: 'Ok'
+          });
+          console.error('Login failed:', error); // Log the error details
+        });
+
     } else {
       setError(validateError);
     }
@@ -53,7 +115,7 @@ const EmailLogin = () => {
 
   return (
     <>
-      <form action="" className='mt-9' onSubmit={handleSubmitForm}>
+      <form className='mt-9' onSubmit={handleSubmitForm}>
         <div className="mb-3">
           <label htmlFor="email" className='d-block '>Enter Your Email:</label>
           <input type="email"
@@ -73,13 +135,14 @@ const EmailLogin = () => {
             value={input.password}
             className='outline-none p-3 border mt-3 w-full rounded-md' />
           {error.password && <p className='text-red-500'>{error.password}</p>}
-
         </div>
         <button type="submit" className='bg-green-400 text-white p-3 rounded-md w-full hover:bg-green-200'>Sign In</button>
-        <span className='text-center pt-4 flex justify-center text-blue-400 cursor-pointer'><Link to='/forgotpassword'>Forgot Password?</Link></span>
+        <span className='text-center pt-4 flex justify-center text-blue-400 cursor-pointer'>
+          <Link to='/forgotpassword'>Forgot Password?</Link>
+        </span>
       </form>
     </>
-  )
+  );
 }
 
-export default EmailLogin
+export default EmailLogin;

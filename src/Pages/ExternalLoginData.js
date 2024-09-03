@@ -101,7 +101,7 @@ const ExternalLoginData = () => {
                   <td className="py-2 px-4 border-b border-r whitespace-nowrap">{item.email}</td>
                   <td className="py-2 px-4 border-b border-r whitespace-nowrap text-center uppercase text-blue-500 font-bold">
                     <Link 
-                      to={`/customerlogin?email=${encodeURIComponent(item.email)}`}
+                      to={`/customer-login?email=${encodeURIComponent(item.email)}`}
                       target='_blank'
                       className="hover:underline"
                     >

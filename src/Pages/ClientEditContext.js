@@ -10,7 +10,7 @@ export const ClientEditProvider = ({ children }) => {
         company_name: '',
         client_code: '',
         address: '',
-        emails:'',
+        emails: '',
         mobile_number: '',
         contact_person: '',
         state: '',
@@ -28,8 +28,8 @@ export const ClientEditProvider = ({ children }) => {
         custom_address: '',
         additional_login: 'No',
         username: '',
-        services: [] ,
-        clientData:{},
+        services: [],
+        clientData: {},
     });
 
     const handleClientChange = (e, index) => {
@@ -65,22 +65,31 @@ export const ClientEditProvider = ({ children }) => {
 
         try {
             const response = await fetch('https://goldquestreact.onrender.com/customer/update', requestOptions);
+            const contentType = response.headers.get("content-type");
+
             if (!response.ok) {
-                return response.text().then(text => {
-                    const errorData = JSON.parse(text);
+                if (contentType && contentType.includes("application/json")) {
+                    const errorData = await response.json();
                     Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
-                });
+                } else {
+                    const errorText = await response.text();
+                    Swal.fire('Error!', `An error occurred: ${errorText}`, 'error');
+                }
+                return;
             }
 
-            const newToken = response._token || response.token;
+            const data = contentType.includes("application/json") ? await response.json() : {};
+            const newToken = data._token || data.token;
             if (newToken) {
                 localStorage.setItem("_token", newToken);
             }
             Swal.fire('Success!', 'Branch updated successfully.', 'success');
         } catch (error) {
             console.error('There was a problem with the fetch operation:', error);
+            Swal.fire('Error!', 'There was a problem with the fetch operation.', 'error');
         }
     };
+
 
     return (
         <ClientEditContext.Provider value={{ clientData, setClientData, handleClientChange, handleClientSubmit }}>

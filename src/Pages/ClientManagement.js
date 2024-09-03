@@ -6,7 +6,7 @@ import Swal from 'sweetalert2';
 
 const ClientManagement = () => {
   const options = useMemo(() => countryList().getData(), []);
-  const { clientData } = useClient();
+  const { clientData,setClientData, validationsErrors } = useClient();
 
   const [input, setInput] = useState({
     company_name: "",
@@ -29,9 +29,7 @@ const ClientManagement = () => {
     custom_template: "",
     custom_address: "",
     username: "",
-    clientData:[
-      
-    ]
+   
   });
 
   const [branchForms, setBranchForms] = useState([{ branch_name: "", branch_email: "" }]);
@@ -87,79 +85,59 @@ const ClientManagement = () => {
   };
 
   // Map emails to an array of strings
-  const newData = emails.map(email => email);
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-
+  
     const validationErrors = validate();
-    console.log('Validation Errors:', validationErrors);
-
     if (Object.keys(validationErrors).length === 0) {
-      const adminData = JSON.parse(localStorage.getItem("admin"));
-      const token = localStorage.getItem("_token");
-
-      const requestData = {
-        admin_id: adminData.id,
-        ...input,
-        _token: token,
-        branches: branchForms,
-        emails: newData, // Pass emails as an array of strings
-        clientData: clientData,
-      };
-
-      console.log('Request Data:', requestData);
-
-      const requestOptions = {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestData),
-        redirect: "follow",
-      };
-      console.log(requestOptions.body);
-
-      fetch("https://goldquestreact.onrender.com/customer/create", requestOptions)
-        .then((response) => {
-          if (!response.ok) {
-            return response.text().then(text => {
-                const errorData = JSON.parse(text);
-                Swal.fire(
-                    'Error!',
-                    `An error occurred: ${errorData.message}`,
-                    'error'
-                );
-                throw new Error(text);
-            });
-          }
-        
-          return response.json();
-        })
-        .then((result) => {
-          const newToken = result._token || result.token;
-          if (newToken) {
-              localStorage.setItem("_token", newToken);
-          }
-          console.log('Form Submit Result:', result);
-          Swal.fire({
-            title: "Success",
-            text: 'Client Created Successfully',
-            icon: "success",
-            confirmButtonText: "Ok"
-          });
-
-          // Reset form state
-          setInput({});
-          setEmails([""]); // Reset to initial state
-          setBranchForms([{ branch_name: "", branch_email: "" }]);
-          setErrors({});
-        })
-        .catch((error) => {
-          console.error("Error:", error);
+      try {
+        const adminData = JSON.parse(localStorage.getItem("admin"));
+        const token = localStorage.getItem("_token");
+  
+        const requestData = {
+          admin_id: adminData.id,
+          ...input,
+          _token: token,
+          branches: branchForms,
+          emails: emails,
+          clientData: clientData,
+        };
+  
+  
+        const response = await fetch("https://goldquestreact.onrender.com/customer/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestData),
         });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
+          throw new Error(errorData.message);
+        }
+  
+        const result = await response.json();
+        Swal.fire({
+          title: "Success",
+          text: 'Client Created Successfully',
+          icon: "success",
+          confirmButtonText: "Ok"
+        });
+  
+        // Reset form state
+        setInput({});
+        setClientData([]); // Reset client data
+        // Reset other state variables if needed
+      } catch (error) {
+        console.error("Error:", error);
+      }
     } else {
       setErrors(validationErrors);
     }
   };
+  
+  
 
   const addMoreFields = () => {
     setBranchForms([...branchForms, { branch_name: "", branch_email: "" }]);

@@ -41,7 +41,6 @@ const Admin = ({ children }) => {
         } else {
           redirectToLogin();
         }
-        console.log(response);
       } catch (error) {
         console.error('Error validating login:', error);
         localStorage.clear();
@@ -67,4 +66,4 @@ const Admin = ({ children }) => {
   return children; 
 };
 
-export default Admin;
+export default Customer;

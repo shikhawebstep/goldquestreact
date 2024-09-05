@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useContext, useEffect, useState, useCallback,  } from 'react';
 import PaginationContext from './PaginationContext'
 import SearchBar from './SearchBar';
 import Pagination from './Pagination';
@@ -84,7 +84,7 @@ const ClientManagementList = () => {
 
         const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
         const storedToken = localStorage.getItem("_token");
-        const url =
+       
             fetch(`https://goldquestreact.onrender.com/branch/list-by-customer?customer_id=${id}&admin_id=${admin_id}&_token=${storedToken}`, {
                 method: 'GET',
                 headers: {
@@ -316,7 +316,6 @@ const ClientManagementList = () => {
                                                 customer_id: item.id || '',
                                                 emails: item.emails || '',
                                                 clientData: item.clientData || '',
-                                                agr_upload: item.agr_upload || '',
                                                 client_standard: item.client_standard || '',
                                                 additional_login: item.additional_login || '',
                                                 tat: item.tat_days || '',

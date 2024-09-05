@@ -3,11 +3,11 @@ import Swal from 'sweetalert2';
 import DropBoxContext from './DropBoxContext';
 
 const CandidateForm = () => {
-    const { services, uniquePackages, selectedDropBox } = useContext(DropBoxContext);
+    const { services, uniquePackages, selectedDropBox ,fetchClient} = useContext(DropBoxContext);
     const [, setBranchId] = useState(null);
     const [, setStoredToken] = useState(null);
     const [isEditClient, setIsEditClient] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [, setIsSubmitting] = useState(false);
 
     const [input, setInput] = useState({
         name: "",
@@ -164,6 +164,7 @@ const CandidateForm = () => {
                         candidate_application_id:''
                     });
                     setError({});
+                    fetchClient();
                     Swal.fire({
                         title: "Success",
                         text: isEditClient ? 'Candidate Application Edit Successfully' : 'Candidate Application added successfully',

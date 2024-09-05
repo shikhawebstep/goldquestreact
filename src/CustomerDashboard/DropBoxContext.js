@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from 'react';
+import React, { createContext, useEffect, useState, useCallback } from 'react';
 import Swal from 'sweetalert2';
 
 const DropBoxContext = createContext();
@@ -6,76 +6,121 @@ const DropBoxContext = createContext();
 export const DropBoxProvider = ({ children }) => {
     const [services, setServices] = useState([]);
     const [uniquePackages, setUniquePackages] = useState([]);
-
-    const branchData = localStorage.getItem("branch");
-    const branch_id = branchData ? JSON.parse(branchData)?.id : null;
-    const storedBranchData = branchData ? JSON.parse(branchData)?.customer_id : null;
-
-    const _token = localStorage.getItem("branch_token");
+    const [listData, setListData] = useState([]);
     const [selectedDropBox, setSelectedDropBox] = useState(null);
+
+    const getLocalStorageItem = (key) => {
+        const item = localStorage.getItem(key);
+        return item ? JSON.parse(item) : null;
+    };
+
+    const branch_id = getLocalStorageItem("branch")?.id;
+    const storedBranchData = getLocalStorageItem("branch")?.customer_id;
+    const _token = localStorage.getItem("branch_token");
+
     const handleEditDrop = (pkg) => {
         setSelectedDropBox(pkg);
     };
- 
-    useEffect(() => {
-        const fetchServices = async () => {
-            try {
-                const response = await fetch(`https://goldquestreact.onrender.com/branch/customer-info?customer_id=${storedBranchData}&branch_id=${branch_id}&branch_token=${_token}`, {
-                    method: "GET",
-                    redirect: "follow"
+
+    const fetchServices = useCallback(async () => {
+        try {
+            const response = await fetch(`https://goldquestreact.onrender.com/branch/customer-info?customer_id=${storedBranchData}&branch_id=${branch_id}&branch_token=${_token}`, {
+                method: "GET",
+                redirect: "follow"
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
+                return;
+            }
+
+            const data = await response.json();
+            console.log('Fetched Data:', data);
+
+            if (data.customers.length > 0) {
+                const customer = data.customers[0];
+                const parsedServices = customer.services ? JSON.parse(customer.services) : [];
+                console.log('Parsed Services:', parsedServices);
+                setServices(parsedServices);
+
+                const packageSet = new Set();
+                const uniquePackagesList = [];
+
+                parsedServices.forEach(service => {
+                    Object.keys(service.packages).forEach(packageId => {
+                        if (!packageSet.has(packageId)) {
+                            packageSet.add(packageId);
+                            uniquePackagesList.push({ id: packageId, name: service.packages[packageId] });
+                        }
+                    });
                 });
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    Swal.fire(
-                        'Error!',
-                        `An error occurred: ${errorData.message}`,
-                        'error'
-                    );
-                    return;
-                }
-
-                const data = await response.json();
-                console.log('Fetched Data:', data); 
-
-                if (data.customers.length > 0) {
-                    const customer = data.customers[0];
-                    const parsedServices = customer.services ? JSON.parse(customer.services) : [];
-                    console.log('Parsed Services:', parsedServices); 
-                    setServices(parsedServices);
-
-                    const packageSet = new Set();
-                    const uniquePackagesList = [];
-
-                    parsedServices.forEach(service => {
-                        Object.keys(service.packages).forEach(packageId => {
-                            if (!packageSet.has(packageId)) {
-                                packageSet.add(packageId);
-                                uniquePackagesList.push({ id: packageId, name: service.packages[packageId] });
-                            }
-                        });
-                    });
-
-                    console.log('Unique Packages:', uniquePackagesList); 
-                    setUniquePackages(uniquePackagesList);
-                }
-            } catch (error) {
-                console.error('Fetch Error:', error); 
-                Swal.fire(
-                    'Error!',
-                    'An unexpected error occurred.',
-                    'error'
-                );
+                console.log('Unique Packages:', uniquePackagesList);
+                setUniquePackages(uniquePackagesList);
             }
-        };
-        if (storedBranchData !== null && storedBranchData !== undefined) {
-            fetchServices();
+        } catch (error) {
+            console.error('Fetch Error:', error);
+            Swal.fire('Error!', 'An unexpected error occurred.', 'error');
         }
-        
     }, [branch_id, _token, storedBranchData]);
 
+    useEffect(() => {
+        if (storedBranchData && branch_id && _token) {
+            fetchServices();
+        }
+    }, [fetchServices]);
+
+    const fetchClient = useCallback(async () => {
+        try {
+            const response = await fetch(`https://goldquestreact.onrender.com/branch/candidate-application/list?branch_id=${branch_id}&_token=${_token}`, {
+                method: "GET",
+                redirect: "follow"
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
+                return;
+            }
+
+            const data = await response.json();
+            const newToken = data?._token || data?.token;
+            if (newToken) {
+                localStorage.setItem("_token", newToken);
+            }
+            setListData(data.candidateApplications || []);
+        } catch (error) {
+            Swal.fire('Error!', 'An unexpected error occurred.', 'error');
+        }
+    }, [branch_id, _token]);
+
+    const fetchClientDrop = useCallback(async () => {
+        try {
+            const response = await fetch(`https://goldquestreact.onrender.com/branch/client-application/list?branch_id=${branch_id}&_token=${_token}`, {
+                method: "GET",
+                redirect: "follow"
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
+                return;
+            }
+
+            const data = await response.json();
+            const newToken = data?._token || data?.token;
+            if (newToken) {
+                localStorage.setItem("_token", newToken);
+            }
+            setListData(data.clientApplications || []);
+        } catch (error) {
+            Swal.fire('Error!', 'An unexpected error occurred.', 'error');
+        }
+    }, [branch_id, _token]);
+
     return (
-        <DropBoxContext.Provider value={{ services, uniquePackages, handleEditDrop, setServices, selectedDropBox, setSelectedDropBox, setUniquePackages }}>
+        <DropBoxContext.Provider value={{ services, fetchClient, fetchClientDrop, uniquePackages, handleEditDrop, setServices, listData, setListData, selectedDropBox, setSelectedDropBox, setUniquePackages }}>
             {children}
         </DropBoxContext.Provider>
     );

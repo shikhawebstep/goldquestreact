@@ -1,11 +1,16 @@
-import React, { createContext, useState, useContext } from 'react';
-
+import React, { createContext, useState, useContext,useCallback } from 'react';
+import Swal from 'sweetalert2';
+import PaginationContext from './PaginationContext';
 const ServiceContext = createContext();
 
 export const ServiceProvider = ({ children }) => {
+    const { setTotalResults } = useContext(PaginationContext);
+
     const [selectedService, setSelectedService] = useState(null);// Store Service list
     const [ServiceList, setServiceList] = useState([]); // Store package list
-
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const editService = (pkg) => {
         setSelectedService(pkg);
     };
@@ -13,9 +18,64 @@ export const ServiceProvider = ({ children }) => {
     const updateServiceList = (newList) => {
         setServiceList(newList);
     };
+    const fetchData = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
+            const storedToken = localStorage.getItem("_token");
+            const queryParams = new URLSearchParams({
+                admin_id: admin_id || '',
+                _token: storedToken || ''
+            }).toString();
+
+            const res = await fetch(`https://goldquestreact.onrender.com/service/list?${queryParams}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const result = await res.json();
+
+            if (!res.ok || !result.status) {
+                // Display the error message only once
+                Swal.fire({
+                    title: 'Error!',
+                    text: result.message || 'An error occurred',
+                    icon: 'error',
+                    confirmButtonText: 'Ok'
+                });
+                setError(result.message || 'An error occurred');
+                return;
+            }
+
+            const newToken = result._token || result.token;
+            if (newToken) {
+                localStorage.setItem('_token', newToken);
+            }
+
+            const processedData = (result.services || []).map((item, index) => ({
+                ...item,
+                index: index + 1,
+                title: item.title,
+                description: item.description,
+                id: item.id,
+            }));
+
+            setData(processedData);
+            setTotalResults(processedData.length);
+        } catch (error) {
+            console.error('Fetch error:', error);
+            setError('Failed to load data');
+        } finally {
+            setLoading(false);
+        }
+    }, [setTotalResults]);
 
     return (
-        <ServiceContext.Provider value={{ selectedService, editService, ServiceList, updateServiceList }}>
+        <ServiceContext.Provider value={{ selectedService, editService, ServiceList, updateServiceList ,fetchData,loading ,setData,data,error,setError}}>
             {children}
         </ServiceContext.Provider>
     );

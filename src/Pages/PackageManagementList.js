@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, useCallback } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import PaginationContext from './PaginationContext';
 import Pagination from './Pagination';
 import { usePackage } from './PackageContext';
@@ -6,58 +6,14 @@ import Swal from 'sweetalert2';
 import SearchBar from './SearchBar';
 
 const PackageManagementList = ({ refreshTrigger }) => {
-    const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
-    const { editPackage } = usePackage();
+    const { currentItem, showPerPage } = useContext(PaginationContext);
+
+    const { editPackage,data,loading,fetchData } = usePackage();
     const [paginatedData, setPaginatedData] = useState([]);
-    const [data, setData] = useState([]);
-    const [loading, setLoading] = useState(true);
+
     const [error, setError] = useState(null);
 
-    const fetchData = useCallback(() => {
-        setLoading(true);
-        setError(null); // Reset error state
-
-        const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
-        const storedToken = localStorage.getItem("_token");
-
-        const queryParams = new URLSearchParams({
-            admin_id: admin_id || '',
-            _token: storedToken || ''
-        }).toString();
-
-        fetch(`https://goldquestreact.onrender.com/package/list?${queryParams}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: `An error occurred: ${response.message}`,
-                        icon: 'error',
-                        confirmButtonText: 'Ok'
-                    });
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then((data) => {
-                const newToken = data._token || data.token; // Use result.token if result._token is not available
-                if (newToken) {
-                    localStorage.setItem("_token", newToken); // Replace the old token with the new one
-                }
-                console.log('Fetched data:', data);
-                setData(data.packages || []);
-                setTotalResults(data.totalResults || 0);
-            })
-            .catch((error) => {
-                console.error('Fetch error:', error);
-                setError('Failed to load data');
-            })
-            .finally(() => setLoading(false));
-    }, [setTotalResults]);
+  
 
     useEffect(() => {
         fetchData();

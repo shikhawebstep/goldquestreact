@@ -1,50 +1,13 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, {useContext, useEffect, useState } from 'react';
 import PaginationContext from '../Pages/PaginationContext';
 import Pagination from '../Pages/Pagination';
 import Swal from 'sweetalert2';
 import DropBoxContext from './DropBoxContext';
 const CandidateList = () => {
-    const { handleEditDrop } = useContext(DropBoxContext)
+    const { handleEditDrop,listData,fetchClient } = useContext(DropBoxContext)
     const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
-    const [listData, setListData] = useState([]);
     const [paginated, setPaginated] = useState([]);
-    const fetchClient = useCallback(() => {
-        const branch_id = JSON.parse(localStorage.getItem("branch"))?.id;
-        const _token = localStorage.getItem("branch_token");
-
-        const requestOptions = {
-            method: "GET",
-            redirect: "follow"
-        };
-
-        fetch(`https://goldquestreact.onrender.com/branch/candidate-application/list?branch_id=${branch_id}&_token=${_token}`, requestOptions)
-            .then(async (response) => {
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    Swal.fire(
-                        'Error!',
-                        `An error occurred: ${errorData.message}`,
-                        'error'
-                    );
-                    return;
-                }
-                return response.json();
-            })
-            .then((data) => {
-                const newToken = data?._token || data?.token;
-                if (newToken) {
-                    localStorage.setItem("_token", newToken);
-                }
-                setListData(data.candidateApplications || []);
-            })
-            .catch((error) => {
-                Swal.fire(
-                    'Error!',
-                    'An unexpected error occurred.',
-                    'error'
-                );
-            });
-    }, []);
+   
 
     useEffect(() => {
         fetchClient();

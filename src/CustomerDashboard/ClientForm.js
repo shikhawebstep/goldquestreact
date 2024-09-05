@@ -18,7 +18,7 @@ const ClientForm = () => {
     });
     const [, setBranchId] = useState(null);
     const [, setStoredToken] = useState(null);
-    const { selectedDropBox, } = useContext(DropBoxContext);
+    const { selectedDropBox,fetchClientDrop } = useContext(DropBoxContext);
     const [isEditClient, setIsEditClient] = useState(false);
     const [inputError, setInputError] = useState({});
     const { services, uniquePackages } = useContext(DropBoxContext);
@@ -38,7 +38,6 @@ const ClientForm = () => {
     useEffect(() => {
         const storedBranchData = JSON.parse(localStorage.getItem("branch"));
         const branch_token = localStorage.getItem("branch_token");
-        const branchData = localStorage.getItem("branch");
 
         if (storedBranchData) setBranchId(storedBranchData.id);
         if (branch_token) setStoredToken(branch_token);
@@ -169,6 +168,7 @@ const ClientForm = () => {
                         client_application_id: ''
                     });
                     setInputError({});
+                    fetchClientDrop();
                     Swal.fire({
                         title: "Success",
                         text:  isEditClient ? 'Client Application Edit Successfully' : 'Client Application  added successfully',

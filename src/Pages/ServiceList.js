@@ -1,74 +1,17 @@
-import React, { useEffect, useState, useContext, useCallback } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import PaginationContext from './PaginationContext';
 import Pagination from './Pagination';
 import { useService } from './ServiceContext';
 import Swal from 'sweetalert2';
 
 const ServiceList = () => {
-    const { setTotalResults, showPerPage } = useContext(PaginationContext);
+    const {showPerPage } = useContext(PaginationContext);
 
-    const [data, setData] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [paginated, setPaginated] = useState([]);
     const [currentPage] = useState(1);
-    const { editService } = useService();
+    const { editService,fetchData,loading,data, error} = useService();
 
-    const fetchData = useCallback(async () => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
-            const storedToken = localStorage.getItem("_token");
-            const queryParams = new URLSearchParams({
-                admin_id: admin_id || '',
-                _token: storedToken || ''
-            }).toString();
-
-            const res = await fetch(`https://goldquestreact.onrender.com/service/list?${queryParams}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            const result = await res.json();
-
-            if (!res.ok || !result.status) {
-                // Display the error message only once
-                Swal.fire({
-                    title: 'Error!',
-                    text: result.message || 'An error occurred',
-                    icon: 'error',
-                    confirmButtonText: 'Ok'
-                });
-                setError(result.message || 'An error occurred');
-                return;
-            }
-
-            const newToken = result._token || result.token;
-            if (newToken) {
-                localStorage.setItem('_token', newToken);
-            }
-
-            const processedData = (result.services || []).map((item, index) => ({
-                ...item,
-                index: index + 1,
-                title: item.title,
-                description: item.description,
-                id: item.id,
-            }));
-
-            setData(processedData);
-            setTotalResults(processedData.length);
-        } catch (error) {
-            console.error('Fetch error:', error);
-            setError('Failed to load data');
-        } finally {
-            setLoading(false);
-        }
-    }, [setTotalResults]);
+  
 
     useEffect(() => {
         fetchData();
@@ -82,6 +25,7 @@ const ServiceList = () => {
 
     const handleEditService = (service) => {
         editService(service);
+        fetchData();
         console.log('Editing service:', service);
     };
 

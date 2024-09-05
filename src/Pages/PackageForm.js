@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePackage } from './PackageContext';
 import Swal from 'sweetalert2';
 import { useRefresh } from '../RefreshContext';
-
 const PackageForm = ({ onSuccess }) => {
+    const {fetchData } = usePackage();
     const { refreshPage, refreshKey } = useRefresh();
     const { selectedPackage, clearSelectedPackage, packageList, updatePackageList } = usePackage();
     const [packageInput, setPackageInput] = useState({
@@ -130,6 +130,7 @@ const PackageForm = ({ onSuccess }) => {
                         name: "",
                         message: "",
                     });
+                    fetchData();
                     setIsEditMode(false);
 
                     if (typeof clearSelectedPackage === 'function') {

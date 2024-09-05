@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useService } from './ServiceContext';
 import Swal from 'sweetalert2';
 
+
 const ServiceForm = () => {
-    const { selectedService, updateServiceList } = useService();
+    const { selectedService, updateServiceList ,fetchData} = useService();
     const [adminId, setAdminId] = useState(null);
     const [storedToken, setStoredToken] = useState(null);
     const [isEdit, setIsEdit] = useState(false);
@@ -109,10 +110,10 @@ const ServiceForm = () => {
                     } else {
                         updateServiceList(prevList => [...prevList, result]);
                     }
-
+                    fetchData();
                     // Reset the form
                     setServiceInput({ name: "", d_name: "" });
-                    setIsEdit(false); // Reset to 'Add' mode
+                    setIsEdit(false); 
                 })
                 .catch((error) => {
                     console.error(error);

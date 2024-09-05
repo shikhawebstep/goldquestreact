@@ -126,7 +126,6 @@ const ServicesEditForm = () => {
             selectedPackages: existingService ? existingService.packages : [],
         };
     });
-    let selectedPackagesKeysArr = [];
 
     
     return (

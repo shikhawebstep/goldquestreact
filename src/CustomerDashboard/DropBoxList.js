@@ -1,56 +1,20 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import PaginationContext from '../Pages/PaginationContext';
 import Pagination from '../Pages/Pagination';
 import Swal from 'sweetalert2';
 import DropBoxContext from './DropBoxContext';
 
 const DropBoxList = () => {
-    const { handleEditDrop } = useContext(DropBoxContext)
-    const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
-    const [listData, setListData] = useState([]);
+    const { handleEditDrop,fetchClientDrop,listData } = useContext(DropBoxContext)
+    const { currentItem, showPerPage, setTotalResults, } = useContext(PaginationContext);
+
     const [paginated, setPaginated] = useState([]);
 
-    const fetchClient = useCallback(() => {
-        const branch_id = JSON.parse(localStorage.getItem("branch"))?.id;
-        const _token = localStorage.getItem("branch_token");
-
-        const requestOptions = {
-            method: "GET",
-            redirect: "follow"
-        };
-
-        fetch(`https://goldquestreact.onrender.com/branch/client-application/list?branch_id=${branch_id}&_token=${_token}`, requestOptions)
-            .then(async (response) => {
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    Swal.fire(
-                        'Error!',
-                        `An error occurred: ${errorData.message}`,
-                        'error'
-                    );
-                    return;
-                }
-                return response.json();
-            })
-            .then((data) => {
-                const newToken = data?._token || data?.token;
-                if (newToken) {
-                    localStorage.setItem("_token", newToken);
-                }
-                setListData(data.clientApplications || []);
-            })
-            .catch((error) => {
-                Swal.fire(
-                    'Error!',
-                    'An unexpected error occurred.',
-                    'error'
-                );
-            });
-    }, []);
+   
 
     useEffect(() => {
-        fetchClient();
-    }, [fetchClient]);
+        fetchClientDrop();
+    }, [fetchClientDrop]);
 
     useEffect(() => {
         setTotalResults(listData.length);
@@ -75,7 +39,6 @@ const DropBoxList = () => {
             if (result.isConfirmed) {
                 const branch_id = JSON.parse(localStorage.getItem("branch"))?.id;
                 const _token = localStorage.getItem("branch_token");
-                const storedBranchData = JSON.parse(localStorage.getItem("branch"))?.customer_id;
 
                 if (!branch_id || !_token) {
                     console.error("Admin ID or token is missing.");
@@ -109,7 +72,7 @@ const DropBoxList = () => {
                             localStorage.setItem("branch_token", newToken);
                         }
                         console.log('Client deleted:', result);
-                        fetchClient();
+                        fetchClientDrop();
                         Swal.fire(
                             'Deleted!',
                             'Your service has been deleted.',

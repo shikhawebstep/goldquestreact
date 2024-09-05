@@ -280,10 +280,17 @@ const ClientManagementList = () => {
                                                                 <p className='whitespace-nowrap text-left text-red-500'>Service not available</p>
                                                             )}
 
-                                                            
+                                                            {service.packages && Object.keys(service.packages).length > 0 ? (
+                                                                <p className='whitespace-nowrap text-left'>
+                                                                    Packages: {Object.values(service.packages).filter(Boolean).join(', ')}
+                                                                </p>
+                                                            ) : (
+                                                                <p className='whitespace-nowrap text-left text-red-500'>No packages available</p>
+                                                            )}
                                                         </>
                                                     </div>
                                                 ))}
+
 
                                                 {displayedServices.length > 1 && !showAllServices && (
                                                     <button onClick={() => toggleShowAllServices(item.main_id)} className="text-green-500 underline text-left">
@@ -330,6 +337,7 @@ const ClientManagementList = () => {
                                                 custom_template: item.custom_template || '',
                                                 custom_logo: item.custom_logo || '',
                                                 custom_address: item.custom_address || '',
+                                                services:item.services ||''
                                             })}
                                         >
                                             <ClientEditForm />
@@ -379,8 +387,6 @@ const ClientManagementList = () => {
                                                     </div></>
                                                 )
                                             })
-
-
                                         )}
 
                                     </td>

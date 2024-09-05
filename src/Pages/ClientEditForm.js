@@ -4,18 +4,17 @@ import countryList from 'react-select-country-list';
 import ServicesEditForm from './ServicesEditForm';
 
 export const ClientEditForm = () => {
-  
-
     const options = useMemo(() => countryList().getData(), []);
     const { clientData, handleClientChange, handleClientSubmit } = useEditClient();
-    let emails = [];
+    let newEmails = [];
     try {
         if (clientData.emails) {
-            emails = JSON.parse(clientData.emails);
+            newEmails = JSON.parse(clientData.emails);
         }
     } catch (error) {
         console.error('Error parsing emails:', error);
     }
+
     return (
         <>
             <form onSubmit={handleClientSubmit} className='p-5 bg-white rounded-md' >
@@ -206,8 +205,8 @@ export const ClientEditForm = () => {
                 <div className="mb-4">
                 <label className="text-gray-500" htmlFor="agr_upload">Emails</label>
                 <div className="flex gap-3 flex-wrap">
-                    {emails.length > 0 ? (
-                        emails.map((email, index) => (
+                    {newEmails.length > 0 ? (
+                        newEmails.map((email, index) => (
                             <input
                                 key={index}
                                 type="email"
@@ -302,6 +301,7 @@ export const ClientEditForm = () => {
                         Submit
                     </button>
                 </div>
+                
 
             </form>
         </>

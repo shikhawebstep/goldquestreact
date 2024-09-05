@@ -1,13 +1,22 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import countryList from 'react-select-country-list';
-import ClientManagementData from './ClientManagementData';
-import { useClient } from "./ClientManagementContext";
 import Swal from 'sweetalert2';
+import { useClient } from "./ClientManagementContext";
+import ClientManagementData from "./ClientManagementData";
+
+// Debounce utility function
+const debounce = (func, delay) => {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+};
 
 const ClientManagement = () => {
   const options = useMemo(() => countryList().getData(), []);
-  const { clientData,setClientData, validationsErrors } = useClient();
-
+  const { clientData, setClientData } = useClient();
+  
   const [input, setInput] = useState({
     company_name: "",
     client_code: "",
@@ -29,11 +38,10 @@ const ClientManagement = () => {
     custom_template: "",
     custom_address: "",
     username: "",
-   
   });
-
+  
   const [branchForms, setBranchForms] = useState([{ branch_name: "", branch_email: "" }]);
-  const [emails, setEmails] = useState([""]); // Change to an array of strings
+  const [emails, setEmails] = useState([""]);
   const [errors, setErrors] = useState({});
 
   const handleChange = (e, index) => {
@@ -48,7 +56,7 @@ const ClientManagement = () => {
       newEmails[index] = value;
       setEmails(newEmails);
     } else {
-      setInput((prevInput) => ({
+      setInput(prevInput => ({
         ...prevInput,
         [name]: value,
       }));
@@ -72,29 +80,71 @@ const ClientManagement = () => {
       newErrors.mobile_number = "Please enter a valid phone number, containing 10 characters";
     }
 
-    branchForms.forEach((form, index) => {
-      if (!form.branch_name) newErrors[`branch_name_${index}`] = "This field is required*";
-      if (!form.branch_email) newErrors[`branch_email_${index}`] = "This field is required*";
+    const emailSet = new Set();
+    emails.forEach((email, index) => {
+      if (!email) {
+        newErrors[`email${index}`] = "This field is required*";
+      } else if (emailSet.has(email)) {
+        newErrors[`email${index}`] = "This email is already used*";
+      } 
+      
+      else {
+        emailSet.add(email);
+      }
     });
 
-    emails.forEach((email, index) => {
-      if (!email) newErrors[`email${index}`] = "This field is required*";
+    branchForms.forEach((form, index) => {
+      if (!form.branch_name) {
+        newErrors[`branch_name_${index}`] = "This field is required*";
+      }
+      if (!form.branch_email) {
+        newErrors[`branch_email_${index}`] = "This field is required*";
+      } else if (emailSet.has(form.branch_email)) {
+        newErrors[`branch_email_${index}`] = "This email is already used*";
+      } else {
+        emailSet.add(form.branch_email);
+      }
     });
 
     return newErrors;
   };
 
-  // Map emails to an array of strings
+  const handleFocusOut = useCallback(debounce((event) => {
+    const value = event.target.value;
+    const adminData = JSON.parse(localStorage.getItem("admin"))?.id;
+    const token = localStorage.getItem("_token");
+  
+    if (value) {
+      fetch(`https://goldquestreact.onrender.com/branch/is-email-used?email=${value}&admin_id=${adminData}&_token=${token}`, { 
+        method: "GET" 
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (!data.status) {
+          event.target.setCustomValidity('The Provided Email is Already Used By Client please enter diffrent email!');
+        } else {
+          event.target.setCustomValidity('');
+        }
+      })
+      .catch(error => console.error('Error:', error));
+    }
+  }, 300), []);
+
+  useEffect(() => {
+    const inputs = document.querySelectorAll('.emailCheck');
+    inputs.forEach(input => input.addEventListener('focusout', handleFocusOut));
+    return () => inputs.forEach(input => input.removeEventListener('focusout', handleFocusOut));
+  }, [handleFocusOut]);
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-  
+
     const validationErrors = validate();
     if (Object.keys(validationErrors).length === 0) {
       try {
         const adminData = JSON.parse(localStorage.getItem("admin"));
         const token = localStorage.getItem("_token");
-  
+
         const requestData = {
           admin_id: adminData.id,
           ...input,
@@ -103,32 +153,52 @@ const ClientManagement = () => {
           emails: emails,
           clientData: clientData,
         };
-  
-  
+
         const response = await fetch("https://goldquestreact.onrender.com/customer/create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(requestData),
         });
-  
+
         if (!response.ok) {
           const errorData = await response.json();
           Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
           throw new Error(errorData.message);
         }
-  
-        const result = await response.json();
+
         Swal.fire({
           title: "Success",
           text: 'Client Created Successfully',
           icon: "success",
           confirmButtonText: "Ok"
         });
-  
-        // Reset form state
-        setInput({});
-        setClientData([]); // Reset client data
-        // Reset other state variables if needed
+
+        setInput({
+          company_name: "",
+          client_code: "",
+          address: "",
+          state_code: "",
+          state: "",
+          mobile_number: "",
+          name_of_escalation: "",
+          client_spoc: "",
+          contact_person: "",
+          gstin: "",
+          tat: "",
+          date_agreement: "",
+          agreement_period: "",
+          client_standard: "",
+          custom_logo: "",
+          agr_upload: "",
+          additional_login: "no",
+          custom_template: "",
+          custom_address: "",
+          username: "",
+        });
+        setBranchForms([{ branch_name: "", branch_email: "" }]);
+        setEmails([""]);
+        setErrors({});
+        setClientData([""]); 
       } catch (error) {
         console.error("Error:", error);
       }
@@ -136,25 +206,21 @@ const ClientManagement = () => {
       setErrors(validationErrors);
     }
   };
-  
-  
 
   const addMoreFields = () => {
     setBranchForms([...branchForms, { branch_name: "", branch_email: "" }]);
   };
 
   const addMoreEmails = () => {
-    setEmails([...emails, ""]); // Add an empty string to the array
+    setEmails([...emails, ""]);
   };
 
   const deleteField = (index) => {
-    const newBranchForms = branchForms.filter((_, i) => i !== index);
-    setBranchForms(newBranchForms);
+    setBranchForms(branchForms.filter((_, i) => i !== index));
   };
 
   const deleteEmails = (index) => {
-    const newEmails = emails.filter((_, i) => i !== index);
-    setEmails(newEmails);
+    setEmails(emails.filter((_, i) => i !== index));
   };
 
   return (
@@ -263,37 +329,31 @@ const ClientManagement = () => {
                 {errors.state_code && <p className="text-red-500">{errors.state_code}</p>}
               </div>
               <div className="mb-4 md:w-6/12">
-              <label className="text-gray-500" htmlFor="name_of_escalation">Name of the Escalation Point of Contact:*</label>
-              <input
-                type="text"
-                name="name_of_escalation"
-                id="name_of_escalation"
-                className="border w-full rounded-md p-2 mt-2 outline-none"
-                value={input.name_of_escalation}
-                onChange={handleChange}
-              />
-              {errors.name_of_escalation && <p className="text-red-500">{errors.name_of_escalation}</p>}
-            </div>
+                <label className="text-gray-500" htmlFor="name_of_escalation">Name of the Escalation Point of Contact:*</label>
+                <input
+                  type="text"
+                  name="name_of_escalation"
+                  id="name_of_escalation"
+                  className="border w-full rounded-md p-2 mt-2 outline-none"
+                  value={input.name_of_escalation}
+                  onChange={handleChange}
+                />
+                {errors.name_of_escalation && <p className="text-red-500">{errors.name_of_escalation}</p>}
+              </div>
 
             </div>
             <div className="my-8 grid gap-5 grid-cols-2 items-center flex-wrap">
             {emails.map((email, index) => (
-              <div className="mb-4 flex gap-3 items-center " key={index} >
-                <label className="text-gray-500 block text-sm whitespace-nowrap" htmlFor={`email${index}`}>
-                  Email: *{index + 1}
-                </label>
+              <div key={index} className="mb-4 md:flex items-center gap-3 ">
+                <label className="text-gray-500 whitespace-nowrap">Email {index + 1}: *</label>
                 <input
-                  type="text"
+                  type="email"
                   name={`email${index}`}
-                  id={`email${index}`}
-                  className="border w-full rounded-md p-2 mt-2 outline-none"
                   value={email}
                   onChange={(e) => handleChange(e, index)}
+                  className="border w-full rounded-md p-2 mt-2 outline-none emailCheck"
                 />
-                 {errors[`email${index}`] && (
-                  <p className="text-red-500 whitespace-nowrap">{errors[`email${index}`]}</p>
-                )}
-              
+                {errors[`email${index}`] && <p className="text-red-500 text-sm whitespace-nowrap">{errors[`email${index}`]}</p>}
                 {index > 0 && (
                   <button
                     className="bg-red-500 rounded-md p-3  text-white"
@@ -305,11 +365,11 @@ const ClientManagement = () => {
                 )}
               </div>
             ))}
-            
+
               <button className="bg-green-500 text-white rounded-3 p-2 mt-0 rounded-md" type="button" onClick={addMoreEmails}>ADD MORE</button>
             </div>
 
-           
+
 
             <div className="md:flex gap-5">
               <div className="mb-4 md:w-6/12">
@@ -470,47 +530,63 @@ const ClientManagement = () => {
             </div>
 
 
-            {branchForms.map((form, index) => (
-              <div className="my-8 flex gap-5 items-center" key={index}>
-                <div className="mb-4 md:w-5/12">
-                  <label className="text-gray-500" htmlFor={`branch_name_${index}`}>Branch: *{index + 1}</label>
-                  <input
-                    type="text"
-                    name="branch_name"
-                    id={`branch_name_${index}`}
-                    className="border w-full rounded-md p-2 mt-2 outline-none"
-                    value={form.branch_name}
-                    onChange={(e) => handleChange(e, index)}
-                  />
-                  {errors[`branch_name_${index}`] && <p className="text-red-500">{errors[`branch_name_${index}`]}</p>}
-                </div>
-                <div className="mb-4 md:w-5/12">
-                  <label className="text-gray-500" htmlFor={`branch_email_${index}`}> Branch Email:</label>
-                  <input
-                    type="email"
-                    name="branch_email"
-                    id={`branch_email_${index}`}
-                    className="border w-full rounded-md p-2 mt-2 outline-none"
-                    value={form.branch_email}
-                    onChange={(e) => handleChange(e, index)}
-                  />
-                  {errors[`branch_email_${index}`] && <p className="text-red-500">{errors[`branch_email_${index}`]}</p>}
-                </div>
-
-                {
-                  branchForms.length > 1 ? (
+            <div className="my-8">
+              <h3 className="text-lg font-semibold mb-4">Branch Details</h3>
+              {branchForms.map((branch, index) => (
+                <div key={index} className="flex content-between items-center gap-4 mb-3">
+                  <div>
+                    <label className="text-gray-500" htmlFor={`branch_name_${index}`}>
+                      Branch Name: *
+                    </label>
+                    <input
+                      type="text"
+                      name="branch_name"
+                      id={`branch_name_${index}`}
+                      className="border w-full rounded-md p-2 mt-2 outline-none"
+                      value={branch.branch_name}
+                      onChange={(e) => handleChange(e, index)}
+                    />
+                    {errors[`branch_name_${index}`] && (
+                      <p className="text-red-500">{errors[`branch_name_${index}`]}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="text-gray-500" htmlFor={`branch_email_${index}`}>
+                      Branch Email: *
+                    </label>
+                    <input
+                      type="email"
+                      name="branch_email"
+                      id={`branch_email_${index}`}
+                      className="border w-full rounded-md p-2 mt-2 outline-none emailCheck"
+                      value={branch.branch_email}
+                      onChange={(e) => handleChange(e, index)}
+                    />
+                    {errors[`branch_email_${index}`] && (
+                      <p className="text-red-500">{errors[`branch_email_${index}`]}</p>
+                    )}
+                  </div>
+                  {index > 0 && (
                     <button
+                      className="bg-red-500 rounded-md p-2 text-white mt-2 col-span-2"
                       type="button"
-                      className="text-white bg-red-500 rounded-md mt-3 p-3 md:w-2/12"
                       onClick={() => deleteField(index)}
                     >
                       Delete Branch
                     </button>
-                  ) : ('')
-                }
+                  )}
+                </div>
+              ))}
 
-              </div>
-            ))}
+              <button
+                className="bg-green-500 text-white rounded-md p-2 mt-4"
+                type="button"
+                onClick={addMoreFields}
+              >
+                Add More Branches
+              </button>
+            </div>
+
 
             <button
               type="button"

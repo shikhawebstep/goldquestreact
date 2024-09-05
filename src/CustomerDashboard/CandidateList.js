@@ -1,36 +1,124 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import PaginationContext from '../Pages/PaginationContext';
-import Pagination from "../Pages/Pagination";
+import Pagination from '../Pages/Pagination';
+import Swal from 'sweetalert2';
+import DropBoxContext from './DropBoxContext';
 const CandidateList = () => {
+    const { handleEditDrop } = useContext(DropBoxContext)
     const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
-    const reports = useMemo(()=> [
-        {
-            num: "01",
-            applicantName: "Imran Umarsab Kerehittal",
-            emailid: "demo@gmail.com",
-            mobile_num: "6754328657",
-            services: "latest employeement",
-            doc: "Docs view",
-            app_date: "23/-06/2024 12:34 pm",
-            more: "view more",
-            rbgv: "_RBGV",
-            specialbgv: "SBGV",
-            spoc: "soujnya",
-            link: "-link-",
-            edit: "edit",
-        },
-    
-     
-       
-    ],[]);
+    const [listData, setListData] = useState([]);
     const [paginated, setPaginated] = useState([]);
+    const fetchClient = useCallback(() => {
+        const branch_id = JSON.parse(localStorage.getItem("branch"))?.id;
+        const _token = localStorage.getItem("branch_token");
+
+        const requestOptions = {
+            method: "GET",
+            redirect: "follow"
+        };
+
+        fetch(`https://goldquestreact.onrender.com/branch/candidate-application/list?branch_id=${branch_id}&_token=${_token}`, requestOptions)
+            .then(async (response) => {
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    Swal.fire(
+                        'Error!',
+                        `An error occurred: ${errorData.message}`,
+                        'error'
+                    );
+                    return;
+                }
+                return response.json();
+            })
+            .then((data) => {
+                const newToken = data?._token || data?.token;
+                if (newToken) {
+                    localStorage.setItem("_token", newToken);
+                }
+                setListData(data.candidateApplications || []);
+            })
+            .catch((error) => {
+                Swal.fire(
+                    'Error!',
+                    'An unexpected error occurred.',
+                    'error'
+                );
+            });
+    }, []);
 
     useEffect(() => {
-        setTotalResults(reports.length);
+        fetchClient();
+    }, [fetchClient]);
+
+    useEffect(() => {
+        setTotalResults(listData.length);
         const startIndex = (currentItem - 1) * showPerPage;
         const endIndex = startIndex + showPerPage;
-        setPaginated(reports.slice(startIndex, endIndex));
-    }, [currentItem, setTotalResults,reports,showPerPage]);
+        setPaginated(listData.slice(startIndex, endIndex));
+    }, [currentItem, setTotalResults, listData, showPerPage]);
+
+    const handleEdit = (client) => {
+        handleEditDrop(client);
+    };
+
+    const handleDelete = (id) => {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'No, cancel!',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const branch_id = JSON.parse(localStorage.getItem("branch"))?.id;
+                const _token = localStorage.getItem("branch_token");
+
+                if (!branch_id || !_token) {
+                    console.error("Admin ID or token is missing.");
+                    return;
+                }
+                const requestOptions = {
+                    method: "DELETE",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                };
+
+                fetch(`https://goldquestreact.onrender.com/branch/candidate-application/delete?id=${id}&branch_id=${branch_id}&_token=${_token}`, requestOptions)
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.text().then(text => {
+                                const errorData = JSON.parse(text);
+                                Swal.fire(
+                                    'Error!',
+                                    `An error occurred: ${errorData.message}`,
+                                    'error'
+                                );
+                                throw new Error(text);
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(result => {
+                        const newToken = result._token || result.token;
+                        if (newToken) {
+                            localStorage.setItem("branch_token", newToken);
+                        }
+                        console.log('Client deleted:', result);
+                        fetchClient();
+                        Swal.fire(
+                            'Deleted!',
+                            'Your service has been deleted.',
+                            'success'
+                        );
+                    })
+                    .catch(error => {
+                        console.error('Fetch error:', error);
+                    });
+            }
+        });
+    };
     return (
         <>
             <div className="overflow-x-auto py-6 px-4 bg-white shadow-md rounded-md md:m-10 m-3">
@@ -42,8 +130,7 @@ const CandidateList = () => {
                             <th className="py-3 text-left border-r text-white  px-4 border-b whitespace-nowrap uppercase">Email Id</th>
                             <th className="py-3 text-left border-r text-white  px-4 border-b whitespace-nowrap uppercase">Mobile Number</th>
                             <th className="py-3 text-left border-r text-white  px-4 border-b whitespace-nowrap uppercase">Services</th>
-                            <th className="py-3 text-left border-r text-white  px-4 border-b whitespace-nowrap uppercase">Regular Bgv</th>
-                            <th className="py-3 text-left border-r text-white  px-4 border-b whitespace-nowrap uppercase">Special Bgv</th>
+                            <th className="py-3 text-left border-r text-white  px-4 border-b whitespace-nowrap uppercase">Packages</th>
                             <th className="py-3 text-left border-r text-white  px-4 border-b whitespace-nowrap uppercase">Docs</th>
                             <th className="py-3 text-left border-r text-white  px-4 border-b whitespace-nowrap uppercase">Date/Time</th>
                             <th className="py-3 text-center px-4 text-white border-r border-b whitespace-nowrap uppercase">Action</th>
@@ -53,21 +140,23 @@ const CandidateList = () => {
                     <tbody>
                         {paginated.map((report, index) => (
                             <tr key={index}>
-                                <td className="py-3 px-4 border-l border-b border-r whitespace-nowrap">{report.num}</td>
-                                <td className="py-3 px-4 border-b border-r whitespace-nowrap">{report.applicantName}</td>
-                                <td className="py-3 px-4 border-b border-r whitespace-nowrap">{report.emailid}</td>
-                                <td className="py-3 px-4 border-b border-r whitespace-nowrap">{report.mobile_num}</td>
+                                <td className="py-3 px-4 border-l border-b border-r whitespace-nowrap">{index+1}</td>
+                                <td className="py-3 px-4 border-b border-r whitespace-nowrap">{report.name}</td>
+                                <td className="py-3 px-4 border-b border-r whitespace-nowrap">{report.email}</td>
+                                <td className="py-3 px-4 border-b border-r whitespace-nowrap">{report.mobile_number}</td>
                                 <td className="py-3 px-4 border-b border-r whitespace-nowrap">
-                                    {report.services} <button className="block text-blue-600">{report.more}</button>
+                                {report.services} <button className="block text-blue-600">{report.more}</button>
+                            </td>
+                                <td className="py-3 px-4 border-b border-r whitespace-nowrap">
+                                    {report.package} 
                                 </td>
-                                <td className="py-3 px-4 border-b border-r whitespace-nowrap">{report.rbgv}</td>
-                                <td className="py-3 px-4 border-b border-r whitespace-nowrap">{report.specialbgv}</td>
                                 <td className="py-3 px-4 border-b border-r whitespace-nowrap">
                                     <button className="bg-green-600 text-white p-2  rounded-md hover:bg-green-200">{report.doc}</button>
                                 </td>
-                                <td className="py-3 px-4 border-b border-r whitespace-nowrap">{report.app_date}</td>
+                                <td className="py-3 px-4 border-b border-r whitespace-nowrap">{report.created_at}</td>
                                 <td className="py-3 px-4 border-b border-r whitespace-nowrap text-center">
-                                    <button className="bg-green-600 text-white p-3  rounded-md hover:bg-green-200">{report.edit}</button>
+                                    <button className="bg-green-600 text-white p-3  rounded-md hover:bg-green-200" onClick={()=>handleEdit(report)}>Edit</button>
+                                    <button className="bg-red-600 text-white p-3 ms-3 rounded-md hover:bg-green-200" onClick={()=>handleDelete(report.id)}>Delete</button>
                                 </td>
                                 <td className="py-3 px-4 border-b border-r whitespace-nowrap text-center">{report.link}</td>
                             </tr>
@@ -75,7 +164,7 @@ const CandidateList = () => {
                     </tbody>
                 </table>
             </div>
-            <Pagination/>
+            <Pagination />
         </>
     );
 };

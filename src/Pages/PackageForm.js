@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { usePackage } from './PackageContext';
 import Swal from 'sweetalert2';
+import { useRefresh } from '../RefreshContext';
 
 const PackageForm = ({ onSuccess }) => {
+    const { refreshPage, refreshKey } = useRefresh();
     const { selectedPackage, clearSelectedPackage, packageList, updatePackageList } = usePackage();
     const [packageInput, setPackageInput] = useState({
         name: "",
@@ -33,7 +35,7 @@ const PackageForm = ({ onSuccess }) => {
             });
             setIsEditMode(false);
         }
-    }, [selectedPackage]);
+    }, [selectedPackage,refreshKey]);
 
     const validateInputs = () => {
         const errors = {};
@@ -63,7 +65,6 @@ const PackageForm = ({ onSuccess }) => {
         if (token) setStoredToken(token);
         const validationErrors = validateInputs();
         if (Object.keys(validationErrors).length === 0) {
-          
 
             const myHeaders = new Headers();
             myHeaders.append("Content-Type", "application/json");
@@ -105,7 +106,6 @@ const PackageForm = ({ onSuccess }) => {
                     return response.json();
                 })
                 .then(result => {
-
                     const newToken = result._token || result.token; // Use result.token if result._token is not available
                     if (newToken) {
                         localStorage.setItem("_token", newToken); // Replace the old token with the new one
@@ -113,10 +113,10 @@ const PackageForm = ({ onSuccess }) => {
                     setError({});
                     Swal.fire({
                         title: "Success",
-                        text:  isEditMode?'Package Edit Successfully':'Package added successfully',
+                        text:  isEditMode ? 'Package Edit Successfully' : 'Package added successfully',
                         icon: "success",
                         confirmButtonText: "Ok"
-                      })
+                    });
                     if (isEditMode) {
                         const updatedPackages = packageList.map(pkg =>
                             pkg.id === result.id ? result : pkg
@@ -141,10 +141,13 @@ const PackageForm = ({ onSuccess }) => {
                     }
 
                     setTimeout(() => setFormMessage(""), 5000); // Clear message after 5 seconds
+
+                    // Refresh the page after a successful form submission
+                 
+
                 })
                 .catch(error => {
                     console.log(error);
-                   
                 });
         } else {
             setError(validationErrors);
@@ -182,6 +185,7 @@ const PackageForm = ({ onSuccess }) => {
             <button
                 type="submit"
                 className='bg-green-400 text-white p-3 rounded-md w-full hover:bg-green-200'
+                onClick={refreshPage}
             >
                 {isEditMode ? 'Update' : 'Send'}
             </button>

@@ -17,7 +17,12 @@ const AddUserForm = () => {
 
     const validate = () => {
         const NewErr = {};
-        if (!newPass.email) { NewErr.email = 'This is Required' }
+        if (!newPass.email) { NewErr.email = 'This is Required'} else {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
+            if (!emailRegex.test(newPass.email)) {
+                NewErr.email = 'Invalid email format';
+            }
+        }
         if (!newPass.pass) { NewErr.pass = 'This is Required' }
         if (!newPass.c_pass) { NewErr.c_pass = 'This is Required' }
         else if (newPass.c_pass !== newPass.pass) { NewErr.c_pass = 'Password does not match' }

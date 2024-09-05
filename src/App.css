@@ -50,3 +50,7 @@ div#popup-2 {
         right: 0;
     }
 }
+.disabled {
+    opacity: 0.5;
+    pointer-events: none; /* Prevents any interaction */
+}

@@ -29,7 +29,6 @@ export const ClientEditProvider = ({ children }) => {
         additional_login: 'No',
         username: '',
         services: [],
-        clientData: {},
     });
 
     const handleClientChange = (e, index) => {

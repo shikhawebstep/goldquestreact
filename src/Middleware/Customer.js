@@ -1,20 +1,20 @@
-import React, { useContext, useEffect} from 'react';
+import React, { useContext, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios'; 
+import axios from 'axios';
 import { LoaderContext } from '../LoaderContext';
 import Loader from '../Loader'
-const Admin = ({ children }) => {
+const Customer = ({ children }) => {
 
 
-  const {loading, setLoading} = useContext(LoaderContext);
-  
+  const { loading, setLoading } = useContext(LoaderContext);
+
   const navigate = useNavigate();
   const location = useLocation();
- 
+
   useEffect(() => {
     const checkAuthentication = async () => {
-      const storedAdminData = localStorage.getItem("admin");
-      const storedToken = localStorage.getItem("_token");
+      const storedAdminData = localStorage.getItem("branch");
+      const storedToken = localStorage.getItem("branch_token");
 
       if (!storedAdminData || !storedToken) {
         redirectToLogin();
@@ -31,16 +31,17 @@ const Admin = ({ children }) => {
       }
 
       try {
-        const response = await axios.post('https://goldquestreact.onrender.com/admin/verify-admin-login', {
-          admin_id: adminData.id,
+        const response = await axios.post('https://goldquestreact.onrender.com/branch/verify-branch-login', {
+          branch_id: adminData.id,
           _token: storedToken,
         });
-
         if (response.data.status) {
           setLoading(false);
         } else {
+          localStorage.clear();
           redirectToLogin();
         }
+        console.log(response);
       } catch (error) {
         console.error('Error validating login:', error);
         localStorage.clear();
@@ -49,21 +50,21 @@ const Admin = ({ children }) => {
     };
 
     const redirectToLogin = () => {
-      navigate('/admin-login', { state: { from: location }, replace: true });
+      navigate('/customer-login', { state: { from: location }, replace: true });
     };
 
     checkAuthentication();
-  }, [navigate,setLoading, location]);
+  }, [navigate, setLoading, location]);
 
   if (loading) {
     return (
-    <>
-    <Loader/>
-    </>
+      <>
+        <Loader />
+      </>
     );
   }
 
-  return children; 
+  return children;
 };
 
 export default Customer;

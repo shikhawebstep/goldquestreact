@@ -10,7 +10,7 @@ export const PackageProvider = ({ children }) => {
 const [loading, setLoading] = useState(true);
     const [packageList, setPackageList] = useState([]);
     const [selectedPackage, setSelectedPackage] = useState(null);
-    const [, setError] = useState(null);
+    const [error, setError] = useState(null);
     const { setTotalResults } = useContext(PaginationContext);
 
     const updatePackageList = (updatedPackages) => {
@@ -78,7 +78,7 @@ const [loading, setLoading] = useState(true);
                 updatePackageList,
                 editPackage,
                 clearSelectedPackage,
-                data,setData,loading,setLoading,fetchData
+                data,setData,loading,setLoading,fetchData,setError,error
             }}
         >
             {children}

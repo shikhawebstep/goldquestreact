@@ -78,7 +78,6 @@ const CustomerLoginForm = () => {
                             localStorage.setItem("branch_token", newToken);
                         }
                     } else {
-                        console.log('Login successful:', response);
 
                         const branchData = response.branchData;
                         const branch_token = response.token;

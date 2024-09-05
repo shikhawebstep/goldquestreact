@@ -68,7 +68,6 @@ const CandidateList = () => {
                         if (newToken) {
                             localStorage.setItem("branch_token", newToken);
                         }
-                        console.log('Client deleted:', result);
                         fetchClient();
                         Swal.fire(
                             'Deleted!',

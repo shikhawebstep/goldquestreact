@@ -35,7 +35,6 @@ const LoginForm = () => {
     event.preventDefault();
     const errors = validateError();
     if (Object.keys(errors).length === 0) {
-      console.log(input);
 
       const loginData = {
         username: input.username,

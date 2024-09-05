@@ -28,7 +28,7 @@ const BulkUploadForm = () => {
         event.preventDefault();
         const errors = validateErrors();
         if (Object.keys(errors).length === 0) {
-            console.log(input);
+     
             setError({});
         }
         else {

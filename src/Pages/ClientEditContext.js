@@ -1,11 +1,13 @@
 import React, { createContext, useState, useContext } from 'react';
 import Swal from 'sweetalert2';
+import { useData } from './DataContext';
 
 
 const ClientEditContext = createContext();
 
 
 export const ClientEditProvider = ({ children }) => {
+
     const [clientData, setClientData] = useState({
         company_name: '',
         client_code: '',
@@ -30,7 +32,7 @@ export const ClientEditProvider = ({ children }) => {
         username: '',
         services: [],
     });
-
+    const {fetchData}=useData()
     const handleClientChange = (e, index) => {
         const { name, value, type, files } = e.target;
         setClientData(prevData => ({
@@ -76,7 +78,7 @@ export const ClientEditProvider = ({ children }) => {
                 }
                 return;
             }
-
+            fetchData();
             const data = contentType.includes("application/json") ? await response.json() : {};
             const newToken = data._token || data.token;
             if (newToken) {

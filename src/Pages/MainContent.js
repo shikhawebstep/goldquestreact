@@ -18,6 +18,7 @@ import CustomerLogin from "../Pages/CustomerLogin";
 import EmailTemplate from "../Pages/EmailTemplate";
 import ClientManagementList from './ClientManagementList';
 import InactiveClients from './InactiveClients';
+import ExelTrackerStatus from './ExelTrackerStatus';
 const tabComponents = {
   dashboard: <DashBoard />,
   profile: <ClientManagement />,
@@ -36,7 +37,8 @@ const tabComponents = {
   email_temp: <EmailTemplate />,
   add_clients:<ClientManagement/>,
   active_clients:<ClientManagementList/>,
-  inactive_clients:<InactiveClients/>
+  inactive_clients:<InactiveClients/>,
+  tracker_status:<ExelTrackerStatus/>
 };
 
 const MainContent = () => {

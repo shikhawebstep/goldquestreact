@@ -35,10 +35,8 @@ const AddClient = () => {
       });
 
       if (response.ok) {
-        console.log('File uploaded successfully');
         setInput({ image: null });
       } else {
-        console.error('File upload failed');
       }
     } catch (error) {
       console.error('Error during file upload:', error);

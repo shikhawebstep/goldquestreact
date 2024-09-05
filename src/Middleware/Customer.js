@@ -41,7 +41,6 @@ const Customer = ({ children }) => {
           localStorage.clear();
           redirectToLogin();
         }
-        console.log(response);
       } catch (error) {
         console.error('Error validating login:', error);
         localStorage.clear();

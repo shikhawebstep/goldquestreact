@@ -1,11 +1,12 @@
 import React, { createContext, useState, useContext } from 'react';
 import Swal from 'sweetalert2';
-
+import { useData } from './DataContext';
 
 const BranchEditContext = createContext();
 
 
 export const BranchEditProvider = ({ children }) => {
+    const {toggleAccordion}=useData()
     const [branchEditData, setBranchEditData] = useState({
         id: '',
         name: '',
@@ -69,6 +70,7 @@ export const BranchEditProvider = ({ children }) => {
                 'Branch updated successfully.',
                 'success'
             );
+            toggleAccordion();
         } catch (error) {
             console.error('There was a problem with the fetch operation:', error);
         }

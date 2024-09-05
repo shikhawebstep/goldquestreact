@@ -586,16 +586,6 @@ const ClientManagement = () => {
                 Add More Branches
               </button>
             </div>
-
-
-            <button
-              type="button"
-              id="AddMore"
-              onClick={addMoreFields}
-              className="bg-green-400 w-auto text-white p-2 rounded-md hover:bg-green-200"
-            >
-              Add More
-            </button>
             <ClientManagementData />
             <div className="flex justify-center">
               <button

@@ -8,12 +8,10 @@ import SearchBar from './SearchBar';
 const PackageManagementList = ({ refreshTrigger }) => {
     const { currentItem, showPerPage } = useContext(PaginationContext);
 
-    const { editPackage,data,loading,fetchData } = usePackage();
+    const { editPackage,data,loading,fetchData ,error,setError} = usePackage();
     const [paginatedData, setPaginatedData] = useState([]);
 
-    const [error, setError] = useState(null);
 
-  
 
     useEffect(() => {
         fetchData();
@@ -32,6 +30,9 @@ const PackageManagementList = ({ refreshTrigger }) => {
         console.log('Editing package:', pkg);
     };
 
+
+
+    
     const handleDelete = (packageId) => {
         Swal.fire({
             title: 'Are you sure?',
@@ -44,55 +45,51 @@ const PackageManagementList = ({ refreshTrigger }) => {
             if (result.isConfirmed) {
                 const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
                 const storedToken = localStorage.getItem("_token");
-
+    
                 if (!admin_id || !storedToken) {
                     console.error("Admin ID or token is missing.");
+                    Swal.fire('Error!', 'Admin ID or token is missing.', 'error');
                     return;
                 }
-
+    
                 const requestOptions = {
                     method: 'DELETE',
                     headers: {
-                        'Content-Type': 'application/json'
-                    }
+                        'Content-Type': 'application/json',
+                    },
                 };
-
+    
                 fetch(`https://goldquestreact.onrender.com/package/delete?id=${packageId}&admin_id=${admin_id}&_token=${storedToken}`, requestOptions)
-                    .then(response => {
+                    .then((response) => {
                         if (!response.ok) {
-                            return response.text().then(text => {
+                            return response.text().then((text) => {
                                 const errorData = JSON.parse(text);
-                                Swal.fire(
-                                    'Error!',
-                                    `An error occurred: ${errorData.message}`,
-                                    'error'
-                                );
-                                throw new Error(text);
+                                Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
+                                throw new Error(errorData.message);
                             });
                         }
                         return response.json();
                     })
-                    .then(result => {
-                        const newToken = result._token || result.token; // Use result.token if result._token is not available
+                    .then((result) => {
+                        const newToken = result._token || result.token; 
                         if (newToken) {
-                            localStorage.setItem("_token", newToken); // Replace the old token with the new one
+                            localStorage.setItem("_token", newToken);
                         }
-                        setError({});
+                        setError(null); // Reset error state
                         console.log('Package deleted:', result);
-                        fetchData(); // Refresh data after deletion
-                        Swal.fire(
-                            'Deleted!',
-                            'Your package has been deleted.',
-                            'success'
-                        );
+                        // Refresh data after deletion
+                        Swal.fire('Deleted!', 'Your package has been deleted.', 'success');
+                        fetchData(); 
                     })
-                    .catch(error => {
+                    .catch((error) => {
                         console.error('Fetch error:', error);
-
+                        Swal.fire('Error!', `Could not delete the package: ${error.message}`, 'error');
+                        setError('Failed to delete package.');
                     });
             }
         });
     };
+    
 
     return (
         <>

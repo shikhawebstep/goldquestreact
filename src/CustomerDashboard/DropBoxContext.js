@@ -36,12 +36,10 @@ export const DropBoxProvider = ({ children }) => {
             }
 
             const data = await response.json();
-            console.log('Fetched Data:', data);
 
             if (data.customers.length > 0) {
                 const customer = data.customers[0];
                 const parsedServices = customer.services ? JSON.parse(customer.services) : [];
-                console.log('Parsed Services:', parsedServices);
                 setServices(parsedServices);
 
                 const packageSet = new Set();
@@ -56,7 +54,6 @@ export const DropBoxProvider = ({ children }) => {
                     });
                 });
 
-                console.log('Unique Packages:', uniquePackagesList);
                 setUniquePackages(uniquePackagesList);
             }
         } catch (error) {

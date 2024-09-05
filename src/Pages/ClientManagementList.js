@@ -9,119 +9,20 @@ import { ClientEditForm } from './ClientEditForm';
 import { useEditClient } from './ClientEditContext';
 import BranchEditForm from './BranchEditForm';
 import { useEditBranch } from './BranchEditContext';
+import { useData } from './DataContext';
 const ClientManagementList = () => {
     const { setClientData } = useEditClient();
     const { setBranchEditData } = useEditBranch();
-    const [openAccordionId, setOpenAccordionId] = useState(null);
-    const [isOpen, setIsOpen] = useState(false);
-    const [branches, setBranches] = useState([]);
-    const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
-    const [listData, setListData] = useState([]);
+    const { currentItem, showPerPage } = useContext(PaginationContext);
+    const {loading, error, listData, fetchData,toggleAccordion,branches,openAccordionId,isOpen,setIsOpen} =useData();
     const [paginated, setPaginated] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+   
     const [showAllServicesState, setShowAllServicesState] = useState({});
 
-    // fetch clients
-    const fetchData = useCallback(() => {
-        setLoading(true);
-        setError(null);
-
-        const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
-        const storedToken = localStorage.getItem("_token");
-
-        const queryParams = new URLSearchParams({
-            admin_id: admin_id || '',
-            _token: storedToken || ''
-        }).toString();
-
-        fetch(`https://goldquestreact.onrender.com/customer/list?${queryParams}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: `An error occurred: ${response.message}`,
-                        icon: 'error',
-                        confirmButtonText: 'Ok'
-                    });
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then((data) => {
-                const newToken = data._token || data.token;
-                if (newToken) {
-                    localStorage.setItem("_token", newToken);
-                }
-                setListData(data.customers || []);
-                setTotalResults(data.totalResults || 0);
-
-            })
-            .catch((error) => {
-                console.error('Fetch error:', error);
-                setError('Failed to load data');
-            })
-            .finally(() => setLoading(false));
-    }, [setTotalResults]);
-
-
-    // toggle branches
     const toggleAccordions = (id) => {
         setIsOpen((prevId) => (prevId === id ? null : id));
     };
 
-    // fetch branches
-    const toggleAccordion = useCallback((id) => {
-        setOpenAccordionId((prevId) => (prevId === id ? null : id));
-        setLoading(true);
-        setIsOpen(null)
-        setError(null);
-
-        const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
-        const storedToken = localStorage.getItem("_token");
-       
-            fetch(`https://goldquestreact.onrender.com/branch/list-by-customer?customer_id=${id}&admin_id=${admin_id}&_token=${storedToken}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-                .then((response) => {
-                    if (!response.ok) {
-                        const newToken = response._token || response.token;
-                        if (newToken) {
-                            localStorage.setItem("_token", newToken);
-                        }
-                        Swal.fire({
-                            title: 'Error!',
-                            text: `An error occurred: ${response.message}`,
-                            icon: 'error',
-                            confirmButtonText: 'Ok'
-                        });
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then((data) => {
-                    const newToken = data._token || data.token;
-                    if (newToken) {
-                        localStorage.setItem("_token", newToken);
-                    }
-                    setBranches(data.branches || []);
-                    setTotalResults(data.totalResults || 0);
-
-                })
-                .catch((error) => {
-                    console.error('Fetch error:', error);
-                    setError('Failed to load data');
-                })
-                .finally(() => setLoading(false));
-    }, [setBranches, setTotalResults])
 
     useEffect(() => {
         fetchData();

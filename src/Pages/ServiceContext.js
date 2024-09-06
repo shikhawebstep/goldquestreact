@@ -1,10 +1,12 @@
 import React, { createContext, useState, useContext,useCallback } from 'react';
 import Swal from 'sweetalert2';
 import PaginationContext from './PaginationContext';
+import { useApi } from '../ApiContext';
 const ServiceContext = createContext();
 
 export const ServiceProvider = ({ children }) => {
     const { setTotalResults } = useContext(PaginationContext);
+    const API_URL = useApi();
 
     const [selectedService, setSelectedService] = useState(null);// Store Service list
     const [ServiceList, setServiceList] = useState([]); // Store package list
@@ -30,7 +32,7 @@ export const ServiceProvider = ({ children }) => {
                 _token: storedToken || ''
             }).toString();
 
-            const res = await fetch(`https://goldquestreact.onrender.com/service/list?${queryParams}`, {
+            const res = await fetch(`${API_URL}/service/list?${queryParams}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'

@@ -29,7 +29,7 @@ const AddClient = () => {
     formData.append('image', input.image);
 
     try {
-      const response = await fetch('https://goldquestreact.onrender.com/customer/image-upload', {
+      const response = await fetch('API_URL/customer/image-upload', {
         method: 'POST',
         body: formData,
       });

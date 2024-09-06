@@ -1,17 +1,16 @@
 import React from 'react';
 import { RiLoginCircleFill } from "react-icons/ri";
 import { useNavigate } from 'react-router-dom';
-
+import { useApi } from '../ApiContext';
 const Logout = () => {
+  const API_URL=useApi();
   const navigate = useNavigate();
-
-
   const handleLogout = async () => {
     const storedAdminData = localStorage.getItem("admin");
     const storedToken = localStorage.getItem("_token");
 
     try {
-      const response = await fetch(`https://goldquestreact.onrender.com/admin/logout?admin_id=${JSON.parse(storedAdminData)?.id}&_token=${storedToken}`, {
+      const response = await fetch(`${API_URL}/admin/logout?admin_id=${JSON.parse(storedAdminData)?.id}&_token=${storedToken}`, {
         method: 'GET',
       });
       

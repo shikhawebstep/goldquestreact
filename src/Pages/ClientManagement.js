@@ -115,7 +115,7 @@ const ClientManagement = () => {
     const token = localStorage.getItem("_token");
   
     if (value) {
-      fetch(`https://goldquestreact.onrender.com/branch/is-email-used?email=${value}&admin_id=${adminData}&_token=${token}`, { 
+      fetch(`API_URL/branch/is-email-used?email=${value}&admin_id=${adminData}&_token=${token}`, { 
         method: "GET" 
       })
       .then(response => response.json())
@@ -154,7 +154,7 @@ const ClientManagement = () => {
           clientData: clientData,
         };
 
-        const response = await fetch("https://goldquestreact.onrender.com/customer/create", {
+        const response = await fetch("API_URL/customer/create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(requestData),

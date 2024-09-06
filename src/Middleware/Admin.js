@@ -3,11 +3,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios'; 
 import { LoaderContext } from '../LoaderContext';
 import Loader from '../Loader'
+import { useApi } from '../ApiContext';
 const Admin = ({ children }) => {
-
-
   const {loading, setLoading} = useContext(LoaderContext);
-  
+  const API_URL = useApi();
   const navigate = useNavigate();
   const location = useLocation();
  
@@ -31,7 +30,7 @@ const Admin = ({ children }) => {
       }
 
       try {
-        const response = await axios.post('https://goldquestreact.onrender.com/admin/verify-admin-login', {
+        const response = await axios.post(`${API_URL}/admin/verify-admin-login`, {
           admin_id: adminData.id,
           _token: storedToken,
         });

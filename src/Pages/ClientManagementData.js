@@ -3,8 +3,9 @@ import PaginationContext from './PaginationContext';
 import Pagination from './Pagination';
 import Multiselect from 'multiselect-react-dropdown';
 import { useClient } from './ClientManagementContext';
-
+import { useApi } from '../ApiContext'; // use the custom hook
 const ClientManagementData = () => {
+    const API_URL = useApi();
     const { setClientData, validationsErrors, setValidationsErrors } = useClient();
     const [service, setService] = useState([]);
     const [packageList, setPackageList] = useState([]);
@@ -25,7 +26,7 @@ const ClientManagementData = () => {
                 admin_id: admin_id || '',
                 _token: storedToken || ''
             }).toString();
-            const res = await fetch(`https://goldquestreact.onrender.com/service/list?${queryParams}`, {
+            const res = await fetch(`API_URL/service/list?${queryParams}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -68,7 +69,7 @@ const ClientManagementData = () => {
                 admin_id: admin_id || '',
                 _token: storedToken || '',
             }).toString();
-            const res = await fetch(`https://goldquestreact.onrender.com/package/list?${queryParams}`, {
+            const res = await fetch(`${API_URL}/package/list?${queryParams}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'

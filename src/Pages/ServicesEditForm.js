@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Multiselect from 'multiselect-react-dropdown';
 import { useEditClient } from './ClientEditContext';
-
+import { useApi } from '../ApiContext';
 const ServicesEditForm = () => {
     const [serviceList, setServiceList] = useState([]);
     const [packageList, setPackageList] = useState([]);
     const [, setPriceData] = useState([]);
     const [, setSelectedPackages] = useState([]);
     const { clientData } = useEditClient();
+    const API_URL = useApi();
 
     const fetchData = useCallback(async () => {
         try {
@@ -22,7 +23,7 @@ const ServicesEditForm = () => {
             }).toString();
 
 
-            const serviceRes = await fetch(`https://goldquestreact.onrender.com/service/list?${queryParams}`, {
+            const serviceRes = await fetch(`API_URL/service/list?${queryParams}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -51,7 +52,7 @@ const ServicesEditForm = () => {
             setServiceList(processedServices);
 
             // Fetch packages
-            const packageRes = await fetch(`https://goldquestreact.onrender.com/package/list?${queryParams}`, {
+            const packageRes = await fetch(`${API_URL}/package/list?${queryParams}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'

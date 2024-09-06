@@ -3,15 +3,13 @@ import PaginationContext from './PaginationContext';
 import Pagination from './Pagination';
 import { useService } from './ServiceContext';
 import Swal from 'sweetalert2';
-
+import { useApi } from '../ApiContext';
 const ServiceList = () => {
     const {showPerPage } = useContext(PaginationContext);
-
+    const API_URL = useApi();
     const [paginated, setPaginated] = useState([]);
     const [currentPage] = useState(1);
     const { editService,fetchData,loading,data, error} = useService();
-
-  
 
     useEffect(() => {
         fetchData();
@@ -54,7 +52,7 @@ const ServiceList = () => {
                     }
                 };
 
-                fetch(`https://goldquestreact.onrender.com/service/delete?id=${serviceId}&admin_id=${admin_id}&_token=${storedToken}`, requestOptions)
+                fetch(`${API_URL}/service/delete?id=${serviceId}&admin_id=${admin_id}&_token=${storedToken}`, requestOptions)
                     .then(response => {
                         if (!response.ok) {
                             return response.text().then(text => {

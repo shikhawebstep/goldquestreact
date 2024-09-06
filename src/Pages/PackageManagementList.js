@@ -4,18 +4,15 @@ import Pagination from './Pagination';
 import { usePackage } from './PackageContext';
 import Swal from 'sweetalert2';
 import SearchBar from './SearchBar';
-
-const PackageManagementList = ({ refreshTrigger }) => {
+import { useApi } from '../ApiContext';
+const PackageManagementList = () => {
     const { currentItem, showPerPage } = useContext(PaginationContext);
-
     const { editPackage,data,loading,fetchData ,error,setError} = usePackage();
     const [paginatedData, setPaginatedData] = useState([]);
-
-
-
+    const API_URL = useApi();
     useEffect(() => {
         fetchData();
-    }, [fetchData, refreshTrigger]);
+    }, [fetchData]);
 
     useEffect(() => {
         if (Array.isArray(data)) {
@@ -59,7 +56,7 @@ const PackageManagementList = ({ refreshTrigger }) => {
                     },
                 };
     
-                fetch(`https://goldquestreact.onrender.com/package/delete?id=${packageId}&admin_id=${admin_id}&_token=${storedToken}`, requestOptions)
+                fetch(`${API_URL}/package/delete?id=${packageId}&admin_id=${admin_id}&_token=${storedToken}`, requestOptions)
                     .then((response) => {
                         if (!response.ok) {
                             return response.text().then((text) => {

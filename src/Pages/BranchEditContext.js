@@ -1,11 +1,12 @@
 import React, { createContext, useState, useContext } from 'react';
 import Swal from 'sweetalert2';
 import { useData } from './DataContext';
-
+import { useApi } from '../ApiContext';
 const BranchEditContext = createContext();
 
 
 export const BranchEditProvider = ({ children }) => {
+    const API_URL = useApi();
     const {toggleAccordion}=useData()
     const [branchEditData, setBranchEditData] = useState({
         id: '',
@@ -50,7 +51,7 @@ export const BranchEditProvider = ({ children }) => {
         };
 
         try {
-            const response = await fetch('https://goldquestreact.onrender.com/branch/update', requestOptions);
+            const response = await fetch(`${API_URL}/branch/update`, requestOptions);
             if (!response.ok) {
                 return response.text().then(text => {
                     const errorData = JSON.parse(text);

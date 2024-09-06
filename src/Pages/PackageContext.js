@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext,useCallback } from 'react';
 import Swal from 'sweetalert2';
 import PaginationContext from './PaginationContext';
+import { useApi } from '../ApiContext';
 const PackageContext = createContext();
 
 export const usePackage = () => useContext(PackageContext);
@@ -12,6 +13,7 @@ const [loading, setLoading] = useState(true);
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [error, setError] = useState(null);
     const { setTotalResults } = useContext(PaginationContext);
+    const API_URL = useApi();
 
     const updatePackageList = (updatedPackages) => {
         setPackageList(updatedPackages);
@@ -36,7 +38,7 @@ const [loading, setLoading] = useState(true);
             _token: storedToken || ''
         }).toString();
 
-        fetch(`https://goldquestreact.onrender.com/package/list?${queryParams}`, {
+        fetch(`${API_URL}/package/list?${queryParams}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -68,7 +70,7 @@ const [loading, setLoading] = useState(true);
                 setError('Failed to load data');
             })
             .finally(() => setLoading(false));
-    }, [setTotalResults]);
+    }, [setTotalResults,API_URL]);
 
     return (
         <PackageContext.Provider

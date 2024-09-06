@@ -3,14 +3,13 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaGoogle, FaFacebook, FaApple } from 'react-icons/fa';
 import Swal from 'sweetalert2';
-
+import { useApi } from '../ApiContext';
 const LoginForm = () => {
- 
-
   const [input, setInput] = useState({
     username: '',
     password: '',
   });
+  const API_URL=useApi();
   const [message, ] = useState('');
   const [error, setError] = useState({});
   const navigate = useNavigate();
@@ -23,7 +22,8 @@ const LoginForm = () => {
       [name]: value,
     }));
   };
-
+  console.log(typeof API_URL);
+  
   const validateError = () => {
     const newErrors = {};
     if (!input.username) newErrors.username = 'This is Required';
@@ -41,8 +41,8 @@ const LoginForm = () => {
         password: input.password,
       };
 
-      axios.post('https://goldquestreact.onrender.com/admin/login', loginData)
-        .then((response) => {
+      axios.post(`${API_URL}/admin/login`, loginData) // Use API_URL correctly
+      .then((response) => {
           if (!response.data.status) {
             Swal.fire({
               title: 'Error!',

@@ -3,11 +3,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { LoaderContext } from '../LoaderContext';
 import Loader from '../Loader'
+import { useApi } from '../ApiContext';
 const Customer = ({ children }) => {
-
-
   const { loading, setLoading } = useContext(LoaderContext);
-
+  const API_URL=useApi();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -31,7 +30,7 @@ const Customer = ({ children }) => {
       }
 
       try {
-        const response = await axios.post('https://goldquestreact.onrender.com/branch/verify-branch-login', {
+        const response = await axios.post(`${API_URL}/branch/verify-branch-login`, {
           branch_id: adminData.id,
           _token: storedToken,
         });

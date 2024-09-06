@@ -3,11 +3,12 @@ import PaginationContext from '../Pages/PaginationContext';
 import Pagination from '../Pages/Pagination';
 import Swal from 'sweetalert2';
 import DropBoxContext from './DropBoxContext';
+import { useApi } from '../ApiContext';
 const CandidateList = () => {
     const { handleEditDrop,listData,fetchClient } = useContext(DropBoxContext)
     const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
     const [paginated, setPaginated] = useState([]);
-   
+    const API_URL=useApi();
 
     useEffect(() => {
         fetchClient();
@@ -48,7 +49,7 @@ const CandidateList = () => {
                     }
                 };
 
-                fetch(`https://goldquestreact.onrender.com/branch/candidate-application/delete?id=${id}&branch_id=${branch_id}&_token=${_token}`, requestOptions)
+                fetch(`${API_URL}/branch/candidate-application/delete?id=${id}&branch_id=${branch_id}&_token=${_token}`, requestOptions)
                     .then(response => {
                         if (!response.ok) {
                             return response.text().then(text => {

@@ -1,8 +1,10 @@
 import React, { useContext, useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import DropBoxContext from './DropBoxContext';
+import { useApi } from '../ApiContext';
 
 const ClientForm = () => {
+    const API_URL=useApi();
     const [clientInput, setClientInput] = useState({
         name: '',
         attach_documents: '1.pdf',
@@ -135,8 +137,8 @@ const ClientForm = () => {
                 redirect: "follow"
             };
             const url = isEditClient
-                ? 'https://goldquestreact.onrender.com/branch/client-application/update'
-                : 'https://goldquestreact.onrender.com/branch/client-application/create';
+                ? `${API_URL}/branch/client-application/update`
+                : `${API_URL}/branch/client-application/create`;
 
             fetch(url, requestOptions)
                 .then(response => {

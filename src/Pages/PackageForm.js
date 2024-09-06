@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { usePackage } from './PackageContext';
 import Swal from 'sweetalert2';
 import { useRefresh } from '../RefreshContext';
+import { useApi } from '../ApiContext';
 const PackageForm = ({ onSuccess }) => {
+    const API_URL = useApi();
+
     const {fetchData } = usePackage();
     const { refreshPage, refreshKey } = useRefresh();
     const { selectedPackage, clearSelectedPackage, packageList, updatePackageList } = usePackage();
@@ -87,8 +90,8 @@ const PackageForm = ({ onSuccess }) => {
             };
 
             const url = isEditMode
-                ? "https://goldquestreact.onrender.com/package/update"
-                : "https://goldquestreact.onrender.com/package/create";
+                ? `${API_URL}/package/update`
+                : `${API_URL}/package/create`;
 
             fetch(url, requestOptions)
                 .then(response => {

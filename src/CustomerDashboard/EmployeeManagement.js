@@ -1,11 +1,9 @@
 import React from 'react'
-import ClientMasterData from './ClientMasterData'
 import ScopeOfServices from './ScopeOfServices'
 
 const EmployeeManagement = () => {
   return (
     <>
-    <ClientMasterData/>
     <ScopeOfServices/>
     <div className="text-center p-3 md:px-10">
     <div className="md:flex gap-4 items-center pb-5 md:pb-16">

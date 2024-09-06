@@ -10,20 +10,19 @@ import { useEditClient } from './ClientEditContext';
 import BranchEditForm from './BranchEditForm';
 import { useEditBranch } from './BranchEditContext';
 import { useData } from './DataContext';
+import { useApi } from '../ApiContext'; // use the custom hook
+
 const ClientManagementList = () => {
+    const API_URL = useApi();
     const { setClientData } = useEditClient();
     const { setBranchEditData } = useEditBranch();
     const { currentItem, showPerPage } = useContext(PaginationContext);
     const {loading, error, listData, fetchData,toggleAccordion,branches,openAccordionId,isOpen,setIsOpen} =useData();
     const [paginated, setPaginated] = useState([]);
-   
     const [showAllServicesState, setShowAllServicesState] = useState({});
-
     const toggleAccordions = (id) => {
         setIsOpen((prevId) => (prevId === id ? null : id));
     };
-
-
     useEffect(() => {
         fetchData();
     }, [fetchData]);
@@ -75,10 +74,10 @@ const ClientManagementList = () => {
                 let successMessage;
 
                 if (type === 'client') {
-                    url = `https://goldquestreact.onrender.com/customer/delete?id=${id}&admin_id=${admin_id}&_token=${storedToken}`;
+                    url = `${API_URL}/customer/delete?id=${id}&admin_id=${admin_id}&_token=${storedToken}`;
                     successMessage = 'Your client has been deleted.';
                 } else if (type === 'branch') {
-                    url = `https://goldquestreact.onrender.com/branch/delete?id=${id}&admin_id=${admin_id}&_token=${storedToken}`;
+                    url = `${API_URL}/branch/delete?id=${id}&admin_id=${admin_id}&_token=${storedToken}`;
                     successMessage = 'Your branch has been deleted.';
                 } else {
                     console.error("Unknown delete type.");

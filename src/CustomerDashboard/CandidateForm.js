@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import DropBoxContext from './DropBoxContext';
+import { useApi } from '../ApiContext';
 
 const CandidateForm = () => {
     const { services, uniquePackages, selectedDropBox ,fetchClient} = useContext(DropBoxContext);
@@ -8,7 +9,7 @@ const CandidateForm = () => {
     const [, setStoredToken] = useState(null);
     const [isEditClient, setIsEditClient] = useState(false);
     const [, setIsSubmitting] = useState(false);
-
+  const API_URL=useApi();
     const [input, setInput] = useState({
         name: "",
         applicant_name: "",
@@ -134,8 +135,8 @@ const CandidateForm = () => {
                 redirect: "follow"
             };
             const url = isEditClient
-                ? 'https://goldquestreact.onrender.com/branch/candidate-application/update'
-                : 'https://goldquestreact.onrender.com/branch/candidate-application/create';
+                ? `${API_URL}/branch/candidate-application/update`
+                : `${API_URL}/branch/candidate-application/create`;
 
             fetch(url, requestOptions)
                 .then(response => {

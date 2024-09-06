@@ -3,7 +3,10 @@ import PaginationContext from './PaginationContext';
 import SearchBar from './SearchBar'
 import Pagination from './Pagination'
 import { Link } from 'react-router-dom';
+import { useApi } from '../ApiContext'; // use the custom hook
+
 const ClientMasterTrackerList = () => {
+    const API_BASE_URL = useApi();
     const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
     const LoginData =useMemo(()=> [
         { SL: "01", c_code: "NA_2423", company_name: "Antraweb Technologies Pvt Ltd", client_spoc: 'Manjunath', active_case: "14",check_in: "Check In",  },

@@ -1,17 +1,17 @@
 import React from 'react';
 import { RiLoginCircleFill } from "react-icons/ri";
 import { useNavigate } from 'react-router-dom';
+import { useApi } from '../ApiContext';
 
 const Logout = () => {
+    const API_URL= useApi
     const navigate = useNavigate();
-
-
     const handleLogout = async () => {
         const storedBranchData = localStorage.getItem("branch");
         const storedToken = localStorage.getItem("branch_token");
 
         try {
-            const response = await fetch(`https://goldquestreact.onrender.com/branch/logout?branch_id=${JSON.parse(storedBranchData)?.id}&_token=${storedToken}`, {
+            const response = await fetch(`${API_URL}/branch/logout?branch_id=${JSON.parse(storedBranchData)?.id}&_token=${storedToken}`, {
                 method: 'GET',
             });
 

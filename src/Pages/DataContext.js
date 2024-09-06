@@ -1,11 +1,13 @@
-// DataContext.js
+
 import React, { createContext, useState, useCallback, useContext } from 'react';
 import Swal from 'sweetalert2';
+import { useApi } from '../ApiContext';
 const DataContext = createContext();
 
 export const useData = () => useContext(DataContext);
 
 export const DataProvider = ({ children }) => {
+    const API_URL = useApi();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [listData, setListData] = useState([]);
@@ -26,7 +28,7 @@ export const DataProvider = ({ children }) => {
             _token: storedToken || ''
         }).toString();
 
-        fetch(`https://goldquestreact.onrender.com/customer/list?${queryParams}`, {
+        fetch(`${API_URL}/customer/list?${queryParams}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -68,7 +70,7 @@ export const DataProvider = ({ children }) => {
         const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
         const storedToken = localStorage.getItem("_token");
        
-            fetch(`https://goldquestreact.onrender.com/branch/list-by-customer?customer_id=${id}&admin_id=${admin_id}&_token=${storedToken}`, {
+            fetch(`${API_URL}/branch/list-by-customer?customer_id=${id}&admin_id=${admin_id}&_token=${storedToken}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'

@@ -4,10 +4,10 @@ import Pagination from './Pagination';
 import PaginationContext from './PaginationContext';
 import Swal from 'sweetalert2';
 import { Link } from 'react-router-dom';
-
+import { useApi } from '../ApiContext';;
 const ExternalLoginData = () => {
   const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
-
+  const API_URL = useApi();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -26,7 +26,7 @@ const ExternalLoginData = () => {
       _token: storedToken || '',
     }).toString();
 
-    fetch(`https://goldquestreact.onrender.com/branch/list?${queryParams}`, {
+    fetch(`${API_URL}/branch/list?${queryParams}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

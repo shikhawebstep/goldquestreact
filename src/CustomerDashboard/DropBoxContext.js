@@ -1,9 +1,11 @@
 import React, { createContext, useEffect, useState, useCallback } from 'react';
 import Swal from 'sweetalert2';
+import { useApi } from '../ApiContext';
 
 const DropBoxContext = createContext();
 
 export const DropBoxProvider = ({ children }) => {
+    const API_URL=useApi
     const [services, setServices] = useState([]);
     const [uniquePackages, setUniquePackages] = useState([]);
     const [listData, setListData] = useState([]);
@@ -24,7 +26,7 @@ export const DropBoxProvider = ({ children }) => {
 
     const fetchServices = useCallback(async () => {
         try {
-            const response = await fetch(`https://goldquestreact.onrender.com/branch/customer-info?customer_id=${storedBranchData}&branch_id=${branch_id}&branch_token=${_token}`, {
+            const response = await fetch(`${API_URL}/branch/customer-info?customer_id=${storedBranchData}&branch_id=${branch_id}&branch_token=${_token}`, {
                 method: "GET",
                 redirect: "follow"
             });
@@ -70,7 +72,7 @@ export const DropBoxProvider = ({ children }) => {
 
     const fetchClient = useCallback(async () => {
         try {
-            const response = await fetch(`https://goldquestreact.onrender.com/branch/candidate-application/list?branch_id=${branch_id}&_token=${_token}`, {
+            const response = await fetch(`${API_URL}/branch/candidate-application/list?branch_id=${branch_id}&_token=${_token}`, {
                 method: "GET",
                 redirect: "follow"
             });
@@ -94,7 +96,7 @@ export const DropBoxProvider = ({ children }) => {
 
     const fetchClientDrop = useCallback(async () => {
         try {
-            const response = await fetch(`https://goldquestreact.onrender.com/branch/client-application/list?branch_id=${branch_id}&_token=${_token}`, {
+            const response = await fetch(`API_URL/branch/client-application/list?branch_id=${branch_id}&_token=${_token}`, {
                 method: "GET",
                 redirect: "follow"
             });

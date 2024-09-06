@@ -1,13 +1,13 @@
 import React, { createContext, useState, useContext } from 'react';
 import Swal from 'sweetalert2';
 import { useData } from './DataContext';
-
+import { useApi } from '../ApiContext'; // use the custom hook
 
 const ClientEditContext = createContext();
 
 
 export const ClientEditProvider = ({ children }) => {
-
+    const API_URL = useApi();
     const [clientData, setClientData] = useState({
         company_name: '',
         client_code: '',
@@ -65,7 +65,7 @@ export const ClientEditProvider = ({ children }) => {
         };
 
         try {
-            const response = await fetch('https://goldquestreact.onrender.com/customer/update', requestOptions);
+            const response = await fetch(`${API_URL}/customer/update`, requestOptions);
             const contentType = response.headers.get("content-type");
 
             if (!response.ok) {

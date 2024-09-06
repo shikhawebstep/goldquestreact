@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { FaGoogle, FaFacebook, FaApple } from 'react-icons/fa';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-
+import {useApi} from '../ApiContext'
 const CustomerLoginForm = () => {
+    const API_URL=useApi();
     const location = useLocation();
     const query = new URLSearchParams(location.search);
     const emailFromQuery = query.get('email') || '';
@@ -63,7 +64,7 @@ const CustomerLoginForm = () => {
                 redirect: "follow"
             };
 
-            fetch("https://goldquestreact.onrender.com/branch/login", requestOptions)
+            fetch(`${API_URL}/branch/login`, requestOptions)
                 .then(res => res.json())
                 .then(response => {
                     if (!response.status) {

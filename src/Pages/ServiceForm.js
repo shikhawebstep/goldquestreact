@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useService } from './ServiceContext';
 import Swal from 'sweetalert2';
-
-
+import { useApi } from '../ApiContext';
 const ServiceForm = () => {
+    const API_URL = useApi();
     const { selectedService, updateServiceList ,fetchData} = useService();
     const [adminId, setAdminId] = useState(null);
     const [storedToken, setStoredToken] = useState(null);
@@ -73,8 +73,8 @@ const ServiceForm = () => {
             };
 
             const url = isEdit
-                ? `https://goldquestreact.onrender.com/service/update`
-                : `https://goldquestreact.onrender.com/service/create`;
+                ? `${API_URL}/service/update`
+                : `${API_URL}/service/create`;
 
             fetch(url, requestOptions)
                 .then(response => {

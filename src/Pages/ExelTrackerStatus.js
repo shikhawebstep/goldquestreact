@@ -1,25 +1,25 @@
-import React, { useCallback, useEffect, useState } from 'react'
-import Header from '../Dashboard/Header';
+import React, { useCallback, useEffect, useState ,useContext} from 'react'
 import { useApi } from '../ApiContext';
 import Swal from 'sweetalert2';
-const ExelTrackerStatus = () => {
+import { BranchContextExel } from './BranchContextExel';
 
+const ExelTrackerStatus = () => {
+    const { branch_id } = useContext(BranchContextExel);
     const [applicationData, setApplicationData] = useState([])
     const [expandedRows, setExpandedRows] = useState([]);
     const API_URL = useApi();
-    const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
-    const storedToken = localStorage.getItem("_token");
-    const formdata = new FormData();
     const [loading, setLoading] = useState(false);
     const [, setError] = useState(null);
     const requestOptions = {
         method: "GET",
         redirect: "follow"
     };
-    
+   
     const fetchApplications = useCallback(() => {
+        const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
+        const storedToken = localStorage.getItem("_token");
         setLoading(true)
-        fetch(`${API_URL}/client-master-tracker/applications-by-branch?branch_id=1&admin_id=${admin_id}&_token=${storedToken}`, requestOptions)
+        fetch(`${API_URL}/client-master-tracker/applications-by-branch?branch_id=${branch_id}&admin_id=${admin_id}&_token=${storedToken}`, requestOptions)
             .then(response => {
                 if (!response.ok) {
                     return response.text().then(text => {
@@ -62,7 +62,7 @@ const ExelTrackerStatus = () => {
     }
     return (
         <>
-            <div><Header />
+            <div>
                 <div className="overflow-x-auto my-14 mx-4 bg-white shadow-md rounded-md">
 
                     <table className="min-w-full">

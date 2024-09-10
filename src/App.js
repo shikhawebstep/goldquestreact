@@ -24,44 +24,47 @@ import { RefreshProvider } from './RefreshContext';
 import { DataProvider } from './Pages/DataContext';
 import { ApiProvider } from './ApiContext'
 import { TabProvider } from './Pages/TabContext';
+import { BranchProviderExel } from './Pages/BranchContextExel';
 const App = () => {
   return (
-  <TabProvider>
-    <ApiProvider>
-      <DataProvider>
-        <RefreshProvider>
-          <DropBoxProvider>
-            <ClientEditProvider>
-              <BranchEditProvider>
-                <LoaderProvider>
-                  <PaginationProvider>
-                    <ClientProvider>
-                      <PackageProvider>
-                        <ServiceProvider>
-                          <Router basename='/demo/Goldquest'>
-                            <Routes>
-                              <Route path='/' element={<Admin><Render /></Admin>} />
-                              <Route path='/customer-login' element={<CustomerLogin />} />
-                              <Route path='/admin-login' element={<Login />} />
-                              <Route path='forgotpassword' element={<ForgotPassword />} />
-                              <Route path='forgotpassword/passwordreset' element={<PasswordReset />} />
-                              <Route path='/newpassword' element={<SetNewPassword />} />
-                              <Route path='/customer-dashboard' element={<Customer><CustomerDashboard /></Customer>} />
-                              <Route path='/trackerstatus' element={<Admin><ExelTrackerData /></Admin>} />
-                              <Route path='/addclient' element={<Admin><AddClient /></Admin>} />
-                            </Routes>
-                          </Router>
-                        </ServiceProvider>
-                      </PackageProvider>
-                    </ClientProvider>
-                  </PaginationProvider>
-                </LoaderProvider>
-              </BranchEditProvider>
-            </ClientEditProvider>
-          </DropBoxProvider>
-        </RefreshProvider >
-      </DataProvider>
-    </ApiProvider>
+    <TabProvider>
+      <ApiProvider>
+        <BranchProviderExel>
+          <DataProvider>
+            <RefreshProvider>
+              <DropBoxProvider>
+                <ClientEditProvider>
+                  <BranchEditProvider>
+                    <LoaderProvider>
+                      <PaginationProvider>
+                        <ClientProvider>
+                          <PackageProvider>
+                            <ServiceProvider>
+                              <Router basename='/demo/Goldquest'>
+                                <Routes>
+                                  <Route path='/' element={<Admin><Render /></Admin>} />
+                                  <Route path='/customer-login' element={<CustomerLogin />} />
+                                  <Route path='/admin-login' element={<Login />} />
+                                  <Route path='forgotpassword' element={<ForgotPassword />} />
+                                  <Route path='forgotpassword/passwordreset' element={<PasswordReset />} />
+                                  <Route path='/newpassword' element={<SetNewPassword />} />
+                                  <Route path='/customer-dashboard' element={<Customer><CustomerDashboard /></Customer>} />
+                                  <Route path='/trackerstatus' element={<Admin><ExelTrackerData /></Admin>} />
+                                  <Route path='/addclient' element={<Admin><AddClient /></Admin>} />
+                                </Routes>
+                              </Router>
+                            </ServiceProvider>
+                          </PackageProvider>
+                        </ClientProvider>
+                      </PaginationProvider>
+                    </LoaderProvider>
+                  </BranchEditProvider>
+                </ClientEditProvider>
+              </DropBoxProvider>
+            </RefreshProvider >
+          </DataProvider>
+        </BranchProviderExel>
+      </ApiProvider>
     </TabProvider>
   );
 };

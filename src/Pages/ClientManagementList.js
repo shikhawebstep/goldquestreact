@@ -128,16 +128,16 @@ const ClientManagementList = () => {
                 <table className="min-w-full">
                     <thead>
                         <tr className='bg-green-500'>
-                            <th className="py-3 px-4 border-b border-r border-l text-white text-left uppercase whitespace-nowrap capitalize">SL</th>
-                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap capitalize">Client Code</th>
-                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap capitalize">Company Name</th>
-                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap capitalize">Name of Client Spoc</th>
-                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap capitalize">Date of Service Agreement</th>
-                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap capitalize">Contact Person</th>
-                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap capitalize">Mobile</th>
-                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap capitalize">Services</th>
-                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap capitalize">Address</th>
-                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap capitalize">Action</th>
+                            <th className="py-3 px-4 border-b border-r border-l text-white text-left uppercase whitespace-nowrap">SL</th>
+                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Client Code</th>
+                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Company Name</th>
+                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Name of Client Spoc</th>
+                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Date of Service Agreement</th>
+                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Contact Person</th>
+                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Mobile</th>
+                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Services</th>
+                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Address</th>
+                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Action</th>
                         </tr>
                     </thead>
                     <tbody>

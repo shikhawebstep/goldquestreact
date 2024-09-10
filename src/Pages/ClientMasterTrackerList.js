@@ -6,8 +6,11 @@ import { Link } from 'react-router-dom';
 import { useApi } from '../ApiContext';
 import Swal from 'sweetalert2';
 import { useSidebar } from '../Sidebar/SidebarContext';
+import { BranchContextExel } from './BranchContextExel'; // Import BranchContextExel
 
 const ClientMasterTrackerList = () => {
+    const { setBranchId } = useContext(BranchContextExel); // Access setBranchId from context
+
     const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
     const API_URL = useApi();
     const { handleTabChange } = useSidebar();
@@ -115,7 +118,8 @@ const ClientMasterTrackerList = () => {
         setPaginated(data.slice(startIndex, endIndex));
     }, [currentItem, setTotalResults, data, showPerPage]);
 
-    const handleClick = () => {
+    const handleClick = (branch_id) => {
+        setBranchId(branch_id); // Set branch_id in context
         handleTabChange('tracker_status');
     };
 
@@ -156,23 +160,22 @@ const ClientMasterTrackerList = () => {
                                             </button>
                                             
                                             <Link to=''>
-                                                <button className='bg-green-600 hover:bg-green-200 rounded-md p-2 text-white' onClick={handleClick}>Check In</button>
+                                                <button className='bg-green-600 hover:bg-green-200 rounded-md p-2 text-white'>Check In</button>
                                             </Link>
                                             <button className='bg-red-600 hover:bg-red-200 rounded-md p-2 text-white mx-2'>Delete</button>
                                             <button className='bg-green-600 hover:bg-green-200 rounded-md p-2 px-5 text-white'>Excel</button>
                                             {expandedClient === item.main_id && (
                                                 branches[item.main_id]?.map((branch, branchIndex) => (
-                                                    <tr key={branchIndex} className='w-100'>
+                                                    <tr key={branchIndex} className='w-full'>
                                                         <td className=' w:4/12 py-3 px-4 border-b border-r border-l whitespace-nowrap text-center text-bold'>{branch.branch_name}</td>
                                                         <td className=' w:4/12 py-3 px-4 border-b border-r border-l whitespace-nowrap text-center text-bold'>{branch.application_count}</td>
                                                         <td className=' w:4/12 py-3 px-4 border-b border-r border-l whitespace-nowrap text-center'>
-                                                            <button className='bg-green-600 hover:bg-green-200 rounded-md p-2 text-white'>Check In</button>
+                                                            <button className='bg-green-600 hover:bg-green-200 rounded-md p-2 text-white' onClick={() => handleClick(branch.branch_id)}>Check In</button>
                                                         </td>
                                                     </tr>
                                                 ))
                                             )}
-                                            </td>
-
+                                        </td>
                                     </tr>
                                 ))
                             ) : (

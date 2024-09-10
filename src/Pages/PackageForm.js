@@ -166,7 +166,7 @@ const PackageForm = ({ onSuccess }) => {
                     type="text"
                     name="name"
                     id="packagename"
-                    className="border w-full rounded-md p-2 mt-2"
+                    className="border w-full rounded-md p-2 mt-2 capitalize"
                     onChange={handleChange}
                     value={packageInput.name}
                 />
@@ -174,11 +174,11 @@ const PackageForm = ({ onSuccess }) => {
             </div>
 
             <div className="mb-4">
-                <label htmlFor="message">Description:</label>
+                <label htmlFor="message">Package Description:</label>
                 <textarea
                     name="message"
                     id="message"
-                    className="w-full border p-3 outline-none rounded-md mt-2"
+                    className="w-full border p-3 outline-none rounded-md mt-2 capitalize"
                     rows={5}
                     cols={4}
                     onChange={handleChange}

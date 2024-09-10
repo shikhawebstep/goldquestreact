@@ -106,16 +106,16 @@ const PackageManagementList = () => {
                         {paginatedData.length > 0 ? (
                             paginatedData.map((item, index) => (
                                 <tr key={item.id}>
-                                    <td className="py-2 px-4 border-b border-r border-l whitespace-nowrap">
+                                    <td className="py-2 px-4 border-b capitalize border-r border-l whitespace-nowrap">
                                         {(currentItem - 1) * showPerPage + index + 1}
                                     </td>
-                                    <td className="py-2 px-4 border-b border-r border-l whitespace-nowrap">
+                                    <td className="py-2 px-4 border-b capitalize border-r border-l whitespace-nowrap">
                                         {item.title}
                                     </td>
-                                    <td className="py-2 px-4 border-b border-r whitespace-nowrap">
+                                    <td className="py-2 px-4 border-b capitalize border-r whitespace-nowrap">
                                         {item.description}
                                     </td>
-                                    <td className="py-2 px-4 border-b border-r whitespace-nowrap">
+                                    <td className="py-2 px-4 border-b capitalize border-r whitespace-nowrap">
                                         <button
                                             className='bg-green-500 hover:bg-green-200 rounded-md p-2 me-2 text-white'
                                             onClick={() => handleEdit(item)}

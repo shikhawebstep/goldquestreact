@@ -23,8 +23,10 @@ import { DropBoxProvider } from './CustomerDashboard/DropBoxContext'
 import { RefreshProvider } from './RefreshContext';
 import { DataProvider } from './Pages/DataContext';
 import { ApiProvider } from './ApiContext'
+import { TabProvider } from './Pages/TabContext';
 const App = () => {
   return (
+  <TabProvider>
     <ApiProvider>
       <DataProvider>
         <RefreshProvider>
@@ -60,6 +62,7 @@ const App = () => {
         </RefreshProvider >
       </DataProvider>
     </ApiProvider>
+    </TabProvider>
   );
 };
 

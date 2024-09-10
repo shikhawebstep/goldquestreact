@@ -1,5 +1,5 @@
-import React, { useContext, useState } from 'react';
-import SidebarContext from './SidebarContext';
+import React, {useState } from 'react';
+import {useSidebar} from './SidebarContext';
 import { BiSolidPackage } from "react-icons/bi";
 import { HomeIcon, UserIcon } from "@heroicons/react/24/outline";
 import { IoMdPersonAdd } from "react-icons/io";
@@ -37,12 +37,13 @@ const tabNames = {
   update_password: (<><RiLockPasswordFill className="h-6 w-6 mr-3 text-gray-600" />Update Password</>),
   invoice: (<><FaFileInvoiceDollar className="h-6 w-6 mr-3 text-gray-600" />Invoice</>),
   email_temp: (<><FaFileInvoiceDollar className="h-6 w-6 mr-3 text-gray-600" />Email Template</>),
+  tracker_status: (<><FaFileInvoiceDollar className="h-6 w-6 mr-3 text-gray-600" />Tracker Status</>),
 };
 
 const Sidebar = () => {
   const [toggle, setToggle] = useState(false);
   const [expandedTab, setExpandedTab] = useState(null);
-  const { activeTab, handleTabChange } = useContext(SidebarContext);
+  const { activeTab, handleTabChange } = useSidebar();
 
   const handleToggle = () => {
     setToggle(!toggle);

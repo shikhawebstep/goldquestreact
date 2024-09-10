@@ -1,29 +1,129 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import PaginationContext from './PaginationContext';
-import SearchBar from './SearchBar'
-import Pagination from './Pagination'
+import SearchBar from './SearchBar';
+import Pagination from './Pagination';
 import { Link } from 'react-router-dom';
-import { useApi } from '../ApiContext'; // use the custom hook
+import { useApi } from '../ApiContext';
+import Swal from 'sweetalert2';
+import { useSidebar } from '../Sidebar/SidebarContext';
 
 const ClientMasterTrackerList = () => {
-    const API_BASE_URL = useApi();
     const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
-    const LoginData =useMemo(()=> [
-        { SL: "01", c_code: "NA_2423", company_name: "Antraweb Technologies Pvt Ltd", client_spoc: 'Manjunath', active_case: "14",check_in: "Check In",  },
-        { SL: "02", c_code: "NA_2423", company_name: "Waterwala Labs Pvt Ltd", client_spoc: 'Raj Kumar', active_case: "124",check_in: "Check In",  },
-    ],[]);
+    const API_URL = useApi();
+    const { handleTabChange } = useSidebar();
     const [paginated, setPaginated] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [, setError] = useState(null);
+    const [data, setData] = useState([]);
+    const [branches, setBranches] = useState({});
+    const [expandedClient, setExpandedClient] = useState(null); // State to track expanded client
+
+    const fetchClient = useCallback(() => {
+        const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
+        const storedToken = localStorage.getItem("_token");
+        setLoading(true);
+        setError(null);
+
+        const queryParams = new URLSearchParams({
+            admin_id: admin_id || '',
+            _token: storedToken || ''
+        }).toString();
+        fetch(`${API_URL}/client-master-tracker/list?${queryParams}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        const errorData = JSON.parse(text);
+                        Swal.fire(
+                            'Error!',
+                            `An error occurred: ${errorData.message}`,
+                            'error'
+                        );
+                        throw new Error(text);
+                    });
+                }
+                return response.json();
+            })
+            .then((data) => {
+                const newToken = data._token || data.token;
+                if (newToken) {
+                    localStorage.setItem("_token", newToken);
+                }
+                setData(data.customers || []);
+                setTotalResults(data.totalResults || 0);
+            })
+            .catch((error) => {
+                console.error('Fetch error:', error);
+                setError('Failed to load data');
+            })
+            .finally(() => setLoading(false));
+    }, [setTotalResults]);
+
+    const handleBranches = useCallback((id) => {
+        setLoading(true);
+        setError(null);
+        const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
+        const storedToken = localStorage.getItem("_token");
+
+        fetch(`${API_URL}/client-master-tracker/branch-list-by-customer?customer_id=${id}&admin_id=${admin_id}&_token=${storedToken}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        const errorData = JSON.parse(text);
+                        Swal.fire(
+                            'Error!',
+                            `An error occurred: ${errorData.message}`,
+                            'error'
+                        );
+                        throw new Error(text);
+                    });
+                }
+                return response.json();
+            })
+            .then((data) => {
+                const newToken = data._token || data.token;
+                if (newToken) {
+                    localStorage.setItem("_token", newToken);
+                }
+                setBranches(prev => ({ ...prev, [id]: data.customers || [] }));
+                setExpandedClient(prev => (prev === id ? null : id)); // Toggle branches visibility
+            })
+            .catch((error) => {
+                console.error('Fetch error:', error);
+                setError('Failed to load data');
+            })
+            .finally(() => setLoading(false));
+    }, []);
 
     useEffect(() => {
-        setTotalResults(LoginData.length);
+        fetchClient();
+    }, [fetchClient]);
+
+    useEffect(() => {
+        setTotalResults(data.length);
         const startIndex = (currentItem - 1) * showPerPage;
         const endIndex = startIndex + showPerPage;
-        setPaginated(LoginData.slice(startIndex, endIndex));
-    }, [currentItem, setTotalResults,LoginData,showPerPage]);
+        setPaginated(data.slice(startIndex, endIndex));
+    }, [currentItem, setTotalResults, data, showPerPage]);
+
+    const handleClick = () => {
+        handleTabChange('tracker_status');
+    };
+
     return (
         <>
             <div className="bg-white m-4 md:m-24 shadow-md rounded-md p-3">
                 <SearchBar />
+
                 <div className="overflow-x-auto py-6 px-4">
                     <table className="min-w-full">
                         <thead>
@@ -37,26 +137,55 @@ const ClientMasterTrackerList = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {paginated.map((item, index) => (
-                                <tr key={index}>
-                                    <td className="py-3 px-4 border-b border-l border-r text-left whitespace-nowrap"><input type="checkbox" name="" className='me-2' id="" />{item.SL}</td>
-                                    <td className="py-3 px-4 border-b border-r text-center whitespace-nowrap">{item.c_code}</td>
-                                    <td className="py-3 px-4 border-b border-r whitespace-nowrap">{item.company_name}</td>
-                                    <td className="py-3 px-4 border-b border-r whitespace-nowrap text-center">{item.client_spoc}</td>
-                                    <td className="py-3 px-4 border-b border-r whitespace-nowrap text-center text-bold cursor-pointer">{item.active_case}</td>
-                                    <td className="py-3 px-4 border-b border-r text-center whitespace-nowrap"><Link to='/trackerstatus'>
-                                    <button className='bg-green-600 hover:bg-green-200 rounded-md p-2 text-white'>{item.check_in}</button></Link>
-                                    <button className='bg-red-600 hover:bg-red-200 rounded-md p-2 text-white mx-2'>Delete</button>
-                                    <button className='bg-green-600 hover:bg-red-200 rounded-md p-2 px-5 text-white'>Exel</button> </td>
-                                </tr>
-                            ))}
+                            {paginated.length > 0 ? (
+                                paginated.map((item, index) => (
+                                    <tr key={index}>
+                                        <td className="py-3 px-4 border-b border-l border-r text-left whitespace-nowrap">
+                                            <input type="checkbox" className='me-2' />
+                                            {index + 1}
+                                        </td>
+                                        <td className="py-3 px-4 border-b border-r text-center whitespace-nowrap">{item.client_unique_id}</td>
+                                        <td className="py-3 px-4 border-b border-r whitespace-nowrap">{item.name}</td>
+                                        <td className="py-3 px-4 border-b border-r whitespace-nowrap text-center">{item.single_point_of_contact}</td>
+                                        <td className="py-3 px-4 border-b border-r whitespace-nowrap text-center cursor-pointer">{item.application_count}</td>
+                                        <td className="py-3 px-4 border-b border-r text-center whitespace-nowrap">
+                                            <button
+                                                className='bg-green-600 hover:bg-green-200 rounded-md p-2 px-5 me-2 text-white'
+                                                onClick={() => handleBranches(item.main_id)}>
+                                                {expandedClient === item.main_id ? 'Hide Branches' : 'View Branches'}
+                                            </button>
+                                            
+                                            <Link to=''>
+                                                <button className='bg-green-600 hover:bg-green-200 rounded-md p-2 text-white' onClick={handleClick}>Check In</button>
+                                            </Link>
+                                            <button className='bg-red-600 hover:bg-red-200 rounded-md p-2 text-white mx-2'>Delete</button>
+                                            <button className='bg-green-600 hover:bg-green-200 rounded-md p-2 px-5 text-white'>Excel</button>
+                                            {expandedClient === item.main_id && (
+                                                branches[item.main_id]?.map((branch, branchIndex) => (
+                                                    <tr key={branchIndex} className='w-100'>
+                                                        <td className=' w:4/12 py-3 px-4 border-b border-r border-l whitespace-nowrap text-center text-bold'>{branch.branch_name}</td>
+                                                        <td className=' w:4/12 py-3 px-4 border-b border-r border-l whitespace-nowrap text-center text-bold'>{branch.application_count}</td>
+                                                        <td className=' w:4/12 py-3 px-4 border-b border-r border-l whitespace-nowrap text-center'>
+                                                            <button className='bg-green-600 hover:bg-green-200 rounded-md p-2 text-white'>Check In</button>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                            </td>
+
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr className='text-center whitespace-nowrap'>No Data Available</tr>
+                            )}
                         </tbody>
+                        {loading && <div className="text-center">Loading...</div>}
                     </table>
                 </div>
                 <Pagination />
             </div>
         </>
-    )
-}
+    );
+};
 
-export default ClientMasterTrackerList
+export default ClientMasterTrackerList;

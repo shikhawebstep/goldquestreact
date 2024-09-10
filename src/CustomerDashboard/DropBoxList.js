@@ -6,7 +6,7 @@ import DropBoxContext from './DropBoxContext';
 import { useApi } from '../ApiContext';
 
 const DropBoxList = () => {
-    const API_URL =useApi
+    const API_URL =useApi();
     const { handleEditDrop,fetchClientDrop,listData } = useContext(DropBoxContext)
     const { currentItem, showPerPage, setTotalResults, } = useContext(PaginationContext);
     const [paginated, setPaginated] = useState([]);

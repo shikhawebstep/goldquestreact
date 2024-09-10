@@ -11,6 +11,7 @@ const Admin = ({ children }) => {
   const location = useLocation();
  
   useEffect(() => {
+ 
     const checkAuthentication = async () => {
       const storedAdminData = localStorage.getItem("admin");
       const storedToken = localStorage.getItem("_token");

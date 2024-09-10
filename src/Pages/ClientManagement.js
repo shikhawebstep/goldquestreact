@@ -3,6 +3,7 @@ import countryList from 'react-select-country-list';
 import Swal from 'sweetalert2';
 import { useClient } from "./ClientManagementContext";
 import ClientManagementData from "./ClientManagementData";
+import { useApi } from "../ApiContext";
 
 // Debounce utility function
 const debounce = (func, delay) => {
@@ -14,6 +15,7 @@ const debounce = (func, delay) => {
 };
 
 const ClientManagement = () => {
+  const API_URL=useApi();
   const options = useMemo(() => countryList().getData(), []);
   const { clientData, setClientData } = useClient();
   
@@ -115,7 +117,7 @@ const ClientManagement = () => {
     const token = localStorage.getItem("_token");
   
     if (value) {
-      fetch(`API_URL/branch/is-email-used?email=${value}&admin_id=${adminData}&_token=${token}`, { 
+      fetch(`${API_URL}/branch/is-email-used?email=${value}&admin_id=${adminData}&_token=${token}`, { 
         method: "GET" 
       })
       .then(response => response.json())
@@ -154,7 +156,7 @@ const ClientManagement = () => {
           clientData: clientData,
         };
 
-        const response = await fetch("API_URL/customer/create", {
+        const response = await fetch(`${API_URL}/customer/create`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(requestData),

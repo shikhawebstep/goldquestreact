@@ -9,8 +9,9 @@ const LoginForm = () => {
     username: '',
     password: '',
   });
-  const API_URL=useApi();
-  const [message, ] = useState('');
+  const [loading, setLoading] = useState(false);
+  const API_URL = useApi();
+  const [message,] = useState('');
   const [error, setError] = useState({});
   const navigate = useNavigate();
   const location = useLocation();
@@ -23,7 +24,7 @@ const LoginForm = () => {
     }));
   };
   console.log(typeof API_URL);
-  
+
   const validateError = () => {
     const newErrors = {};
     if (!input.username) newErrors.username = 'This is Required';
@@ -35,6 +36,7 @@ const LoginForm = () => {
     event.preventDefault();
     const errors = validateError();
     if (Object.keys(errors).length === 0) {
+      setLoading(true); // Start loading
 
       const loginData = {
         username: input.username,
@@ -42,7 +44,7 @@ const LoginForm = () => {
       };
 
       axios.post(`${API_URL}/admin/login`, loginData) // Use API_URL correctly
-      .then((response) => {
+        .then((response) => {
           if (!response.data.status) {
             Swal.fire({
               title: 'Error!',
@@ -52,7 +54,7 @@ const LoginForm = () => {
             });
             const newToken = response._token || response.token;
             if (newToken) {
-                localStorage.setItem("_token", newToken);
+              localStorage.setItem("_token", newToken);
             }
           } else {
             console.log('Login successful:', response.data);
@@ -83,8 +85,10 @@ const LoginForm = () => {
             confirmButtonText: 'Ok'
           });
           console.error('Login failed:', error); // Log the error details
+        })
+        .finally(() => {
+          setLoading(false); // Stop loading
         });
-
     } else {
       setError(errors);
     }
@@ -139,10 +143,11 @@ const LoginForm = () => {
         </div>
         <div className="flex items-center justify-between">
           <button
-            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
+            className={`bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             type="submit"
+            disabled={loading} // Disable button when loading
           >
-            Sign In
+            {loading ? 'Signing In...' : 'Sign In'}
           </button>
         </div>
       </form>

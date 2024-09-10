@@ -128,16 +128,16 @@ const ClientManagementList = () => {
                 <table className="min-w-full">
                     <thead>
                         <tr className='bg-green-500'>
-                            <th className="py-3 px-4 border-b border-r border-l text-white text-left uppercase whitespace-nowrap">SL</th>
-                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Client Code</th>
-                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Company Name</th>
-                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Name of Client Spoc</th>
-                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Date of Service Agreement</th>
-                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Contact Person</th>
-                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Mobile</th>
-                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Services</th>
-                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Address</th>
-                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap">Action</th>
+                            <th className="py-3 px-4 border-b border-r border-l text-white text-left uppercase whitespace-nowrap capitalize">SL</th>
+                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap capitalize">Client Code</th>
+                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap capitalize">Company Name</th>
+                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap capitalize">Name of Client Spoc</th>
+                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap capitalize">Date of Service Agreement</th>
+                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap capitalize">Contact Person</th>
+                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap capitalize">Mobile</th>
+                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap capitalize">Services</th>
+                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap capitalize">Address</th>
+                            <th className="py-3 px-4 border-b border-r text-white text-left uppercase whitespace-nowrap capitalize">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -152,13 +152,13 @@ const ClientManagementList = () => {
                             const displayedServices = showAllServices ? result : result.slice(0, 1);
                             return (
                                 <tr key={item.main_id}>
-                                    <td className="py-3 px-4 border-b border-l border-r text-left whitespace-nowrap">
+                                    <td className="py-3 px-4 border-b border-l border-r text-left whitespace-nowrap capitalize">
                                         <input type="checkbox" className="me-2" />
                                         {index + 1}
                                     </td>
-                                    <td className="py-3 px-4 border-b border-r text-center whitespace-nowrap">{item.client_unique_id}</td>
-                                    <td className="py-3 px-4 border-b border-r whitespace-nowrap">{item.name}</td>
-                                    <td className="py-3 px-4 border-b border-r text-center whitespace-nowrap">{item.single_point_of_contact}</td>
+                                    <td className="py-3 px-4 border-b border-r text-center whitespace-nowrap capitalize">{item.client_unique_id}</td>
+                                    <td className="py-3 px-4 border-b border-r whitespace-nowrap capitalize">{item.name}</td>
+                                    <td className="py-3 px-4 border-b border-r text-center whitespace-nowrap capitalize">{item.single_point_of_contact}</td>
                                     <td className="py-3 px-4 border-b border-r text-center cursor-pointer">
                                         {new Date(item.agreement_date).toLocaleString()}
                                     </td>
@@ -173,19 +173,19 @@ const ClientManagementList = () => {
                                                         <>
                                                             {service.price ? (
                                                                 <>
-                                                                    <p className='whitespace-nowrap text-left'>service: {service.serviceTitle}</p>
-                                                                    <p className='whitespace-nowrap text-left'>Price: {service.price}</p>
+                                                                    <p className='whitespace-nowrap capitalize text-left'>service: {service.serviceTitle}</p>
+                                                                    <p className='whitespace-nowrap capitalize text-left'>Price: {service.price}</p>
                                                                 </>
                                                             ) : (
-                                                                <p className='whitespace-nowrap text-left text-red-500'>Service not available</p>
+                                                                <p className='whitespace-nowrap capitalize text-left text-red-500'>Service not available</p>
                                                             )}
 
                                                             {service.packages && Object.keys(service.packages).length > 0 ? (
-                                                                <p className='whitespace-nowrap text-left'>
+                                                                <p className='whitespace-nowrap capitalize text-left'>
                                                                     Packages: {Object.values(service.packages).filter(Boolean).join(', ')}
                                                                 </p>
                                                             ) : (
-                                                                <p className='whitespace-nowrap text-left text-red-500'>No packages available</p>
+                                                                <p className='whitespace-nowrap capitalize text-left text-red-500'>No packages available</p>
                                                             )}
                                                         </>
                                                     </div>
@@ -204,11 +204,11 @@ const ClientManagementList = () => {
                                                 )}
                                             </div>
                                         ) : (
-                                            <p className='whitespace-nowrap'>No services available.</p>
+                                            <p className='whitespace-nowrap capitalize'>No services available.</p>
                                         )}
                                     </td>
-                                    <td className="py-3 px-4 border-b border-r whitespace-nowrap">{item.address}</td>
-                                    <td className="py-3 px-4 border-b border-r text-left whitespace-nowrap fullwidth">
+                                    <td className="py-3 px-4 border-b border-r whitespace-nowrap capitalize">{item.address}</td>
+                                    <td className="py-3 px-4 border-b border-r text-left whitespace-nowrap capitalize fullwidth">
                                         <button className="bg-red-600 hover:bg-red-200 rounded-md p-2 text-white mx-2">Block</button>
                                         <Popup className='w-full' trigger={<button className="bg-green-600 hover:bg-green-200 rounded-md p-2 px-5 text-white">Edit</button>}
                                             position="right center"

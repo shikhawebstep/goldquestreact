@@ -5,7 +5,7 @@ import { useApi } from '../ApiContext';
 const DropBoxContext = createContext();
 
 export const DropBoxProvider = ({ children }) => {
-    const API_URL=useApi
+    const API_URL = useApi();
     const [services, setServices] = useState([]);
     const [uniquePackages, setUniquePackages] = useState([]);
     const [listData, setListData] = useState([]);
@@ -65,9 +65,7 @@ export const DropBoxProvider = ({ children }) => {
     }, [branch_id, _token, storedBranchData]);
 
     useEffect(() => {
-        if (storedBranchData && branch_id && _token) {
-            fetchServices();
-        }
+        fetchServices();
     }, [fetchServices]);
 
     const fetchClient = useCallback(async () => {
@@ -96,7 +94,7 @@ export const DropBoxProvider = ({ children }) => {
 
     const fetchClientDrop = useCallback(async () => {
         try {
-            const response = await fetch(`API_URL/branch/client-application/list?branch_id=${branch_id}&_token=${_token}`, {
+            const response = await fetch(`${API_URL}/branch/client-application/list?branch_id=${branch_id}&_token=${_token}`, {
                 method: "GET",
                 redirect: "follow"
             });

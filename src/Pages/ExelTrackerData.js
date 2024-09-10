@@ -8,7 +8,6 @@ const ExelTrackerData = () => {
    <>
    <SidebarProvider>
    <div className="flex flex-col md:flex-row">
-     <Sidebar />
     <ExelTrackerStatus/>
    </div>
    <Outlet/>

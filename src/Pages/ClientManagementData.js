@@ -26,7 +26,7 @@ const ClientManagementData = () => {
                 admin_id: admin_id || '',
                 _token: storedToken || ''
             }).toString();
-            const res = await fetch(`API_URL/service/list?${queryParams}`, {
+            const res = await fetch(`${API_URL}/service/list?${queryParams}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'

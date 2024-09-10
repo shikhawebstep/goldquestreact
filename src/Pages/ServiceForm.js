@@ -133,18 +133,18 @@ const ServiceForm = () => {
                     id="ServiceName"
                     value={serviceInput.name}
                     onChange={handleChange}
-                    className='outline-none pe-14 ps-2 text-left rounded-md w-full border p-2 mt-2' />
+                    className='outline-none pe-14 ps-2 text-left rounded-md w-full border p-2 mt-2 capitalize' />
                 {error.name && <p className='text-red-500'>{error.name}</p>}
             </div>
             <div className="mb-4">
-                <label htmlFor="ServiceDisplayName" className="block">Service Display Name</label>
+                <label htmlFor="ServiceDisplayName" className="block">Service Description</label>
                 <input
                     type="text"
                     name="d_name"
                     id="ServiceDisplayName"
                     value={serviceInput.d_name}
                     onChange={handleChange}
-                    className='outline-none pe-14 ps-2 text-left rounded-md w-full border p-2 mt-2' />
+                    className='outline-none pe-14 ps-2 text-left rounded-md w-full border p-2 mt-2 capitalize' />
                 {error.d_name && <p className='text-red-500'>{error.d_name}</p>}
             </div>
             <button className="bg-green-500 hover:bg-green-200 text-white w-full rounded-md p-3" type='submit'>

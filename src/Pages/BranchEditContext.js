@@ -62,9 +62,9 @@ export const BranchEditProvider = ({ children }) => {
                     );
                 });
             }
-            const newToken = response._token || response.token; // Use result.token if result._token is not available
+            const newToken = response._token || response.token; 
             if (newToken) {
-                localStorage.setItem("_token", newToken); // Replace the old token with the new one
+                localStorage.setItem("_token", newToken); 
             }
             Swal.fire(
                 'Success!',

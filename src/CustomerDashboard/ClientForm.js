@@ -194,52 +194,52 @@ const ClientForm = () => {
                         <div className="md:flex gap-5">
                             <div className="mb-4 md:w-6/12">
                                 <label htmlFor="organisation_name" className='text-sm'>Name of the organisation:</label>
-                                <input type="text" name="organisation_name" id="Organisation_Name" className="border w-full rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.organisation_name} />
+                                <input type="text" name="organisation_name" id="Organisation_Name" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.organisation_name} />
                                 {inputError.organisation_name && <p className='text-red-500'>{inputError.organisation_name}</p>}
                             </div>
                             <div className="mb-4 md:w-6/12">
                                 <label htmlFor="name" className='text-sm'>Full name of the applicant *</label>
-                                <input type="text" name="name" id="Applicant-Name" className="border w-full rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.name} />
+                                <input type="text" name="name" id="Applicant-Name" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.name} />
                                 {inputError.name && <p className='text-red-500'>{inputError.name}</p>}
                             </div>
                         </div>
                         <div className="mb-4">
                             <label htmlFor="attach_documents" className='text-sm'>Attach documents: *</label>
-                            <input type="file" name="attach_documents" id="Attach_Docs" className="border w-full rounded-md p-2 mt-2" onChange={handleChange} />
+                            <input type="file" name="attach_documents" id="Attach_Docs" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} />
                             {inputError.attach_documents && <p className='text-red-500'>{inputError.attach_documents}</p>}
                         </div>
                         <div className="md:flex gap-5">
                             <div className="mb-4 md:w-6/12">
                                 <label htmlFor="employee_id" className='text-sm'>Employee ID:</label>
-                                <input type="text" name="employee_id" id="EmployeeId" className="border w-full rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.employee_id} />
+                                <input type="text" name="employee_id" id="EmployeeId" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.employee_id} />
                                 {inputError.employee_id && <p className='text-red-500'>{inputError.employee_id}</p>}
                             </div>
                             <div className="mb-4 md:w-6/12">
                                 <label htmlFor="spoc" className='text-sm'>Name of the spoc case uploaded:</label>
-                                <input type="text" name="spoc" id="spoc" className="border w-full rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.spoc} />
+                                <input type="text" name="spoc" id="spoc" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.spoc} />
                                 {inputError.spoc && <p className='text-red-500'>{inputError.spoc}</p>}
                             </div>
                         </div>
                         <div className="mb-4">
                             <label htmlFor="location" className='text-sm'>Location:</label>
-                            <input type="text" name="location" id="Locations" className="border w-full rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.location} />
+                            <input type="text" name="location" id="Locations" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.location} />
                             {inputError.location && <p className='text-red-500'>{inputError.location}</p>}
                         </div>
                         <div className="md:flex gap-5">
                             <div className="mb-4 md:w-6/12">
                                 <label htmlFor="batch_number" className='text-sm'>Batch number:</label>
-                                <input type="text" name="batch_number" id="Batch-Number" className="border w-full rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.batch_number} />
+                                <input type="text" name="batch_number" id="Batch-Number" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.batch_number} />
                                 {inputError.batch_number && <p className='text-red-500'>{inputError.batch_number}</p>}
                             </div>
                             <div className="mb-4 md:w-6/12">
                                 <label htmlFor="sub_client" className='text-sm'>Sub client:</label>
-                                <input type="text" name="sub_client" id="SubClient" className="border w-full rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.sub_client} />
+                                <input type="text" name="sub_client" id="SubClient" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} value={clientInput.sub_client} />
                                 {inputError.sub_client && <p className='text-red-500'>{inputError.sub_client}</p>}
                             </div>
                         </div>
                         <div className="mb-4">
                             <label htmlFor="photo">Upload photo:</label>
-                            <input type="file" name="photo" id="upPhoto" className="border w-full rounded-md p-2 mt-2 outline-none" onChange={handleChange} />
+                            <input type="file" name="photo" id="upPhoto" className="border w-full capitalize rounded-md p-2 mt-2 outline-none" onChange={handleChange} />
                             {inputError.photo && <p className='text-red-500'>{inputError.photo}</p>}
                         </div>
                     </div>
@@ -271,7 +271,7 @@ const ClientForm = () => {
                                     <strong>Packages:</strong>
                                     {uniquePackages.length > 0 ? (
                                         <select
-                                            className='border w-full rounded-md p-2 mt-2 outline-none'
+                                            className='border w-full capitalize rounded-md p-2 mt-2 outline-none'
                                             name="package"
                                             onChange={handleChange}
                                             value={clientInput.package}

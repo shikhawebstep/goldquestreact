@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useApi } from '../ApiContext';
 
 const Logout = () => {
-    const API_URL= useApi
+    const API_URL= useApi();
     const navigate = useNavigate();
     const handleLogout = async () => {
         const storedBranchData = localStorage.getItem("branch");

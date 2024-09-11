@@ -97,7 +97,6 @@ const CandidateList = () => {
                             <th className="py-3 text-left border-r text-white px-4 border-b whitespace-nowrap uppercase">Docs</th>
                             <th className="py-3 text-left border-r text-white px-4 border-b whitespace-nowrap uppercase">Date/Time</th>
                             <th className="py-3 text-center px-4 text-white border-r border-b whitespace-nowrap uppercase">Action</th>
-                            <th className="py-3 text-left border-r text-white px-4 border-b whitespace-nowrap uppercase">Address Link</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -121,7 +120,6 @@ const CandidateList = () => {
                                     <button className="bg-green-600 text-white p-3  rounded-md hover:bg-green-200" onClick={()=>handleEdit(report)}>Edit</button>
                                     <button className="bg-red-600 text-white p-3 ms-3 rounded-md hover:bg-green-200" onClick={()=>handleDelete(report.id)}>Delete</button>
                                 </td>
-                                <td className="py-3 px-4 border-b border-r whitespace-nowrap capitalize text-center">{report.link}</td>
                             </tr>
                         ))}
                     </tbody>

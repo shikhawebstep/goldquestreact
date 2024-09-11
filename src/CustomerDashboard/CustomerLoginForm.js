@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaGoogle, FaFacebook, FaApple } from 'react-icons/fa';
-import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import {useApi} from '../ApiContext'
 const CustomerLoginForm = () => {
@@ -31,8 +31,6 @@ const CustomerLoginForm = () => {
         }
         if (!input.password) {
             newErrors.password = 'This field is required!';
-        } else if (input.password.length < 8) {
-            newErrors.password = 'Password must be at least 8 characters long';
         }
         return newErrors;
     };
@@ -173,6 +171,7 @@ const CustomerLoginForm = () => {
                 </button>
             </div>
         </div>
+       
     );
 };
 

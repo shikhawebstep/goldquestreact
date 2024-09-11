@@ -23,7 +23,7 @@ export const DropBoxProvider = ({ children }) => {
     const handleEditDrop = (pkg) => {
         setSelectedDropBox(pkg);
     };
-
+   console.log(storedBranchData)
     const fetchServices = useCallback(async () => {
         try {
             const response = await fetch(`${API_URL}/branch/customer-info?customer_id=${storedBranchData}&branch_id=${branch_id}&branch_token=${_token}`, {

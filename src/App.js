@@ -32,12 +32,13 @@ const App = () => {
         <BranchProviderExel>
           <DataProvider>
             <RefreshProvider>
-              <DropBoxProvider>
+           
                 <ClientEditProvider>
                   <BranchEditProvider>
                     <LoaderProvider>
                       <PaginationProvider>
                         <ClientProvider>
+                        <DropBoxProvider>
                           <PackageProvider>
                             <ServiceProvider>
                               <Router basename='/demo/Goldquest'>
@@ -55,12 +56,12 @@ const App = () => {
                               </Router>
                             </ServiceProvider>
                           </PackageProvider>
+                          </DropBoxProvider>
                         </ClientProvider>
                       </PaginationProvider>
                     </LoaderProvider>
                   </BranchEditProvider>
                 </ClientEditProvider>
-              </DropBoxProvider>
             </RefreshProvider >
           </DataProvider>
         </BranchProviderExel>

@@ -51,11 +51,11 @@ const Sidebar = () => {
 
   const onTabChange = (tab) => {
     handleTabChange(tab);
-    setToggle(!toggle); // Close the menu after selecting a tab
+    setToggle(!toggle); 
   };
 
   const handleExpand = (tab) => {
-    setExpandedTab(expandedTab === tab ? null : tab); // Toggle expansion of sub-items
+    setExpandedTab(expandedTab === tab ? null : tab); 
   };
 
   return (

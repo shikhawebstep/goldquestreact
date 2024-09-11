@@ -59,6 +59,7 @@ const AddClient = () => {
             Submit
           </button>
         </div>
+<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Similique, temporibus.</p>
 
         {input.image && <p>Selected file: {input.image.name}</p>}
       </form>

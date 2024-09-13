@@ -9,8 +9,7 @@ import { useSidebar } from '../Sidebar/SidebarContext';
 import { BranchContextExel } from './BranchContextExel'; // Import BranchContextExel
 
 const ClientMasterTrackerList = () => {
-    const { setBranchId } = useContext(BranchContextExel); // Access setBranchId from context
-
+    const { setBranchId } = useContext(BranchContextExel); 
     const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
     const API_URL = useApi();
     const { handleTabChange } = useSidebar();

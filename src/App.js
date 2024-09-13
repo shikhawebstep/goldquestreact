@@ -25,6 +25,7 @@ import { DataProvider } from './Pages/DataContext';
 import { ApiProvider } from './ApiContext'
 import { TabProvider } from './Pages/TabContext';
 import { BranchProviderExel } from './Pages/BranchContextExel';
+import CandidateMain from './Pages/Candidate/CandidateMain';
 const App = () => {
   return (
     <TabProvider>
@@ -32,7 +33,6 @@ const App = () => {
         <BranchProviderExel>
           <DataProvider>
             <RefreshProvider>
-           
                 <ClientEditProvider>
                   <BranchEditProvider>
                     <LoaderProvider>
@@ -52,6 +52,7 @@ const App = () => {
                                   <Route path='/customer-dashboard' element={<Customer><CustomerDashboard /></Customer>} />
                                   <Route path='/trackerstatus' element={<Admin><ExelTrackerData /></Admin>} />
                                   <Route path='/addclient' element={<Admin><AddClient /></Admin>} />
+                                  <Route path='/candidate' element={<Admin><CandidateMain/></Admin>} />
                                 </Routes>
                               </Router>
                             </ServiceProvider>

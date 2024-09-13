@@ -1,10 +1,12 @@
-import React, { useCallback, useEffect, useState ,useContext} from 'react'
+import React, { useCallback, useEffect, useState, useContext } from 'react'
 import { useApi } from '../ApiContext';
 import Swal from 'sweetalert2';
 import { BranchContextExel } from './BranchContextExel';
+import { useNavigate } from 'react-router-dom';
 
 const ExelTrackerStatus = () => {
-    const { branch_id } = useContext(BranchContextExel);
+    const Navigate = useNavigate();
+    const { branch_id ,serviceId,setServiceId} = useContext(BranchContextExel);
     const [applicationData, setApplicationData] = useState([])
     const [expandedRows, setExpandedRows] = useState([]);
     const API_URL = useApi();
@@ -14,7 +16,7 @@ const ExelTrackerStatus = () => {
         method: "GET",
         redirect: "follow"
     };
-   
+
     const fetchApplications = useCallback(() => {
         const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
         const storedToken = localStorage.getItem("_token");
@@ -57,9 +59,11 @@ const ExelTrackerStatus = () => {
         setExpandedRows(newExpandedRows);
     };
 
-    const deleteItem = () => {
-
-    }
+    const generateReport = (services) => {
+            setServiceId(services);
+            Navigate('/candidate');
+        };
+    
     return (
         <>
             <div>
@@ -75,7 +79,7 @@ const ExelTrackerStatus = () => {
                                 <th className="py-3 px-4 border-b text-left border-r-2 uppercase whitespace-nowrap text-white">Initiation Date</th>
                                 <th className="py-3 px-4 border-b text-left border-r-2 uppercase whitespace-nowrap text-white">Download Status</th>
                                 <th className="py-3 px-4 border-b text-left border-r-2 uppercase whitespace-nowrap text-white">Overall Status</th>
-                                <th className="py-3 px-4 border-b text-left border-r-2 uppercase whitespace-nowrap text-white">Report Date</th>
+                                <th className="py-3 px-4 border-b text-left border-r-2 uppercase whitespace-nowrap text-white">Report Data</th>
                                 <th className="py-3 px-4 border-b text-center uppercase whitespace-nowrap text-white">Action</th>
                             </tr>
                         </thead>
@@ -84,7 +88,7 @@ const ExelTrackerStatus = () => {
                                 <React.Fragment key={index}>
                                     <tr>
                                         <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
-                                            <input type="checkbox" name="" id="" className='me-2' />{index+1}
+                                            <input type="checkbox" name="" id="" className='me-2' />{index + 1}
                                         </td>
                                         <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{item.id}</td>
                                         <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{item.name}</td>
@@ -92,7 +96,7 @@ const ExelTrackerStatus = () => {
                                         <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{item.created_at}</td>
                                         <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{item.d_status}</td>
                                         <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{item.overall_status}</td>
-                                        <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{item.report_date}</td>
+                                        <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize"><button className="bg-green-400 rounded-md text-white p-3" onClick={() => generateReport(item.services)}>Generate Report</button></td>
                                         <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
                                             <button
                                                 className="bg-green-500 hover:bg-green-400 rounded-md p-3 text-white"
@@ -112,7 +116,7 @@ const ExelTrackerStatus = () => {
                                                                 <th className="py-3 px-4 border-b text-left uppercase whitespace-nowrap">TAT Day</th>
                                                                 <th className="py-3 px-4 border-b text-left uppercase whitespace-nowrap">Batch No</th>
                                                                 <th className="py-3 px-4 border-b text-left uppercase whitespace-nowrap">Subclient</th>
-                                                                <th className="py-3 px-4 border-b text-left uppercase whitespace-nowrap">Employment 1</th>
+                                                                <th className="py-3 px-4 border-b text-left uppercase whitespace-nowrap">Services</th>
                                                                 <th className="py-3 px-4 border-b text-left uppercase whitespace-nowrap">Employment 2</th>
                                                                 <th className="py-3 px-4 border-b text-left uppercase whitespace-nowrap">Location Name </th>
                                                                 <th className="py-3 px-4 border-b text-left uppercase whitespace-nowrap">EX-EMPLOYMENT-2</th>
@@ -129,7 +133,7 @@ const ExelTrackerStatus = () => {
                                                                 <td className="py-3 px-4 border-b whitespace-nowrap capitalize">{item.tatday}</td>
                                                                 <td className="py-3 px-4 border-b whitespace-nowrap capitalize">{item.batch_number}</td>
                                                                 <td className="py-3 px-4 border-b whitespace-nowrap capitalize">{item.sub_client}</td>
-                                                                <td className="py-3 px-4 border-b whitespace-nowrap capitalize">{item.EMPLOYMENT1}</td>
+                                                                <td className="py-3 px-4 border-b whitespace-nowrap capitalize">{item.services}</td>
                                                                 <td className="py-3 px-4 border-b whitespace-nowrap capitalize">{item.EMPLOYMENT2}</td>
                                                                 <td className="py-3 px-4 border-b whitespace-nowrap capitalize">{item.location}</td>
                                                                 <td className="py-3 px-4 border-b whitespace-nowrap capitalize">{item.prev_emp_3}</td>
@@ -138,8 +142,7 @@ const ExelTrackerStatus = () => {
                                                                 <td className="py-3 px-4 border-b whitespace-nowrap capitalize">{item.prev_emp_6}</td>
                                                                 <td className="py-3 px-4 border-b whitespace-nowrap capitalize">{item.prev_emp_7}</td>
                                                                 <td className="py-3 px-4 border-b whitespace-nowrap capitalize">{item.prev_emp_8}</td>
-                                                                <td className="py-3 px-4 border-b whitespace-nowrap capitalize"><button className="bg-red-500 hover:bg-red-400 text-white rounded-md p-3 " onClick={deleteItem}>Delete</button></td>
-
+                                                                <td className="py-3 px-4 border-b whitespace-nowrap capitalize"><button className="bg-red-500 hover:bg-red-400 text-white rounded-md p-3" >Delete</button></td>
                                                             </tr>
                                                         </tbody>
                                                     </table>

@@ -64,10 +64,7 @@ export const DropBoxProvider = ({ children }) => {
         }
     }, [branch_id, _token, storedBranchData]);
 
-    useEffect(() => {
-        fetchServices();
-    }, [fetchServices]);
-
+ 
     const fetchClient = useCallback(async () => {
         try {
             const response = await fetch(`${API_URL}/branch/candidate-application/list?branch_id=${branch_id}&_token=${_token}`, {
@@ -115,6 +112,12 @@ export const DropBoxProvider = ({ children }) => {
             Swal.fire('Error!', 'An unexpected error occurred.', 'error');
         }
     }, [branch_id, _token]);
+    useEffect(() => {
+        fetchServices();
+        fetchClientDrop();
+        fetchClient();
+
+    }, [fetchServices,fetchClientDrop,fetchClient]);
 
     return (
         <DropBoxContext.Provider value={{ services, fetchClient, fetchClientDrop, uniquePackages, handleEditDrop, setServices, listData, setListData, selectedDropBox, setSelectedDropBox, setUniquePackages }}>

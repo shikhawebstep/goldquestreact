@@ -28,9 +28,9 @@ import { BranchProviderExel } from './Pages/BranchContextExel';
 import CandidateMain from './Pages/Candidate/CandidateMain';
 const App = () => {
   return (
+    <BranchProviderExel>
     <TabProvider>
       <ApiProvider>
-        <BranchProviderExel>
           <DataProvider>
             <RefreshProvider>
                 <ClientEditProvider>
@@ -65,9 +65,10 @@ const App = () => {
                 </ClientEditProvider>
             </RefreshProvider >
           </DataProvider>
-        </BranchProviderExel>
+     
       </ApiProvider>
     </TabProvider>
+    </BranchProviderExel>
   );
 };
 

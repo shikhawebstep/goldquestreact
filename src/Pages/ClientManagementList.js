@@ -120,7 +120,159 @@ const ClientManagementList = () => {
         });
     };
 
-
+    const blockBranch = (id) => {
+        Swal.fire({
+          title: 'Are you sure?',
+          text: "You won't be able to revert this!",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Yes, Block it!',
+          cancelButtonText: 'No, cancel!',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
+            const storedToken = localStorage.getItem("_token");
+      
+            if (!admin_id || !storedToken) {
+              console.error("Admin ID or token is missing.");
+              Swal.fire('Error!', 'Admin ID or token is missing.', 'error');
+              return;
+            }
+      
+            fetch(`https://goldquestreact.onrender.com/branch/inactive-list?branch_id=${id}&admin_id=${admin_id}&_token=${storedToken}`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            })
+              .then((response) => {
+                if (!response.ok) {
+                  return response.text().then((text) => {
+                    const errorData = JSON.parse(text);
+                    Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
+                    throw new Error(errorData.message);
+                  });
+                }
+                return response.json();
+              })
+              .then((result) => {
+                const newToken = result._token || result.token;
+                if (newToken) {
+                  localStorage.setItem("_token", newToken);
+                }
+                Swal.fire('Blocked!', 'Your Branch has been Blocked.', 'success');
+                toggleAccordion();
+              })
+              .catch((error) => {
+                console.error('Fetch error:', error);
+                Swal.fire('Error!', `Could not Block the Branch: ${error.message}`, 'error');
+              });
+          }
+        });
+      };
+      
+      const unblockBranch = (id) => {
+        Swal.fire({
+          title: 'Are you sure?',
+          text: "You want to unblock this branch!",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Yes, Unblock it!',
+          cancelButtonText: 'No, cancel!',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
+            const storedToken = localStorage.getItem("_token");
+      
+            if (!admin_id || !storedToken) {
+              console.error("Admin ID or token is missing.");
+              Swal.fire('Error!', 'Admin ID or token is missing.', 'error');
+              return;
+            }
+      
+            fetch(`https://goldquestreact.onrender.com/branch/active?branch_id=${id}&admin_id=${admin_id}&_token=${storedToken}`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            })
+              .then((response) => {
+                if (!response.ok) {
+                  return response.text().then((text) => {
+                    const errorData = JSON.parse(text);
+                    Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
+                    throw new Error(errorData.message);
+                  });
+                }
+                return response.json();
+              })
+              .then((result) => {
+                const newToken = result._token || result.token;
+                if (newToken) {
+                  localStorage.setItem("_token", newToken);
+                }
+                Swal.fire('Unblocked!', 'Your Branch has been Unblocked.', 'success');
+                toggleAccordion();
+              })
+              .catch((error) => {
+                console.error('Fetch error:', error);
+                Swal.fire('Error!', `Could not Unblock the Branch: ${error.message}`, 'error');
+              });
+          }
+        });
+      };
+  
+      const blockClient=(main_id)=>{
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Block it!',
+            cancelButtonText: 'No, cancel!',
+          }).then((result) => {
+            if (result.isConfirmed) {
+              const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
+              const storedToken = localStorage.getItem("_token");
+        
+              if (!admin_id || !storedToken) {
+                console.error("Admin ID or token is missing.");
+                Swal.fire('Error!', 'Admin ID or token is missing.', 'error');
+                return;
+              }
+        
+              fetch(`${API_URL}/customer/inactive?customer_id=${main_id}&admin_id=${admin_id}&_token=${storedToken}`, {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+              })
+                .then((response) => {
+                  if (!response.ok) {
+                    return response.text().then((text) => {
+                      const errorData = JSON.parse(text);
+                      Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
+                      throw new Error(errorData.message);
+                    });
+                  }
+                  return response.json();
+                })
+                .then((result) => {
+                  const newToken = result._token || result.token;
+                  if (newToken) {
+                    localStorage.setItem("_token", newToken);
+                  }
+                  Swal.fire('Blocked!', 'Your Client has been Blocked.', 'success');
+                  fetchData();
+                })
+                .catch((error) => {
+                  console.error('Fetch error:', error);
+                  Swal.fire('Error!', `Could not Block the Client: ${error.message}`, 'error');
+                });
+            }
+          });
+        };
+      
     return (
         <div className="bg-white m-4 md:m-24 shadow-md rounded-md p-3">
             <SearchBar />
@@ -209,7 +361,7 @@ const ClientManagementList = () => {
                                     </td>
                                     <td className="py-3 px-4 border-b border-r whitespace-nowrap capitalize">{item.address}</td>
                                     <td className="py-3 px-4 border-b border-r text-left whitespace-nowrap capitalize fullwidth">
-                                        <button className="bg-red-600 hover:bg-red-200 rounded-md p-2 text-white mx-2">Block</button>
+                                        <button className="bg-red-600 hover:bg-red-200 rounded-md p-2 text-white mx-2" onClick={()=>blockClient(item.main_id)}>Block</button>
                                         <Popup className='w-full' trigger={<button className="bg-green-600 hover:bg-green-200 rounded-md p-2 px-5 text-white">Edit</button>}
                                             position="right center"
                                             onOpen={() => setClientData({
@@ -254,39 +406,49 @@ const ClientManagementList = () => {
 
                                         {openAccordionId === item.main_id && (
                                             branches.map((branch) => {
-                                                console.log(branch)
-                                                return (
-                                                    <> <div className="accordion bg-slate-100 p-2 rounded-md text-left mt-3">
-                                                        <div
-                                                            className="accordion_head bg-green-500 w-full p-2 rounded-md mb-3 text-white cursor-pointer" id={branch.id}
-                                                            onClick={() => toggleAccordions(branch.id)}
+                                              const isActive = branch.status === 0; 
+                                              const isBlocked = branch.status === 1; 
+                                          
+                                              return (
+                                                <div key={branch.id} className="accordion bg-slate-100 p-2 rounded-md text-left mt-3">
+                                                  <div
+                                                    className="accordion_head bg-green-500 w-full p-2 rounded-md mb-3 text-white cursor-pointer"
+                                                    id={branch.id}
+                                                    onClick={() => toggleAccordions(branch.id)}
+                                                  >
+                                                    <h3 className="branch_name">{branch.name}</h3>
+                                                  </div>
+                                                  {isOpen === branch.id && (
+                                                    <div className="accordion_body">
+                                                      <ul className='flex gap-2 items-center'>
+                                                        <li>{branch.email}</li>
+                                                        <Popup
+                                                          trigger={<button className="bg-green-600 hover:bg-green-200 rounded-md p-2 px-5 text-white">Edit</button>}
+                                                          position="right center"
+                                                          onOpen={() => setBranchEditData({
+                                                            id: branch.id,
+                                                            name: branch.name,
+                                                            email: branch.email
+                                                          })}
                                                         >
-                                                            <h3 className="branch_name">{branch.name}</h3>
-                                                        </div>
-                                                        {isOpen === branch.id && (
-                                                            <div className="accordion_body">
-                                                                <ul className='flex gap-2 items-center'>
-                                                                    <li>{branch.email}</li>
-                                                                    <Popup
-                                                                        trigger={<button className="bg-green-600 hover:bg-green-200 rounded-md p-2 px-5 text-white">Edit</button>}
-                                                                        position="right center"
-                                                                        onOpen={() => setBranchEditData({
-                                                                            id: branch.id,
-                                                                            name: branch.name,
-                                                                            email: branch.email
-                                                                        })}
-                                                                    >
-                                                                        <BranchEditForm />
-                                                                    </Popup>
-
-                                                                    <button className="bg-red-600 hover:bg-red-200 rounded-md p-2 text-white mx-2" onClick={() => handleDelete(branch.id, 'branch')}>Delete</button>
-                                                                </ul>
-                                                            </div>
+                                                          <BranchEditForm />
+                                                        </Popup>
+                                                        <button className="bg-red-600 hover:bg-red-200 rounded-md p-2 text-white mx-2" onClick={() => handleDelete(branch.id, 'branch')}>Delete</button>
+                                                        {isActive && (
+                                                          <button className="bg-red-600 hover:bg-red-200 rounded-md p-2 text-white mx-2" onClick={() => blockBranch(branch.id)}>Block</button>
                                                         )}
-                                                    </div></>
-                                                )
+                                                        {isBlocked && (
+                                                          <button className="bg-green-600 hover:bg-green-200 rounded-md p-2 text-white mx-2" onClick={() => unblockBranch(branch.id)}>Unblock</button>
+                                                        )}
+                                                      </ul>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              )
                                             })
-                                        )}
+                                          )}
+                                          
+                                          
 
                                     </td>
                                 </tr>

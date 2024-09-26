@@ -10,23 +10,27 @@ export const DropBoxProvider = ({ children }) => {
     const [uniquePackages, setUniquePackages] = useState([]);
     const [listData, setListData] = useState([]);
     const [selectedDropBox, setSelectedDropBox] = useState(null);
+    const [branchId, setBranchId] = useState(null);
+    const [customerId, setCustomerId] = useState(null);
+    const [token, setToken] = useState(null);
 
-    const getLocalStorageItem = (key) => {
-        const item = localStorage.getItem(key);
-        return item ? JSON.parse(item) : null;
-    };
-
-    const branch_id = getLocalStorageItem("branch")?.id;
-    const storedBranchData = getLocalStorageItem("branch")?.customer_id;
-    const _token = localStorage.getItem("branch_token");
+    // Fetch data from localStorage once and store in state to avoid re-fetching on every render
+    useEffect(() => {
+        const branch = JSON.parse(localStorage.getItem('branch'));
+        setBranchId(branch?.id);
+        setCustomerId(branch?.customer_id);
+        setToken(localStorage.getItem('branch_token'));
+    }, []); // Empty dependency array means this runs once when the component mounts
 
     const handleEditDrop = (pkg) => {
         setSelectedDropBox(pkg);
     };
-   console.log(storedBranchData)
+
     const fetchServices = useCallback(async () => {
+        if (!branchId || !customerId || !token) return; // Exit early if data is not ready
+        
         try {
-            const response = await fetch(`${API_URL}/branch/customer-info?customer_id=${storedBranchData}&branch_id=${branch_id}&branch_token=${_token}`, {
+            const response = await fetch(`${API_URL}/branch/customer-info?customer_id=${customerId}&branch_id=${branchId}&branch_token=${token}`, {
                 method: "GET",
                 redirect: "follow"
             });
@@ -62,12 +66,17 @@ export const DropBoxProvider = ({ children }) => {
             console.error('Fetch Error:', error);
             Swal.fire('Error!', 'An unexpected error occurred.', 'error');
         }
-    }, [branch_id, _token, storedBranchData]);
+    }, [API_URL, branchId, customerId, token]);
 
- 
+    useEffect(() => {
+        fetchServices(); // Fetch services only when branchId, customerId, and token are available
+    }, [fetchServices]);
+
     const fetchClient = useCallback(async () => {
+        if (!branchId || !token) return;
+
         try {
-            const response = await fetch(`${API_URL}/branch/candidate-application/list?branch_id=${branch_id}&_token=${_token}`, {
+            const response = await fetch(`${API_URL}/branch/candidate-application/list?branch_id=${branchId}&_token=${token}`, {
                 method: "GET",
                 redirect: "follow"
             });
@@ -87,11 +96,13 @@ export const DropBoxProvider = ({ children }) => {
         } catch (error) {
             Swal.fire('Error!', 'An unexpected error occurred.', 'error');
         }
-    }, [branch_id, _token]);
+    }, [API_URL, branchId, token]);
 
     const fetchClientDrop = useCallback(async () => {
+        if (!branchId || !token) return;
+
         try {
-            const response = await fetch(`${API_URL}/branch/client-application/list?branch_id=${branch_id}&_token=${_token}`, {
+            const response = await fetch(`${API_URL}/branch/client-application/list?branch_id=${branchId}&_token=${token}`, {
                 method: "GET",
                 redirect: "follow"
             });
@@ -111,16 +122,22 @@ export const DropBoxProvider = ({ children }) => {
         } catch (error) {
             Swal.fire('Error!', 'An unexpected error occurred.', 'error');
         }
-    }, [branch_id, _token]);
-    useEffect(() => {
-        fetchServices();
-        fetchClientDrop();
-        fetchClient();
-
-    }, [fetchServices,fetchClientDrop,fetchClient]);
+    }, [API_URL, branchId, token]);
 
     return (
-        <DropBoxContext.Provider value={{ services, fetchClient, fetchClientDrop, uniquePackages, handleEditDrop, setServices, listData, setListData, selectedDropBox, setSelectedDropBox, setUniquePackages }}>
+        <DropBoxContext.Provider value={{
+            services,
+            fetchClient,
+            fetchClientDrop,
+            uniquePackages,
+            handleEditDrop,
+            setServices,
+            listData,
+            setListData,
+            selectedDropBox,
+            setSelectedDropBox,
+            setUniquePackages
+        }}>
             {children}
         </DropBoxContext.Provider>
     );

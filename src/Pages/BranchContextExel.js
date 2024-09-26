@@ -6,9 +6,10 @@ export const BranchContextExel = createContext();
 // Create the provider component
 export const BranchProviderExel = ({ children }) => {
   const [branch_id, setBranchId] = useState(null); // State to hold the branch_id
-  const [serviceId, setServiceId] = useState()
+  const [service_id, setServiceId] = useState()
+  const [application_id, setApplicationId] = useState(null)
   return (
-    <BranchContextExel.Provider value={{ branch_id, setBranchId,setServiceId,serviceId }}>
+    <BranchContextExel.Provider value={{ branch_id, setBranchId,setServiceId,service_id,application_id,setApplicationId}}>
       {children}
     </BranchContextExel.Provider>
   );

@@ -23,6 +23,7 @@ const DropBoxList = () => {
     }, [currentItem, setTotalResults, listData, showPerPage]);
 
     const handleEdit = (client) => {
+        fetchClientDrop();
         handleEditDrop(client);
     };
 

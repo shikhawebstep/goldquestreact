@@ -1,6 +1,12 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 const CurrentAddress = () => {
+    const [address,setAddress]=useState({
+        address:'',
+        landmark:'',
+        residence_mobile_number:'',
+        state:'',
+    })
     return (
         <>
             <h3 className='text-2xl text-center font-semi-bold my-5'>Current Address</h3>
@@ -19,7 +25,7 @@ const CurrentAddress = () => {
                 <label htmlFor="Landmark">Landmark:</label>
                 <input
                     type="text"
-                    name="landmark:"
+                    name="landmark"
                     id="Landmark:"
                     className="border w-full rounded-md p-2 mt-2 capitalize"
                 />
@@ -38,7 +44,8 @@ const CurrentAddress = () => {
 
             <div className="mb-4">
                 <label htmlFor="state">State</label>
-                <input type="text" name="state"
+                <input type="text" 
+                    name="state"
                     id="state"
                     className="w-full border p-2 outline-none rounded-md mt-2 capitalize"
                     value='' />

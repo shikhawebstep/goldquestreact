@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 const ExelTrackerStatus = () => {
     const Navigate = useNavigate();
-    const { branch_id ,serviceId,setServiceId} = useContext(BranchContextExel);
+    const { branch_id,setApplicationId,setServiceId} = useContext(BranchContextExel);
     const [applicationData, setApplicationData] = useState([])
     const [expandedRows, setExpandedRows] = useState([]);
     const API_URL = useApi();
@@ -51,7 +51,14 @@ const ExelTrackerStatus = () => {
     useEffect(() => {
         fetchApplications();
     }, [fetchApplications])
-
+    useEffect(() => {
+        if (applicationData.length > 0) {
+            // Assuming that applicationData contains an array and each item has an `id` and `services`
+            setApplicationId(applicationData[0]?.id || null);  // Set the applicationId from the first item
+            setServiceId(applicationData[0]?.services || []);  // Set the services from the first item
+        }
+    }, [applicationData, setApplicationId, setServiceId]);
+    
     const handleToggle = (index) => {
         const newExpandedRows = expandedRows.includes(index)
             ? expandedRows.filter((row) => row !== index)
@@ -59,11 +66,10 @@ const ExelTrackerStatus = () => {
         setExpandedRows(newExpandedRows);
     };
 
-    const generateReport = (services) => {
-            setServiceId(services);
-            Navigate('/candidate');
-        };
-    
+    const generateReport = () => {
+        Navigate('/candidate');
+    };
+    console.log(applicationData.id)
     return (
         <>
             <div>
@@ -90,13 +96,13 @@ const ExelTrackerStatus = () => {
                                         <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
                                             <input type="checkbox" name="" id="" className='me-2' />{index + 1}
                                         </td>
-                                        <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{item.id}</td>
+                                        <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{item.application_id}</td>
                                         <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{item.name}</td>
                                         <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{item.employee_id}</td>
                                         <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{item.created_at}</td>
                                         <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{item.d_status}</td>
                                         <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">{item.overall_status}</td>
-                                        <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize"><button className="bg-green-400 rounded-md text-white p-3" onClick={() => generateReport(item.services)}>Generate Report</button></td>
+                                        <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize"><button className="bg-green-400 rounded-md text-white p-3" onClick={() => generateReport(item.id,item.services)}>Generate Report</button></td>
                                         <td className="py-3 px-4 border-b border-r-2 whitespace-nowrap capitalize">
                                             <button
                                                 className="bg-green-500 hover:bg-green-400 rounded-md p-3 text-white"

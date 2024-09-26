@@ -23,6 +23,7 @@ const CandidateList = () => {
 
     const handleEdit = (client) => {
         handleEditDrop(client);
+        fetchClient();
     };
 
     const handleDelete = (id) => {

@@ -149,51 +149,51 @@ const ClientManagementData = () => {
     if (error) {
         return <p>Error: {error}</p>;
     }
-
-    const handlePackageSelect = (selectedList, rowIndex) => {
+    const handlePackageSelect = (selectedList, serviceId) => {
         const updatedPackages = selectedList.map(item => item.id);
         setSelectedPackages(prev => ({
             ...prev,
-            [rowIndex]: updatedPackages,
+            [serviceId]: updatedPackages,
         }));
-
+    
         setService(prevService => {
-            const updatedService = [...prevService];
-            updatedService[rowIndex].selectedPackages = updatedPackages;
-            return updatedService;
+            return prevService.map(svc => 
+                svc.service_id === serviceId ? { ...svc, selectedPackages: updatedPackages } : svc
+            );
         });
     };
-
-    const handlePackageRemove = (selectedList, rowIndex) => {
+    
+    const handlePackageRemove = (selectedList, serviceId) => {
         const updatedPackages = selectedList.map(item => item.id);
         setSelectedPackages(prev => ({
             ...prev,
-            [rowIndex]: updatedPackages,
+            [serviceId]: updatedPackages,
         }));
-
+    
         setService(prevService => {
-            const updatedService = [...prevService];
-            updatedService[rowIndex].selectedPackages = updatedPackages;
-            return updatedService;
+            return prevService.map(svc => 
+                svc.service_id === serviceId ? { ...svc, selectedPackages: updatedPackages } : svc
+            );
         });
     };
-
-    const handleChange = (e, index) => {
+    
+    const handleChange = (e, serviceId) => {
         const { name, value } = e.target;
         setPriceData(prev => ({
             ...prev,
-            [index]: {
-                ...prev[index],
+            [serviceId]: {
+                ...prev[serviceId],
                 [name]: value
             }
         }));
+    
         setService(prevService => {
-            const updatedService = [...prevService];
-            updatedService[index].price = value;
-            return updatedService;
+            return prevService.map(svc => 
+                svc.service_id === serviceId ? { ...svc, price: value } : svc
+            );
         });
     };
-
+    
     return (
         <div className="overflow-x-auto py-6 px-0 bg-white mt-10 m-auto">
             <table className="min-w-full">
@@ -205,43 +205,38 @@ const ClientManagementData = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {paginated.length > 0 ? (
-                        paginated.map((item, index) => (
-                            <tr key={index}>
-                                <td className="py-3 px-4 border-l border-r border-b whitespace-nowrap">
-                                    <input type="checkbox" className='me-2' />
-                                    {item.serviceTitle}
-                                </td>
-                                <td className="py-3 px-4 border-r border-b whitespace-nowrap">
-                                    <input
-                                        type="number"
-                                        name="price"
-                                        value={priceData[index]?.price || ''}
-                                        onChange={(e) => handleChange(e, index)}
-                                        className='outline-none'
-                                    />
-                                    {validationsErrors[index]?.price && <span className="text-red-500">{validationsErrors[index].price}</span>}
-                                </td>
-                                <td className="py-3 px-4 border-r border-b whitespace-nowrap uppercase text-left">
-                                    <Multiselect
-                                        options={packageList.map(pkg => ({ name: pkg.title, id: pkg.id }))}
-                                        selectedValues={packageList
-                                            .filter(pkg => (selectedPackages[index] || []).includes(pkg.id))
-                                            .map(pkg => ({ name: pkg.title, id: pkg.id }))}
-                                        onSelect={(selectedList) => handlePackageSelect(selectedList, index)}
-                                        onRemove={(selectedList) => handlePackageRemove(selectedList, index)}
-                                        displayValue="name"
-                                        className='text-left'
-                                    />
-                                    {validationsErrors[index]?.packages && <span className="text-red-500">{validationsErrors[index].packages}</span>}
-                                </td>
-                            </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan="3" className='flex items-center mt-5 justify-center w-full text-center'>No Data Available</td>
-                        </tr>
-                    )}
+                {paginated.map((item, index) => (
+                    <tr key={item.serviceId}>
+                        <td className="py-3 px-4 border-l border-r border-b whitespace-nowrap">
+                            <input type="checkbox" className='me-2' />
+                            {item.serviceTitle}
+                        </td>
+                        <td className="py-3 px-4 border-r border-b whitespace-nowrap">
+                            <input
+                                type="number"
+                                name="price"
+                                value={priceData[item.serviceId]?.price || ''}
+                                onChange={(e) => handleChange(e, item.serviceId)}
+                                className='outline-none'
+                            />
+                            {validationsErrors[item.serviceId]?.price && <span className="text-red-500">{validationsErrors[item.serviceId].price}</span>}
+                        </td>
+                        <td className="py-3 px-4 border-r border-b whitespace-nowrap uppercase text-left">
+                            <Multiselect
+                                options={packageList.map(pkg => ({ name: pkg.title, id: pkg.id }))}
+                                selectedValues={packageList
+                                    .filter(pkg => (selectedPackages[item.serviceId] || []).includes(pkg.id))
+                                    .map(pkg => ({ name: pkg.title, id: pkg.id }))}
+                                onSelect={(selectedList) => handlePackageSelect(selectedList, item.serviceId)}
+                                onRemove={(selectedList) => handlePackageRemove(selectedList, item.serviceId)}
+                                displayValue="name"
+                                className='text-left'
+                            />
+                            {validationsErrors[item.serviceId]?.packages && <span className="text-red-500">{validationsErrors[item.serviceId].packages}</span>}
+                        </td>
+                    </tr>
+                ))}
+                
                 </tbody>
             </table>
             {paginated.length > 0 && <Pagination />}

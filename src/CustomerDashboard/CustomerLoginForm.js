@@ -2,19 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { FaGoogle, FaFacebook, FaApple } from 'react-icons/fa';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import {useApi} from '../ApiContext'
+import { useApi } from '../ApiContext';
+
 const CustomerLoginForm = () => {
-    const API_URL=useApi();
+    const API_URL = useApi();
+    const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
     const location = useLocation();
     const query = new URLSearchParams(location.search);
     const emailFromQuery = query.get('email') || '';
     const navigate = useNavigate();
 
+    // Manage both email and password in the input state
     const [input, setInput] = useState({
         email: emailFromQuery,
-        password: "",
+        password: '',
     });
-
     const [error, setError] = useState({});
 
     useEffect(() => {
@@ -23,6 +25,33 @@ const CustomerLoginForm = () => {
             email: emailFromQuery,
         }));
     }, [emailFromQuery]);
+
+    // Function to fetch password from the API
+    const getPassword = (email) => {
+        const admin_id = JSON.parse(localStorage.getItem('admin'))?.id;
+        const storedToken = localStorage.getItem('_token');
+        const requestOptions = {
+            method: "GET",
+            redirect: "follow"
+        };
+
+        fetch(`${API_URL}/customer/fetch-branch-password?branch_email=${email}&admin_id=${admin_id}&_token=${storedToken}`, requestOptions)
+            .then((response) => response.json()) // Assuming the response is JSON
+            .then((result) => {
+                setInput(prev => ({
+                    ...prev,
+                    password: result.password // Setting the password in the input state
+                }));
+                console.log(result.password);
+            })
+            .catch((error) => console.error('Error:', error));
+    };
+
+    useEffect(() => {
+        if (input.email) {
+            getPassword(input.email); // Fetch the password when the email changes
+        }
+    }, [input.email]);
 
     const validations = () => {
         const newErrors = {};
@@ -77,7 +106,6 @@ const CustomerLoginForm = () => {
                             localStorage.setItem("branch_token", newToken);
                         }
                     } else {
-
                         const branchData = response.branchData;
                         const branch_token = response.token;
 
@@ -91,8 +119,6 @@ const CustomerLoginForm = () => {
                             confirmButtonText: "Ok"
                         });
 
-                        console.log('Navigating to Customer dashboard...');
-
                         navigate('/customer-dashboard', { state: { from: location }, replace: true });
                         setError({});
                     }
@@ -104,7 +130,7 @@ const CustomerLoginForm = () => {
                         icon: 'error',
                         confirmButtonText: 'Ok'
                     });
-                    console.error('Login failed:', error); // Log the error details
+                    console.error('Login failed:', error);
                 });
 
         } else {
@@ -127,7 +153,7 @@ const CustomerLoginForm = () => {
                 </div>
                 <div className="mb-3">
                     <label htmlFor="Password" className='d-block '>Enter Your Password:</label>
-                    <input type="password"
+                    <input type={showPassword ? "text" : "password"} // Toggling input type
                         name="password"
                         id="YourPassword"
                         onChange={handleChange}
@@ -135,7 +161,18 @@ const CustomerLoginForm = () => {
                         className='outline-none p-3 border mt-3 w-full rounded-md' />
                     {error.password && <p className='text-red-500'>{error.password}</p>}
                 </div>
-              
+
+                {/* Checkbox to toggle password visibility */}
+                <div className="mb-3">
+                    <label className="inline-flex items-center">
+                        <input
+                            type="checkbox"
+                            onChange={() => setShowPassword(!showPassword)} // Toggle show/hide password
+                            className="form-checkbox" />
+                        <span className="ml-2">Show Password</span>
+                    </label>
+                </div>
+
                 <div className="flex items-center justify-between mb-4">
                     <label className="block text-gray-700 text-sm font-bold">
                         <input className="mr-2 leading-tight" type="checkbox" />
@@ -171,7 +208,7 @@ const CustomerLoginForm = () => {
                 </button>
             </div>
         </div>
-       
+
     );
 };
 

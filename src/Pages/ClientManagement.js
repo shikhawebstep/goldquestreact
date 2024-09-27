@@ -4,7 +4,7 @@ import Swal from 'sweetalert2';
 import { useClient } from "./ClientManagementContext";
 import ClientManagementData from "./ClientManagementData";
 import { useApi } from "../ApiContext";
-
+import { Country, State, City } from 'country-state-city';
 // Debounce utility function
 const debounce = (func, delay) => {
   let timeoutId;
@@ -13,10 +13,12 @@ const debounce = (func, delay) => {
     timeoutId = setTimeout(() => func(...args), delay);
   };
 };
+const states = State.getStatesOfCountry('IN'); // 'IN' is the country code for India
+
+const options = states.map(state => ({ value: state.isoCode, label: state.name }));
 
 const ClientManagement = () => {
   const API_URL=useApi();
-  const options = useMemo(() => countryList().getData(), []);
   const { clientData, setClientData } = useClient();
   
   const [input, setInput] = useState({
@@ -306,11 +308,11 @@ const ClientManagement = () => {
               <div className="mb-4 md:w-6/12">
                 <label className="text-gray-500" htmlFor="state">State: *</label>
                 <select name="state" id="state" className="w-full border p-2 rounded-md mt-2" value={input.state} onChange={handleChange}>
-                  {options.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
+                {options.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
                 </select>
 
                 {errors.state && <p className="text-red-500">{errors.state}</p>}

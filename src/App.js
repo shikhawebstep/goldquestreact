@@ -26,8 +26,10 @@ import { ApiProvider } from './ApiContext'
 import { TabProvider } from './Pages/TabContext';
 import { BranchProviderExel } from './Pages/BranchContextExel';
 import CandidateMain from './Pages/Candidate/CandidateMain';
+import GenerateReportProvider from './Pages/GenerateReportContext';
 const App = () => {
   return (
+    <GenerateReportProvider>
     <BranchProviderExel>
     <TabProvider>
       <ApiProvider>
@@ -69,6 +71,7 @@ const App = () => {
       </ApiProvider>
     </TabProvider>
     </BranchProviderExel>
+    </GenerateReportProvider>
   );
 };
 

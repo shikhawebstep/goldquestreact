@@ -12,6 +12,7 @@
     "axios": "^1.7.4",
     "bootstrap": "^5.3.3",
     "classnames": "^2.5.1",
+    "country-state-city": "^3.2.1",
     "font-awesome": "^4.7.0",
     "froala-editor": "^4.2.1",
     "jquery": "^3.7.1",

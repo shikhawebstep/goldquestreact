@@ -20,7 +20,6 @@ import { ClientEditProvider } from './Pages/ClientEditContext';
 import AddClient from './Pages/AddClient';
 import { BranchEditProvider } from './Pages/BranchEditContext';
 import { DropBoxProvider } from './CustomerDashboard/DropBoxContext'
-import { RefreshProvider } from './RefreshContext';
 import { DataProvider } from './Pages/DataContext';
 import { ApiProvider } from './ApiContext'
 import { TabProvider } from './Pages/TabContext';
@@ -30,16 +29,15 @@ import GenerateReportProvider from './Pages/GenerateReportContext';
 const App = () => {
   return (
     <GenerateReportProvider>
-    <BranchProviderExel>
-    <TabProvider>
-      <ApiProvider>
-          <DataProvider>
-            <RefreshProvider>
-                <ClientEditProvider>
-                  <BranchEditProvider>
-                    <LoaderProvider>
-                      <PaginationProvider>
-                        <ClientProvider>
+      <BranchProviderExel>
+        <TabProvider>
+          <ApiProvider>
+            <DataProvider>
+              <ClientEditProvider>
+                <BranchEditProvider>
+                  <LoaderProvider>
+                    <PaginationProvider>
+                      <ClientProvider>
                         <DropBoxProvider>
                           <PackageProvider>
                             <ServiceProvider>
@@ -54,23 +52,21 @@ const App = () => {
                                   <Route path='/customer-dashboard' element={<Customer><CustomerDashboard /></Customer>} />
                                   <Route path='/trackerstatus' element={<Admin><ExelTrackerData /></Admin>} />
                                   <Route path='/addclient' element={<Admin><AddClient /></Admin>} />
-                                  <Route path='/candidate' element={<Admin><CandidateMain/></Admin>} />
+                                  <Route path='/candidate' element={<Admin><CandidateMain /></Admin>} />
                                 </Routes>
                               </Router>
                             </ServiceProvider>
                           </PackageProvider>
-                          </DropBoxProvider>
-                        </ClientProvider>
-                      </PaginationProvider>
-                    </LoaderProvider>
-                  </BranchEditProvider>
-                </ClientEditProvider>
-            </RefreshProvider >
-          </DataProvider>
-     
-      </ApiProvider>
-    </TabProvider>
-    </BranchProviderExel>
+                        </DropBoxProvider>
+                      </ClientProvider>
+                    </PaginationProvider>
+                  </LoaderProvider>
+                </BranchEditProvider>
+              </ClientEditProvider>
+            </DataProvider>
+          </ApiProvider>
+        </TabProvider>
+      </BranchProviderExel>
     </GenerateReportProvider>
   );
 };

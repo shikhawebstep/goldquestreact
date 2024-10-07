@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { usePackage } from './PackageContext';
 import Swal from 'sweetalert2';
-import { useRefresh } from '../RefreshContext';
 import { useApi } from '../ApiContext';
+
 const PackageForm = ({ onSuccess }) => {
     const API_URL = useApi();
 
     const {fetchData } = usePackage();
-    const { refreshPage, refreshKey } = useRefresh();
     const { selectedPackage, clearSelectedPackage, packageList, updatePackageList } = usePackage();
     const [packageInput, setPackageInput] = useState({
         name: "",
@@ -38,7 +37,7 @@ const PackageForm = ({ onSuccess }) => {
             });
             setIsEditMode(false);
         }
-    }, [selectedPackage,refreshKey]);
+    }, [selectedPackage]);
 
     const validateInputs = () => {
         const errors = {};
@@ -159,6 +158,7 @@ const PackageForm = ({ onSuccess }) => {
     };
 
     return (
+        <>
         <form onSubmit={handlePackageFormSubmit}>
             <div className="mb-4">
                 <label htmlFor="packagename">Package Name:</label>
@@ -189,13 +189,16 @@ const PackageForm = ({ onSuccess }) => {
             <button
                 type="submit"
                 className='bg-green-400 text-white p-3 rounded-md w-full hover:bg-green-200'
-                onClick={refreshPage}
+               
             >
                 {isEditMode ? 'Update' : 'Send'}
             </button>
 
             {formMessage && <p className="mt-4 text-center text-green-600">{formMessage}</p>} {/* Display form message */}
         </form>
+       
+        </>
+         
     );
 };
 

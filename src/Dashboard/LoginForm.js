@@ -43,7 +43,7 @@ const LoginForm = () => {
         password: input.password,
       };
 
-      axios.post(`${API_URL}/admin/login`, loginData) // Use API_URL correctly
+      axios.post(`${API_URL}/admin/login`, loginData)
         .then((response) => {
           if (!response.data.status) {
             Swal.fire({

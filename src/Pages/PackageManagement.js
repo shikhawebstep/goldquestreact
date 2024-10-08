@@ -1,7 +1,7 @@
 import React from 'react';
 import PackageForm from './PackageForm';
 import PackageManagementList from './PackageManagementList';
-import PdfTableGenerator from '../Pdf/PdfTableGenerator';
+import PdfTableGenerator from './PdfTableGenerator';
 const PackageManagement = () => {
 
     return (

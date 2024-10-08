@@ -4,6 +4,10 @@ import Swal from 'sweetalert2';
 import { useGenerateReport } from '../GenerateReportContext'; // Adjust the import path
 import LatestEmployeement from '../LatestEmployeement'
 const CandidateApplications = () => {
+    let loopCount = 1;
+    const renderedServices = new Set();
+    const [allInputDetails, setAllInputDetails] = useState([]);
+
     const [disabledFields, setDisabledFields] = useState({
         month_year: false,
         initiation_date: false,
@@ -22,7 +26,6 @@ const CandidateApplications = () => {
         insuff: false,
     });
     const [annexureData, setAnnexureData] = useState({});
-
     // New state for errors
     const { service_id, branch_id, application_id } = useContext(BranchContextExel);
     const [annexure, setAnnexure] = useState({});
@@ -48,6 +51,7 @@ const CandidateApplications = () => {
     };
 
     const fetchServices = useCallback(() => {
+
         const servicesArray = service_id ? service_id.split(',').map(Number) : [];
         const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
         const storedToken = localStorage.getItem("_token");
@@ -80,19 +84,122 @@ const CandidateApplications = () => {
                         if (newToken) {
                             localStorage.setItem("_token", newToken);
                         }
-                        const parsedJson = JSON.parse(data.reportFormJson.json || '{}');
+
+                        // Parse the reportFormJson and handle possible parsing errors
+                        let parsedJson;
+                        try {
+                            parsedJson = JSON.parse(data.reportFormJson.json || '{}');
+                        } catch (error) {
+                            console.error("Failed to parse reportFormJson:", error);
+                            return { serviceId, parsedJson: null }; // Return null for parsedJson in case of error
+                        }
+
+                        console.log(`JSON - `, parsedJson.db_table);
+
+                        if (parsedJson.db_table) {
+                            const requestAnnexureOptions = {
+                                method: "GET",
+                                redirect: "follow"
+                            };
+
+                            const annexureURL = `https://goldquestreact.onrender.com/client-master-tracker/annexure-data?application_id=${application_id}&db_table=${parsedJson.db_table}&admin_id=${admin_id}&_token=${storedToken}`;
+
+                            return fetch(annexureURL, requestAnnexureOptions)
+                                .then(annexureResponse => {
+                                    if (!annexureResponse.ok) {
+                                        throw new Error(`HTTP error! status: ${annexureResponse.status}`);
+                                    }
+                                    return annexureResponse.json();
+                                })
+                                .then(annexureResult => {
+                                    const inputDetails = []; // Array to hold input details for the current service
+
+                                    // Check if annexureData is an array
+                                    if (Array.isArray(annexureResult.annexureData)) {
+                                        // Handle the case when annexureData is an array
+                                        parsedJson.rows.forEach(row => {
+                                            row.inputs.forEach(input => {
+                                                let value = null; // Initialize value
+
+                                                const foundItem = annexureResult.annexureData.find(item => item.name === input.name);
+                                                value = foundItem ? foundItem.value : null;
+
+                                                // Prepare the details object
+                                                const inputDetail = {
+                                                    label: input.label,
+                                                    name: input.name,
+                                                    type: input.type,
+                                                    value: value
+                                                };
+
+                                                // Append options if they exist
+                                                if (input.options) {
+                                                    inputDetail.options = input.options; // Include options if present
+                                                }
+
+                                                inputDetails.push(inputDetail);
+
+                                                console.log('This -0-0- ', inputDetail);
+                                            });
+                                        });
+                                    } else if (typeof annexureResult.annexureData === 'object' && annexureResult.annexureData !== null) {
+                                        // Handle the case when annexureData is an object
+                                        parsedJson.rows.forEach(row => {
+                                            row.inputs.forEach(input => {
+                                                let value = null; // Initialize value
+
+                                                // Access the value directly from the object
+                                                value = annexureResult.annexureData[input.name] || null;
+
+                                                // Prepare the details object
+                                                const inputDetail = {
+                                                    label: input.label,
+                                                    name: input.name,
+                                                    type: input.type,
+                                                    value: value
+                                                };
+
+                                                // Append options if they exist
+                                                if (input.options) {
+                                                    inputDetail.options = input.options; // Include options if present
+                                                }
+
+                                                inputDetails.push(inputDetail);
+
+                                                console.log('This -0-0- ', inputDetail);
+                                            });
+                                        });
+                                    } else {
+                                        console.error("Expected annexureData to be either an array or an object, but got:", annexureResult.annexureData);
+                                    }
+
+
+
+                                    console.log(`Annexure - `, annexureResult.annexureData);
+                                    allInputDetails.push({ serviceId, inputDetails }); // Collect input details by service ID
+                                    return { serviceId, parsedJson }; // Return the result alongside serviceId
+                                })
+
+                                .catch(annexureError => {
+                                    console.error("Fetch error: ", annexureError);
+                                    throw annexureError; // Rethrow the error if needed
+                                });
+                        }
+
                         return { serviceId, parsedJson };
                     })
             )
         )
             .then(results => {
+                console.log("All Input Details:", JSON.stringify(allInputDetails, null, 2));
+                setAllInputDetails(allInputDetails);
                 const annexureData = results.reduce((acc, { serviceId, parsedJson }) => {
                     acc[serviceId] = parsedJson;
                     return acc;
                 }, {});
 
                 const newAnnexureData = results.reduce((acc, { serviceId, parsedJson }) => {
-                    const title = parsedJson.heading; // Extracting the title from parsedJson
+                    const title = parsedJson.db_table; // Extracting the title from parsedJson
 
                     // Initialize an object to store the values for the current service
                     const valueObject = {};
@@ -110,16 +217,16 @@ const CandidateApplications = () => {
                     return acc;
                 }, {});
 
-
                 setAnnexure(annexureData);
-                setAnnexureData(newAnnexureData)
+                setAnnexureData(newAnnexureData);
             })
             .catch(error => {
                 console.error('Fetch error:', error);
                 setError('Failed to load data');
             })
             .finally(() => setLoading(false));
-    }, [service_id,]);
+    }, [service_id]);
+
 
 
     const fetchClients = useCallback(() => {
@@ -158,8 +265,6 @@ const CandidateApplications = () => {
                     }
                 });
                 const cmtData = data.CMTData;
-                console.log(typeof (cmtData)); // Confirm it's an object
-                console.log(cmtData);         // Log the object to inspect its structure
 
                 // Loop over keys and values in the object
                 Object.entries(cmtData).forEach(([key, value]) => {
@@ -283,7 +388,6 @@ const CandidateApplications = () => {
             })
             .then((result) => {
                 if (result && result.annexureData) {
-                    console.log(result.annexureData);
                     return result.annexureData;
                 } else {
                     console.error("No annexure data found in the response.");
@@ -292,20 +396,20 @@ const CandidateApplications = () => {
             })
             .catch((error) => console.error("Fetch error: ", error));
     }, []);
-  
+
 
     useEffect(() => {
         fetchServices();
         annexureValues();
         fetchClients();
-    }, [fetchServices, fetchClients,annexureValues]);
+    }, [fetchServices, fetchClients, annexureValues]);
 
     const handleFormSubmit = (e) => {
         e.preventDefault();
         const validationErrors = validateForm();
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
-            return; 
+            return;
         }
 
         const adminData = JSON.parse(localStorage.getItem("admin"));
@@ -341,14 +445,11 @@ const CandidateApplications = () => {
             });
     };
 
-    const annexureHandleChange = (event, serviceId, rowIndex, inputName) => {
-        const { value, type } = event.target;
-        const key = `${serviceId}-${rowIndex}-${inputName}`;
-
-        setAnnexureData(prevData => ({
-            ...prevData,
-            [key]: type === 'file' ? event.target.files[0] : value // Handle file input separately
-        }));
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setAllInputDetails((prev) => ({
+            ...prev, [name]: value,
+        }))
     };
 
     return (
@@ -681,57 +782,75 @@ const CandidateApplications = () => {
                     {errors.residence_mobile_number && <span className="text-red-500">{errors.residence_mobile_number}</span>}
                 </div>
             </div>
-            {Object.entries(annexure).map(([serviceId, form]) => {
-                const annexureData = annexureValues(application_id, form?.db_table.replace(/-/g, '_'));
-
+            {Array.from(new Set(Object.keys(annexure))).map(serviceId => {
+                const form = annexure[serviceId];
+                const idNumber = Number(serviceId);
+            
+                // Check if this serviceId has already been rendered
+                if (renderedServices.has(idNumber)) {
+                    return null; // Skip rendering this service
+                }
+            
+                // Mark this serviceId as rendered
+                renderedServices.add(idNumber);
+            
+                const filteredInputs = allInputDetails.filter(({ serviceId: id }) => id === idNumber);
+            
+                console.log(`Service ID: ${serviceId}`, filteredInputs);
+            
                 return (
-                    <div key={serviceId} className="form-section">
+                    <div key={serviceId} className="form-section mb-6">
                         <h4 className="text-2xl text-center mt-4 font-bold my-5">
                             {form?.heading || 'No heading'}
                         </h4>
                         <div className="form-group bg-gray-200 p-3 rounded-md mb-4">
-                            {form?.rows?.map((row, rowIndex) => (
-                                <div key={rowIndex} className="mb-4">
-                                    {row.inputs.map((input, inputIndex) => (
-                                        <div key={inputIndex} className="mb-4">
-                                            <label className='capitalize' htmlFor={input.name}>{input.label}</label>
-                                            {input.type === 'text' && (
-                                                <input
-                                                        type="text"
-                                                        name={input.name}
-                                                        id={input.name}
-                                                        className="border w-full rounded-md p-2 mt-2"
-                                                        {...(annexureData?.[`${serviceId}-${rowIndex}-${input.name}`] !== undefined && {
-                                                            value: annexureData[`${serviceId}-${rowIndex}-${input.name}`]
-                                                        })} // Conditionally add the value attribute
-                                                        onChange={(event) => annexureHandleChange(event, serviceId, rowIndex, inputIndex)}
-                                                    />
-
-                                            )}
-                                            {input.type === 'dropdown' && (
-                                                <select
-                                                    name={input.name}
-                                                    id={input.name}
-                                                    className="border w-full rounded-md p-2 mt-2"
-                                                    onChange={(event) => annexureHandleChange(event, serviceId, rowIndex, inputIndex)}
-                                                    value={annexureData?.[`${serviceId}-${rowIndex}-${input.name}`] || ''} // Prefilled value
-                                                >
-                                                    <option value="">Select...</option>
-                                                    {input.options.map((option, optionIndex) => (
-                                                        <option key={optionIndex} value={option.value}>
-                                                            {option.label}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            )}
-                                            {/* Handle other input types similarly */}
-                                            {errors[input.name] && (
-                                                <span className="text-red-600">{errors[input.name]}</span>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            ))}
+                            {filteredInputs.length > 0 ? (
+                                filteredInputs.flatMap(({ inputDetails }) => inputDetails).map((input) => (
+                                    <div key={input.name} className="mb-4">
+                                        <label className='capitalize' htmlFor={input.name}>
+                                            {input.label}
+                                        </label>
+                                        {input.type === 'text' || input.type === 'datepicker' ? (
+                                            <input
+                                                type="text"
+                                                name={input.name}
+                                                id={input.name}
+                                                value={input.value}
+                                                className="border w-full rounded-md p-2 mt-2"
+                                                onChange={handleChange}
+                                            />
+                                        ) : input.type === 'dropdown' ? (
+                                            <select
+                                                name={input.name}
+                                                id={input.name}
+                                                className="border w-full rounded-md p-2 mt-2"
+                                                value={input.value}
+                                                onChange={handleChange}
+                                            >
+                                                <option value="">Select...</option>
+                                                {input.options.map((option) => (
+                                                    <option key={option.value} value={option.value}>
+                                                        {option.showText}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        ) : input.type === 'file' ? (
+                                            <input
+                                                type="file"
+                                                name={input.name}
+                                                id={input.name}
+                                                className="border w-full rounded-md p-2 mt-2"
+                                                onChange={handleChange}
+                                            />
+                                        ) : null}
+                                        {errors[input.name] && (
+                                            <span className="text-red-600">{errors[input.name]}</span>
+                                        )}
+                                    </div>
+                                ))
+                            ) : (
+                                <p>No inputs available for this service.</p>
+                            )}
                         </div>
                     </div>
                 );

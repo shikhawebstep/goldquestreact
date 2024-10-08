@@ -1,8 +1,15 @@
-import React from 'react';
+import React, { useEffect,useCallback,useState ,useContext} from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import Swal from 'sweetalert2';
+import { BranchContextExel } from './BranchContextExel';
 
 const PdfTableGenerator = () => {
+  const { service_id, branch_id, application_id } = useContext(BranchContextExel);
+  console.log(branch_id)
+  const [error,setError]=useState(false)
+  const [loading,setLoading]=useState(null)
+  const [data,setData]=useState([]);
   const printRef = React.useRef();
 
   const handleDownloadPdf = async () => {
@@ -40,6 +47,7 @@ const PdfTableGenerator = () => {
     pdf.save('table.pdf');
   };
   
+
 
   return (
     <>

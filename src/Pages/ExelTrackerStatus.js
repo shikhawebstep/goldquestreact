@@ -7,6 +7,7 @@ import { BranchContextExel } from './BranchContextExel';
 import { useNavigate } from 'react-router-dom';
 
 const ExelTrackerStatus = () => {
+    const [allInputDetails, setAllInputDetails] = useState([]);
     const [parentCustomer, setParentCustomer] = useState([]);
     const [pdfData, setPdfData] = useState([]);
     const [serviceTitleValue, setServiceTitleValue] = useState([]);
@@ -128,20 +129,19 @@ const ExelTrackerStatus = () => {
 
     const handleDownloadPdf = async (id, branch_id) => {
         alert(`${id} - ${branch_id}`);
-
+    
         if (!id || !branch_id) {
-            return ('Something is missing');
+            return Swal.fire('Error!', 'Something is missing', 'error');
         }
-
-        const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
+    
+        const adminId = JSON.parse(localStorage.getItem("admin"))?.id;
         const storedToken = localStorage.getItem("_token");
-
         setLoading(true);
         setError(null);
-
+    
         try {
             const response = await fetch(
-                `https://goldquestreact.onrender.com/client-master-tracker/application-by-id?application_id=${id}&branch_id=${branch_id}&admin_id=${admin_id}&_token=${storedToken}`,
+                `https://goldquestreact.onrender.com/client-master-tracker/application-by-id?application_id=${id}&branch_id=${branch_id}&admin_id=${adminId}&_token=${storedToken}`,
                 {
                     method: 'GET',
                     headers: {
@@ -149,106 +149,172 @@ const ExelTrackerStatus = () => {
                     },
                 }
             );
-
+    
             if (!response.ok) {
                 const errorText = await response.text();
                 const errorData = JSON.parse(errorText);
-                Swal.fire('Loading!', `An error occurred: ${errorData.message}`, 'error');
+                Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
                 throw new Error(errorText);
             }
-
+    
             const data = await response.json();
             const applications = data.application;
-
             const serviceIdsArr = applications?.services?.split(',') || [];
-            let serviceTitleValue = [];
-            // Prepare an array of promises for the service fetches
-            const serviceFetchPromises = serviceIdsArr.map((serviceId) => {
-                const requestServicesOptions = {
-                    method: "GET",
-                    headers: {
-                        'Content-Type': 'application/json' // Optional, may not be needed for GET
-                    },
-                    redirect: "follow"
-                };
-
-                const serviceInfoUrl = `https://goldquestreact.onrender.com/service/service-info?id=${serviceId}&admin_id=${admin_id}&_token=${storedToken}`;
-                const applicationServiceUrl = `https://goldquestreact.onrender.com/client-master-tracker/application-service?service_id=${serviceId}&application_id=${id}&admin_id=${admin_id}&_token=${storedToken}`;
-
-                return Promise.all([
-                    fetch(serviceInfoUrl, requestServicesOptions).then((serviceResponse) => {
-                        if (!serviceResponse.ok) {
-                            throw new Error(`HTTP error! status: ${serviceResponse.status}`);
-                        }
-                        return serviceResponse.json(); // Assuming the response is JSON
-                    }),
-                    fetch(applicationServiceUrl, requestServicesOptions).then((serviceResponse) => {
-                        if (!serviceResponse.ok) {
-                            throw new Error(`HTTP error! status: ${serviceResponse.status}`);
-                        }
-                        return serviceResponse.json(); // Assuming the response is JSON
-                    })
-                ])
-                    .then(([serviceData, applicationData]) => {
-                        serviceTitleValue.push({
-                            title: serviceData.service.title ? serviceData.service.title : "N/A",
-                            status: applicationData.annexureData.status ? applicationData.annexureData.status : "N/A",
-                            info_source: applicationData.annexureData.info_source ? applicationData.annexureData.info_source : "N/A",
-                            verified_at: applicationData.annexureData.verified_at ? applicationData.annexureData.verified_at : "N/A",
-                            color_status: applicationData.annexureData.color_status ? applicationData.annexureData.color_status : "N/A"
-                        });
-                        // Process serviceData if needed
-                    })
-                    .catch((err) => {
-                        console.log(err);
+            const serviceTitleValue = [];
+    
+            // Fetch service data
+            if (serviceIdsArr.length > 0) {
+                const serviceFetchPromises = serviceIdsArr.map(async (serviceId) => {
+                    const requestOptions = {
+                        method: "GET",
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        redirect: "follow",
+                    };
+    
+                    const serviceInfoUrl = `https://goldquestreact.onrender.com/service/service-info?id=${serviceId}&admin_id=${adminId}&_token=${storedToken}`;
+                    const applicationServiceUrl = `https://goldquestreact.onrender.com/client-master-tracker/application-service?service_id=${serviceId}&application_id=${id}&admin_id=${adminId}&_token=${storedToken}`;
+    
+                    const [serviceResponse, applicationResponse] = await Promise.all([
+                        fetch(serviceInfoUrl, requestOptions),
+                        fetch(applicationServiceUrl, requestOptions),
+                    ]);
+    
+                    if (!serviceResponse.ok || !applicationResponse.ok) {
+                        console.error("Failed to fetch service/application data");
+                        return null; // Early exit if any request fails
+                    }
+    
+                    const serviceData = await serviceResponse.json();
+                    const applicationData = await applicationResponse.json();
+    
+                    const title = serviceData.service.title || "N/A";
+                    serviceTitleValue.push({
+                        title,
+                        status: applicationData.annexureData?.status || "N/A",
+                        info_source: applicationData.annexureData?.info_source || "N/A",
+                        verified_at: applicationData.annexureData?.verified_at || "N/A",
+                        color_status: applicationData.annexureData?.color_status || "N/A",
                     });
-            });
-            setServiceTitleValue(serviceTitleValue);
-
-            // Wait for all service fetches to complete
-            const allServiceData = await Promise.all(serviceFetchPromises);
-
+                });
+    
+                await Promise.all(serviceFetchPromises);
+                setServiceTitleValue(serviceTitleValue);
+            }
+    
+            // Fetch report form details
+            const allInputDetails = [];
+            const servicesArray = serviceIdsArr.map(Number);
+    
+            await Promise.all(
+                servicesArray.map(async (serviceId) => {
+                    const response = await fetch(
+                        `https://goldquestreact.onrender.com/client-master-tracker/report-form-json-by-service-id?service_id=${serviceId}&admin_id=${adminId}&_token=${storedToken}`,
+                        {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        }
+                    );
+    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        const errorData = JSON.parse(errorText);
+                        Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
+                        throw new Error(errorText);
+                    }
+    
+                    const data = await response.json();
+                    const newToken = data._token || data.token;
+                    if (newToken) {
+                        localStorage.setItem("_token", newToken);
+                    }
+    
+                    let parsedJson;
+                    try {
+                        parsedJson = JSON.parse(data.reportFormJson.json || '{}');
+                    } catch (error) {
+                        console.error("Failed to parse reportFormJson:", error);
+                        return; // Skip this iteration
+                    }
+    
+                    if (parsedJson.db_table && parsedJson.heading) {
+                        const annexureHeading = parsedJson.heading;
+                        const annexureURL = `https://goldquestreact.onrender.com/client-master-tracker/annexure-data?application_id=${id}&db_table=${parsedJson.db_table}&admin_id=${adminId}&_token=${storedToken}`;
+    
+                        const annexureResponse = await fetch(annexureURL, { method: "GET", redirect: "follow" });
+                        if (!annexureResponse.ok) {
+                            console.error(`Failed to fetch annexure data for ${serviceId}`);
+                            return; // Skip this iteration if annexure fetch fails
+                        }
+    
+                        const annexureResult = await annexureResponse.json();
+                        const inputDetails = [];
+    
+                        const annexureData = annexureResult.annexureData;
+                        parsedJson.rows.forEach(row => {
+                            row.inputs.forEach(input => {
+                                const value = annexureData && Array.isArray(annexureData)
+                                    ? (annexureData.find(item => item.name === input.name)?.value || 'N/A')
+                                    : (annexureData?.[input.name] || 'N/A');
+    
+                                inputDetails.push({
+                                    label: input.label,
+                                    name: input.name,
+                                    type: input.type,
+                                    value: value,
+                                    options: input.options || undefined,
+                                });
+                            });
+                        });
+    
+                        allInputDetails.push({ annexureHeading, inputDetails });
+                    }
+                })
+            );
+    
+            setAllInputDetails(allInputDetails);
+    
+            // Prepare for PDF generation
             setPdfData(applications);
             const cmtData = data.CMTData;
             setCmtAllData(cmtData);
-
+    
             // Create the PDF
             const element = printRef.current;
-            const canvas = await html2canvas(element, {
-                scale: 2,
-                useCORS: true,
-            });
-
+            const canvas = await html2canvas(element, { scale: 2, useCORS: true });
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('portrait', 'pt', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
-
+    
             const canvasWidth = canvas.width;
             const canvasHeight = canvas.height;
-
+    
             let imgHeight = (canvasHeight * pdfWidth) / canvasWidth;
             let heightLeft = imgHeight;
             let position = 0;
-
+    
             // Define margin for spacing
             const margin = 20; // Adjust as needed
-
+    
             // Add first page
             pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-            heightLeft -= (pdfHeight + margin); // Adjust height left to include margin
-
+            heightLeft -= (pdfHeight + margin);
+    
             // Add remaining pages
             while (heightLeft > 0) {
-                position = heightLeft - imgHeight - margin; // Adjust position for spacing
+                position = heightLeft - imgHeight - margin;
                 pdf.addPage();
                 pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-                heightLeft -= (pdfHeight + margin); // Adjust height left to include margin
+                heightLeft -= (pdfHeight + margin);
             }
-
+    
             // Save the PDF
             pdf.save('table.pdf');
-
+    
         } catch (error) {
             console.error('Fetch error:', error);
             setError('Failed to load client data');
@@ -256,9 +322,10 @@ const ExelTrackerStatus = () => {
             setLoading(false);
         }
     };
+    
 
 
-    const fetchCustomers = () => {
+    const fetchCustomers = useCallback(() => {
         const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
         const storedToken = localStorage.getItem("_token");
 
@@ -281,8 +348,8 @@ const ExelTrackerStatus = () => {
             })
 
             .catch((error) => console.error('Error fetching customers:', error));
-    };
-    // console.log(serviceTitleValue);
+    }, [applicationData])
+
     useEffect(() => {
 
         fetchCustomers();
@@ -554,82 +621,46 @@ const ExelTrackerStatus = () => {
                         </tr>
                     </thead>
                 </table>
-                <h3 style={{ padding: '10px', border: '1px solid #000', backgroundColor: '#22c55e', width: '100%', color: '#fff', marginTop: '30px', textAlign: 'center', fontWeight: 'bold' }}>POLICE VERIFICATION</h3>
-                <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #000', borderTop: '0px', padding: '20px' }}>
-                    <tbody>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', padding: '20px', backgroundColor: '#ccc' }}>
-                            <h3 style={{ fontWeight: 'bold', fontSize: '18px' }}> Application Details</h3>
-                            <h3 style={{ fontWeight: 'bold', fontSize: '18px' }}>Report Details</h3>
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', padding: '20px' }}>
-
-                            <div>
-
-
+                {allInputDetails.map((annexure, index) => (
+                    <div key={index}>
+                        <h3 style={{ padding: '10px', border: '1px solid #000', backgroundColor: '#22c55e', width: '100%', color: '#fff', marginTop: '30px', textAlign: 'center', fontWeight: 'bold' }}>
+                            {annexure.annexureHeading}
+                        </h3>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #000', borderTop: '0px', padding: '20px' }}>
+                            <thead>
                                 <tr>
-                                    <th style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}> Reference number </th>
-                                    <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>{pdfData?.application_id || ' N/A'}</td>
-
+                                    <th style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>Application Details</th>
+                                    <th style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>Report Details</th>
                                 </tr>
-                                <tr>
-                                    <th style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>Client Name</th>
-                                    <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>{parentCustomer[0]?.name || ' N/A'}</td></tr>
-                                <tr>
-                                    <th style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}> Date of birth</th>
-                                    <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}> {cmtAllData?.dob
-                                        ? new Date(cmtAllData.dob).toLocaleDateString(undefined, {
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric'
-                                        })
-                                        : 'N/A'}</td>
+                            </thead>
+                            <tbody>
+                                {annexure.inputDetails.map((input, idx) => (
+                                    input.type !== 'file' && ( // Only render if the type is not 'file'
+                                        <tr key={idx}>
+                                            <th style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>
+                                                {input.label}
+                                            </th>
+                                            <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>
+                                                {input.type === 'datepicker' ? (
+                                                    input.value
+                                                        ? new Date(input.value).toLocaleDateString(undefined, {
+                                                            year: 'numeric',
+                                                            month: 'long',
+                                                            day: 'numeric'
+                                                        })
+                                                        : 'N/A'
+                                                ) : (
+                                                    input.value ? input.value.replace(/[_-]/g, ' ') : 'N/A'
+                                                )}
+                                            </td>
+                                        </tr>
+                                    )
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ))}
 
-                                </tr>
-                                <tr>
-                                    <th style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>Father name</th>
-                                    <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>{cmtAllData?.father_name || ' N/A'}</td></tr>
-                                <tr>
-                                    <th style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}> Address1</th>
-                                    <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>{cmtAllData?.address || ' N/A'}</td>
-                                </tr>
-                            </div>
-
-                            <div>
-
-                                <tr>
-                                    <th style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}> Reference number </th>
-                                    <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>{pdfData?.application_id || ' N/A'}</td>
-
-                                </tr>
-                                <tr>
-                                    <th style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>Client Name</th>
-                                    <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>{parentCustomer[0]?.name || ' N/A'}</td></tr>
-                                <tr>
-                                    <th style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}> Date of birth</th>
-                                    <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>{cmtAllData?.dob
-                                        ? new Date(cmtAllData.dob).toLocaleDateString(undefined, {
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric'
-                                        })
-                                        : 'N/A'}</td>
-
-                                </tr>
-                                <tr>
-                                    <th style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>Father name</th>
-                                    <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>{cmtAllData?.father_name || ' N/A'}</td></tr>
-                                <tr>
-                                    <th style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}> Address1</th>
-                                    <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>{cmtAllData?.address || ' N/A'}</td>
-                                </tr>
-                            </div>
-                        </div>
-
-
-                    </tbody>
-
-                </table>
                 <p style={{ border: "1px solid #000", borderTop: '0px', padding: '10px' }}><b>Remarks</b>: The following applicant details are verbally verified by Mr. Prashant Vishwas, (Head Constable), and the notary
                     report duly stamped and signed by Mr.Harsh Shukla (Advocate)with comment on criminal record not found, Hence
                     closing the check as GREEN and the same is furnished as annexure.</p>
@@ -641,107 +672,6 @@ const ExelTrackerStatus = () => {
                     <h5 style={{ textTransform: 'uppercase' }}>Lorem ipsum dolor sit.</h5>
                     <hr />
                 </div>
-                <h5 style={{ textAlign: 'center', fontWeight: '700', marginTop: '30px', marginBottom: '10px', textDecoration: 'underline' }}>POLICE VERIFICATION REPORT</h5>
-                <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #000' }}>
-                    <thead>
-                        <tr>
-                            <th style={{ width: '35%', border: "1px solid #000", padding: '12px', fontSize: '17px', textAlign: 'left', borderRight: '1px solid #000', }}>APPLICATION ID</th>
-                            <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', border: '1px solid #000' }}>{pdfData?.name || ' N/A'}</td>
-                        </tr>
-                        <tr>
-                            <th style={{ width: '35%', border: "1px solid #000", padding: '12px', fontSize: '17px', textAlign: 'left', borderRight: '1px solid #000', }}>FATHER NAME</th>
-                            <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', border: '1px solid #000' }}>{cmtAllData?.father_name || ' N/A'}</td>
-
-                        </tr>
-                        <tr>
-                            <th style={{ width: '35%', border: "1px solid #000", padding: '12px', fontSize: '17px', textAlign: 'left', borderRight: '1px solid #000', }}>DATE OF BIRTH</th>
-                            <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', border: '1px solid #000' }}>{cmtAllData?.dob
-                                ? new Date(cmtAllData.dob).toLocaleDateString(undefined, {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
-                                })
-                                : 'N/A'}</td>
-
-                        </tr>
-                        <tr>
-                            <th style={{ width: '35%', border: "1px solid #000", padding: '12px', fontSize: '17px', textAlign: 'left', borderRight: '1px solid #000', }}>ADDRESS OF THE APPLICANT</th>
-                            <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', border: '1px solid #000' }}>{cmtAllData?.address || ' N/A'}</td>
-
-                        </tr>
-                        <tr>
-                            <th style={{ width: '35%', border: "1px solid #000", padding: '12px', fontSize: '17px', textAlign: 'left', borderRight: '1px solid #000', }}>NAME OF THE POLICE STATION OFFICER </th>
-                            <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', border: '1px solid #000' }}>{pdfData?.name || ' N/A'}</td>
-
-                        </tr>
-                        <tr>
-                            <th style={{ width: '35%', border: "1px solid #000", padding: '12px', fontSize: '17px', textAlign: 'left', borderRight: '1px solid #000', }}>NAME OF THE  STATION HOUSE OFFICER </th>
-                            <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', border: '1px solid #000' }}>{pdfData?.name || ' N/A'}</td>
-
-                        </tr>
-                        <tr>
-                            <th style={{ width: '35%', border: "1px solid #000", padding: '12px', fontSize: '17px', textAlign: 'left', borderRight: '1px solid #000', }}>POLICE STATION CONTACT NUMBER</th>
-                            <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', border: '1px solid #000' }}>{pdfData?.name || ' N/A'}</td>
-
-                        </tr>
-
-                        <tr>
-                            <th style={{ width: '35%', border: "1px solid #000", padding: '12px', fontSize: '17px', textAlign: 'left', borderRight: '1px solid #000', }}>VERIFICATION STATUS</th>
-                            <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', border: '1px solid #000' }}>{cmtAllData?.final_verification_status || ' N/A'}</td>
-
-                        </tr>
-                        <tr>
-                            <th style={{ width: '35%', border: "1px solid #000", padding: '12px', fontSize: '17px', textAlign: 'left', borderRight: '1px solid #000', }}>VERIFIED DATE</th>
-                            <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', border: '1px solid #000' }}> {cmtAllData?.updated_at
-                                ? new Date(cmtAllData.updated_at).toLocaleDateString(undefined, {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
-                                })
-                                : 'N/A'}</td>
-
-                        </tr>   <tr>
-                            <th style={{ width: '35%', border: "1px solid #000", padding: '12px', fontSize: '17px', textAlign: 'left', borderRight: '1px solid #000', }}>VERIFIER NAME AND DESIGNATION</th>
-                            <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', border: '1px solid #000' }}>{pdfData?.name || ' N/A'}</td>
-
-                        </tr>
-
-
-                    </thead>
-                    <tbody>
-
-                    </tbody>
-                </table>
-                <h4 style={{ textAlign: 'center' }}>Executive Summary</h4>
-                <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #000' }}>
-
-                    <thead>
-                        <tr>
-                            <th style={{ width: '35%', border: "1px solid #000", padding: '12px', fontSize: '17px', textAlign: 'left', borderRight: '1px solid #000', }}>CIVIL COURT VERIFICATION</th>
-                            <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', border: '1px solid #000' }}>{pdfData?.name || ' N/A'}</td>
-                        </tr>
-                        <tr>
-                            <th style={{ width: '35%', border: "1px solid #000", padding: '12px', fontSize: '17px', textAlign: 'left', borderRight: '1px solid #000', }}>SESSIONS COURT VERIFICATION</th>
-                            <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', border: '1px solid #000' }}>{pdfData?.name || ' N/A'}</td>
-
-                        </tr>
-                        <tr>
-                            <th style={{ width: '35%', border: "1px solid #000", padding: '12px', fontSize: '17px', textAlign: 'left', borderRight: '1px solid #000', }}>MAGISTRATE COURT VERIFICATION</th>
-                            <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', border: '1px solid #000' }}>{pdfData?.name || ' N/A'}</td>
-
-                        </tr>
-                        <tr>
-                            <th style={{ width: '35%', border: "1px solid #000", padding: '12px', fontSize: '17px', textAlign: 'left', borderRight: '1px solid #000', }}>HIGH COURT VERIFICATION</th>
-                            <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', border: '1px solid #000' }}>{pdfData?.name || ' N/A'}</td>
-
-                        </tr>
-                        <tr>
-                            <th style={{ width: '35%', border: "1px solid #000", padding: '12px', fontSize: '17px', textAlign: 'left', borderRight: '1px solid #000', }}>SUPREME COURT OF INDIA VERIFICATION </th>
-                            <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', border: '1px solid #000' }}>{pdfData?.name || ' N/A'}</td>
-
-                        </tr>
-                    </thead>
-                </table>
 
                 <h4 style={{ textTransform: 'uppercase', textAlign: 'left', fontSize: "24px", marginTop: '20px', fontWeight: 'bold', paddingBottom: '10px' }}>conclusion</h4>
                 <p style={{ fontSize: '16px', fontWeight: '400', paddingBottom: '15px' }}>Lorem ipsum dolor sit amet consectetur adipisicing elit. Suscipit facere enim quidem dolorem alias animi sapiente at quisquam quam eveniet dolor, quo quos officiis, deserunt cupiditate minus necessitatibus, omnis blanditiis!</p>

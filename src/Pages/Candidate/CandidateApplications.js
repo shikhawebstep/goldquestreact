@@ -51,16 +51,24 @@ const CandidateApplications = () => {
     };
 
     const fetchServices = useCallback(() => {
-
         const servicesArray = service_id ? service_id.split(',').map(Number) : [];
         const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
         const storedToken = localStorage.getItem("_token");
         setLoading(true);
         setError(null);
 
+        const processedServices = new Set(); // Initialize a Set to track processed services
+        const allInputDetails = []; // Initialize this array at the beginning
+
         Promise.all(
-            servicesArray.map(serviceId =>
-                fetch(
+            servicesArray.map(serviceId => {
+                if (processedServices.has(serviceId)) {
+                    // If the serviceId has already been processed, skip it
+                    return Promise.resolve({ serviceId, parsedJson: null });
+                }
+                processedServices.add(serviceId); // Add the serviceId to the Set
+
+                return fetch(
                     `https://goldquestreact.onrender.com/client-master-tracker/report-form-json-by-service-id?service_id=${serviceId}&admin_id=${admin_id}&_token=${storedToken}`,
                     {
                         method: 'GET',
@@ -85,13 +93,12 @@ const CandidateApplications = () => {
                             localStorage.setItem("_token", newToken);
                         }
 
-                        // Parse the reportFormJson and handle possible parsing errors
                         let parsedJson;
                         try {
                             parsedJson = JSON.parse(data.reportFormJson.json || '{}');
                         } catch (error) {
                             console.error("Failed to parse reportFormJson:", error);
-                            return { serviceId, parsedJson: null }; // Return null for parsedJson in case of error
+                            return { serviceId, parsedJson: null };
                         }
 
                         console.log(`JSON - `, parsedJson.db_table);
@@ -112,60 +119,40 @@ const CandidateApplications = () => {
                                     return annexureResponse.json();
                                 })
                                 .then(annexureResult => {
-                                    const inputDetails = []; // Array to hold input details for the current service
+                                    const inputDetails = [];
 
-                                    // Check if annexureData is an array
                                     if (Array.isArray(annexureResult.annexureData)) {
-                                        // Handle the case when annexureData is an array
                                         parsedJson.rows.forEach(row => {
                                             row.inputs.forEach(input => {
-                                                let value = null; // Initialize value
-
                                                 const foundItem = annexureResult.annexureData.find(item => item.name === input.name);
-                                                value = foundItem ? foundItem.value : null;
+                                                const value = foundItem ? foundItem.value : null;
 
-                                                // Prepare the details object
                                                 const inputDetail = {
                                                     label: input.label,
                                                     name: input.name,
                                                     type: input.type,
-                                                    value: value
+                                                    value: value,
+                                                    options: input.options || undefined // Include options if present
                                                 };
 
-                                                // Append options if they exist
-                                                if (input.options) {
-                                                    inputDetail.options = input.options; // Include options if present
-                                                }
-
                                                 inputDetails.push(inputDetail);
-
                                                 console.log('This -0-0- ', inputDetail);
                                             });
                                         });
                                     } else if (typeof annexureResult.annexureData === 'object' && annexureResult.annexureData !== null) {
-                                        // Handle the case when annexureData is an object
                                         parsedJson.rows.forEach(row => {
                                             row.inputs.forEach(input => {
-                                                let value = null; // Initialize value
+                                                const value = annexureResult.annexureData[input.name] || null;
 
-                                                // Access the value directly from the object
-                                                value = annexureResult.annexureData[input.name] || null;
-
-                                                // Prepare the details object
                                                 const inputDetail = {
                                                     label: input.label,
                                                     name: input.name,
                                                     type: input.type,
-                                                    value: value
+                                                    value: value,
+                                                    options: input.options || undefined // Include options if present
                                                 };
 
-                                                // Append options if they exist
-                                                if (input.options) {
-                                                    inputDetail.options = input.options; // Include options if present
-                                                }
-
                                                 inputDetails.push(inputDetail);
-
                                                 console.log('This -0-0- ', inputDetail);
                                             });
                                         });
@@ -173,13 +160,10 @@ const CandidateApplications = () => {
                                         console.error("Expected annexureData to be either an array or an object, but got:", annexureResult.annexureData);
                                     }
 
-
-
                                     console.log(`Annexure - `, annexureResult.annexureData);
-                                    allInputDetails.push({ serviceId, inputDetails }); // Collect input details by service ID
-                                    return { serviceId, parsedJson }; // Return the result alongside serviceId
+                                    allInputDetails.push({ serviceId, inputDetails });
+                                    return { serviceId, parsedJson };
                                 })
-
                                 .catch(annexureError => {
                                     console.error("Fetch error: ", annexureError);
                                     throw annexureError; // Rethrow the error if needed
@@ -187,8 +171,8 @@ const CandidateApplications = () => {
                         }
 
                         return { serviceId, parsedJson };
-                    })
-            )
+                    });
+            })
         )
             .then(results => {
                 console.log("All Input Details:", JSON.stringify(allInputDetails, null, 2));
@@ -199,20 +183,15 @@ const CandidateApplications = () => {
                 }, {});
 
                 const newAnnexureData = results.reduce((acc, { serviceId, parsedJson }) => {
-                    const title = parsedJson.db_table; // Extracting the title from parsedJson
-
-                    // Initialize an object to store the values for the current service
+                    const title = parsedJson.db_table;
                     const valueObject = {};
 
-                    // Iterate over the rows in the parsedJson to extract inputs
                     parsedJson.rows.forEach(row => {
                         row.inputs.forEach(input => {
-                            // Set the value in valueObject based on the input label
-                            valueObject[input.name] = input.value || "1243"; // Replace with actual value extraction logic
+                            valueObject[input.name] = input.value || "1243";
                         });
                     });
 
-                    // Set the title as the key and the valueObject as its value
                     acc[title] = valueObject;
                     return acc;
                 }, {});
@@ -226,6 +205,7 @@ const CandidateApplications = () => {
             })
             .finally(() => setLoading(false));
     }, [service_id]);
+
 
 
 
@@ -415,7 +395,6 @@ const CandidateApplications = () => {
         const adminData = JSON.parse(localStorage.getItem("admin"));
         const token = localStorage.getItem("_token");
 
-        const finalAnnexureData = { ...annexureData };
         const raw = JSON.stringify({
             admin_id: adminData?.id,
             _token: token,
@@ -423,8 +402,9 @@ const CandidateApplications = () => {
             customer_id: 1,
             application_id: application_id,
             ...formData,
-            annexure: finalAnnexureData,
+            annexure: annexureData, // Include annexureData here
         });
+        
 
         const requestOptions = {
             method: 'PUT',
@@ -447,10 +427,17 @@ const CandidateApplications = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setAllInputDetails((prev) => ({
-            ...prev, [name]: value,
-        }))
+    
+        setAllInputDetails(prev => 
+            prev.map(item => ({
+                ...item,
+                inputDetails: item.inputDetails.map(input => 
+                    input.name === name ? { ...input, value } : input
+                )
+            }))
+        );
     };
+    
 
     return (
         <form onSubmit={handleFormSubmit}>
@@ -785,19 +772,22 @@ const CandidateApplications = () => {
             {Array.from(new Set(Object.keys(annexure))).map(serviceId => {
                 const form = annexure[serviceId];
                 const idNumber = Number(serviceId);
-            
+
                 // Check if this serviceId has already been rendered
                 if (renderedServices.has(idNumber)) {
                     return null; // Skip rendering this service
                 }
-            
+
                 // Mark this serviceId as rendered
                 renderedServices.add(idNumber);
+
+                const filteredInputs = Array.isArray(allInputDetails)
+                ? allInputDetails.filter(({ serviceId: id }) => id === idNumber)
+                : [];
             
-                const filteredInputs = allInputDetails.filter(({ serviceId: id }) => id === idNumber);
-            
-                console.log(`Service ID: ${serviceId}`, filteredInputs);
-            
+
+                console.log(`Filtered Inputs for Service ID ${serviceId}:`, filteredInputs);
+
                 return (
                     <div key={serviceId} className="form-section mb-6">
                         <h4 className="text-2xl text-center mt-4 font-bold my-5">
@@ -805,7 +795,7 @@ const CandidateApplications = () => {
                         </h4>
                         <div className="form-group bg-gray-200 p-3 rounded-md mb-4">
                             {filteredInputs.length > 0 ? (
-                                filteredInputs.flatMap(({ inputDetails }) => inputDetails).map((input) => (
+                          filteredInputs.flatMap(({ inputDetails }) => inputDetails).map((input) => (
                                     <div key={input.name} className="mb-4">
                                         <label className='capitalize' htmlFor={input.name}>
                                             {input.label}
@@ -855,7 +845,9 @@ const CandidateApplications = () => {
                     </div>
                 );
             })}
-            
+
+
+
             <div className="form-group border rounded-md p-3">
                 <div className="mb-4">
                     <label className='capitalize text-gray-500' htmlFor="first_insufficiency_marks">First Level Insufficiency Remarks</label>
@@ -905,7 +897,7 @@ const CandidateApplications = () => {
                 <div className="mb-4">
                     <label className='capitalize text-gray-500' htmlFor="second Insuff Raised Date:">Second Insuff Raised Date:</label>
                     <input
-                        type="text"
+                        type="date"
                         name="second_insuff_date"
                         id="second_insuff_date"
                         value={formData.second_insuff_dat}
@@ -917,7 +909,7 @@ const CandidateApplications = () => {
                 <div className="mb-4">
                     <label className='capitalize text-gray-500' htmlFor="second Insuff Cleared Date / Re-Opened date">Second Insuff Cleared Date / Re-Opened date</label>
                     <input
-                        type="text"
+                        type="date"
                         name="second_insuff_reopened_date"
                         id="second_insuff_reopened_date"
                         className="border w-full rounded-md p-2 mt-2 capitalize"
@@ -941,7 +933,7 @@ const CandidateApplications = () => {
                 <div className="mb-4">
                     <label className='capitalize text-gray-500' htmlFor="third Insuff Raised Date:">third Insuff Raised Date:</label>
                     <input
-                        type="text"
+                        type="date"
                         name="third_insuff_date"
                         id="third_insuff_date"
                         className="border w-full rounded-md p-2 mt-2 capitalize"
@@ -953,7 +945,7 @@ const CandidateApplications = () => {
                 <div className="mb-4">
                     <label className='capitalize text-gray-500' htmlFor="third Insuff Cleared Date / Re-Opened date">third Insuff Cleared Date / Re-Opened date</label>
                     <input
-                        type="text"
+                        type="date"
                         name="third_insuff_reopened_date"
                         id="third_insuff_reopened_date"
                         className="border w-full rounded-md p-2 mt-2 capitalize"
@@ -968,10 +960,11 @@ const CandidateApplications = () => {
                         value={formData.overall_status}
                         onChange={handleInputChange}
                         className="border rounded-md p-2 mt-2 uppercase w-full">
-                        <option value="">insuff</option>
-                        <option value="">inititated</option>
-                        <option value="" wip></option>
-                        <option value="">hold</option>
+                        <option value="insuff">insuff</option>
+                        <option value="inititated">inititated</option>
+                        <option value="wip" >wip</option>
+                        <option value="hold">hold</option>
+                        <option value="completed">completed</option>
                     </select>
 
                 </div>
@@ -994,10 +987,10 @@ const CandidateApplications = () => {
                             value={formData.report_status}
                             onChange={handleInputChange}
                             className="border rounded-md p-2 mt-2 uppercase w-full">
-                            <option value="">insuff</option>
-                            <option value="">inititated</option>
-                            <option value="">wip</option>
-                            <option value="">hold</option>
+                            <option value="insuff">insuff</option>
+                            <option value="inititated">inititated</option>
+                            <option value="wip" >wip</option>
+                            <option value="hold">hold</option>
                         </select>
 
                     </div>
@@ -1009,10 +1002,10 @@ const CandidateApplications = () => {
                             value={formData.report_type}
                             onChange={handleInputChange}
                             className="border rounded-md p-2 mt-2 uppercase w-full">
-                            <option value="">insuff</option>
-                            <option value="">inititated</option>
-                            <option value="">wip</option>
-                            <option value="">hold</option>
+                            <option value="insuff">insuff</option>
+                            <option value="inititated">inititated</option>
+                            <option value="wip" >wip</option>
+                            <option value="hold">hold</option>
                         </select>
 
                     </div>
@@ -1022,10 +1015,10 @@ const CandidateApplications = () => {
                             value={formData.final_verification_status}
                             onChange={handleInputChange}
                             id="" className="border w-full rounded-md p-2 mt-2 uppercase">
-                            <option value="">insuff</option>
-                            <option value="">inititated</option>
-                            <option value="" wip></option>
-                            <option value="">hold</option>
+                            <option value="insuff">insuff</option>
+                            <option value="inititated">inititated</option>
+                            <option value="wip" >wip</option>
+                            <option value="hold">hold</option>
                         </select>
 
 
@@ -1040,8 +1033,8 @@ const CandidateApplications = () => {
                             onChange={handleInputChange}
 
                             id="" className="border w-full rounded-md p-2 mt-2 uppercase">
-                            <option value="">yes</option>
-                            <option value="">no</option>
+                            <option value="yes">yes</option>
+                            <option value="no">no</option>
                         </select>
 
                     </div>
@@ -1065,8 +1058,8 @@ const CandidateApplications = () => {
                             value={formData.insuff_address}
                             onChange={handleInputChange}
                             id="" className="border w-full rounded-md p-2 mt-2 uppercase">
-                            <option value="">yes</option>
-                            <option value="">no</option>
+                            <option value="yes">yes</option>
+                            <option value="no">no</option>
                         </select>
 
                     </div>
@@ -1076,8 +1069,8 @@ const CandidateApplications = () => {
                             value={formData.basic_entry}
                             onChange={handleInputChange}
                             id="" className="border w-full rounded-md p-2 mt-2 uppercase">
-                            <option value="">yes</option>
-                            <option value="">no</option>
+                            <option value="yes">yes</option>
+                            <option value="no">no</option>
                         </select>
 
                     </div>
@@ -1089,8 +1082,8 @@ const CandidateApplications = () => {
                             value={formData.education}
                             onChange={handleInputChange}
                             className="border w-full rounded-md p-2 mt-2 uppercase">
-                            <option value="">yes</option>
-                            <option value="">no</option>
+                            <option value="yes">yes</option>
+                            <option value="no">no</option>
                         </select>
 
                     </div>
@@ -1115,8 +1108,8 @@ const CandidateApplications = () => {
                             value={formData.emp_spoc}
                             onChange={handleInputChange}
                             className="border w-full rounded-md p-2 mt-2 uppercase">
-                            <option value="">yes</option>
-                            <option value="">no</option>
+                            <option value="yes">yes</option>
+                            <option value="no">no</option>
                         </select>
 
                     </div>
@@ -1126,8 +1119,8 @@ const CandidateApplications = () => {
                             value={formData.report_generate_by}
                             onChange={handleInputChange}
                             id="" className="border w-full rounded-md p-2 mt-2 uppercase">
-                            <option value="">yes</option>
-                            <option value="">no</option>
+                            <option value="yes">yes</option>
+                            <option value="no">no</option>
                         </select>
 
                     </div>

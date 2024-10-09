@@ -1,7 +1,6 @@
 import React from 'react';
 import PackageForm from './PackageForm';
 import PackageManagementList from './PackageManagementList';
-import PdfTableGenerator from './PdfTableGenerator';
 const PackageManagement = () => {
 
     return (
@@ -15,7 +14,6 @@ const PackageManagement = () => {
                     <PackageManagementList  />
                 </div>
             </div>
-            <PdfTableGenerator/>
         </div>
     );
 };

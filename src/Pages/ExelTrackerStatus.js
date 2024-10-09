@@ -442,6 +442,8 @@ const ExelTrackerStatus = () => {
                     </table>
                 </div>
             </div>
+           <div className='opacity-0'>
+
             <div ref={printRef} style={{ padding: '70px', backgroundColor: '#fff', marginBottom: '20px', width: '100%', margin: '0 auto' }}>
                 <img src="https://i0.wp.com/goldquestglobal.in/wp-content/uploads/2024/03/goldquestglobal.png?w=771&ssl=1" alt="" style={{ width: '200px' }} />
 
@@ -689,6 +691,7 @@ const ExelTrackerStatus = () => {
                         the information responsible for employment decisions based on the information provided in this report. </p>
                     <button style={{ border: '1px solid #000', padding: '13px', width: '100%', borderRadius: '10px', marginTop: '15px' }}>End of detail report</button>
                 </div>
+            </div>
             </div>
 
 

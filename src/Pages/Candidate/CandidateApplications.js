@@ -1,13 +1,11 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { BranchContextExel } from '../BranchContextExel';
 import Swal from 'sweetalert2';
-import { useGenerateReport } from '../GenerateReportContext'; // Adjust the import path
-import LatestEmployeement from '../LatestEmployeement'
+import { useGenerateReport } from '../GenerateReportContext';
 const CandidateApplications = () => {
-    let loopCount = 1;
     const renderedServices = new Set();
     const [allInputDetails, setAllInputDetails] = useState([]);
-
+    const [serviceHeadings, setServiceHeadings] = useState([]);
     const [disabledFields, setDisabledFields] = useState({
         month_year: false,
         initiation_date: false,
@@ -26,14 +24,12 @@ const CandidateApplications = () => {
         insuff: false,
     });
     const [annexureData, setAnnexureData] = useState({});
-    // New state for errors
     const { service_id, branch_id, application_id } = useContext(BranchContextExel);
     const [annexure, setAnnexure] = useState({});
     const [, setLoading] = useState(false);
     const [, setError] = useState(null);
-    const { formData, setFormData, handleInputChange } = useGenerateReport(); // Access context
+    const { formData, setFormData, handleInputChange } = useGenerateReport();
 
-    // New state for errors
     const [errors, setErrors] = useState({});
 
     const validateForm = () => {
@@ -47,7 +43,7 @@ const CandidateApplications = () => {
             if (!formData[field]) newErrors[field] = "This field is required*";
         });
 
-        return newErrors; // Return the newErrors object
+        return newErrors;
     };
 
     const fetchServices = useCallback(() => {
@@ -101,7 +97,17 @@ const CandidateApplications = () => {
                             return { serviceId, parsedJson: null };
                         }
 
-                        console.log(`JSON - `, parsedJson.db_table);
+                        // console.log(`JSON - `, parsedJson.db_table);
+                        // console.log('heading',parsedJson.heading);
+
+
+                        if (!serviceHeadings.some(service => service.serviceId === serviceId)) {
+                            serviceHeadings.push({
+                                heading: parsedJson.heading,
+                                service_id: serviceId,
+                            });
+                        }
+                        
 
                         if (parsedJson.db_table) {
                             const requestAnnexureOptions = {
@@ -120,6 +126,7 @@ const CandidateApplications = () => {
                                 })
                                 .then(annexureResult => {
                                     const inputDetails = [];
+                                    console.log(`annexureResult ${serviceId} - `, annexureResult);
 
                                     if (Array.isArray(annexureResult.annexureData)) {
                                         parsedJson.rows.forEach(row => {
@@ -136,7 +143,6 @@ const CandidateApplications = () => {
                                                 };
 
                                                 inputDetails.push(inputDetail);
-                                                console.log('This -0-0- ', inputDetail);
                                             });
                                         });
                                     } else if (typeof annexureResult.annexureData === 'object' && annexureResult.annexureData !== null) {
@@ -153,15 +159,13 @@ const CandidateApplications = () => {
                                                 };
 
                                                 inputDetails.push(inputDetail);
-                                                console.log('This -0-0- ', inputDetail);
                                             });
                                         });
                                     } else {
                                         console.error("Expected annexureData to be either an array or an object, but got:", annexureResult.annexureData);
                                     }
-
-                                    console.log(`Annexure - `, annexureResult.annexureData);
-                                    allInputDetails.push({ serviceId, inputDetails });
+                                    const db_table = parsedJson.db_table;
+                                    allInputDetails.push({ db_table, serviceId, inputDetails });
                                     return { serviceId, parsedJson };
                                 })
                                 .catch(annexureError => {
@@ -175,10 +179,15 @@ const CandidateApplications = () => {
             })
         )
             .then(results => {
-                console.log("All Input Details:", JSON.stringify(allInputDetails, null, 2));
+
                 setAllInputDetails(allInputDetails);
-                const annexureData = results.reduce((acc, { serviceId, parsedJson }) => {
-                    acc[serviceId] = parsedJson;
+                // console.log(`allInputDetails - `, allInputDetails);
+
+                const mainAnnexureData = allInputDetails.reduce((acc, { serviceId, inputDetails }) => {
+                    acc[serviceId] = inputDetails.reduce((inputAcc, { name, value }) => {
+                        inputAcc[name] = value; // Map each input name to its value
+                        return inputAcc;
+                    }, {});
                     return acc;
                 }, {});
 
@@ -186,20 +195,20 @@ const CandidateApplications = () => {
                     const title = parsedJson.db_table;
                     const valueObject = {};
 
+
                     parsedJson.rows.forEach(row => {
                         row.inputs.forEach(input => {
-                            valueObject[input.name] = input.value || "1243";
+                            valueObject[input.name] = input.value || "";
                         });
                     });
 
                     acc[title] = valueObject;
                     return acc;
                 }, {});
+                setAnnexure(mainAnnexureData)
 
-                setAnnexure(annexureData);
                 setAnnexureData(newAnnexureData);
-            })
-            .catch(error => {
+            }).catch(error => {
                 console.error('Fetch error:', error);
                 setError('Failed to load data');
             })
@@ -395,6 +404,14 @@ const CandidateApplications = () => {
         const adminData = JSON.parse(localStorage.getItem("admin"));
         const token = localStorage.getItem("_token");
 
+        const mainAnnexureData = allInputDetails.reduce((acc, { db_table, serviceId, inputDetails }) => {
+            acc[db_table] = inputDetails.reduce((inputAcc, { name, value }) => {
+                inputAcc[name] = value; // Map each input name to its value
+                return inputAcc;
+            }, {});
+            return acc;
+        }, {});
+
         const raw = JSON.stringify({
             admin_id: adminData?.id,
             _token: token,
@@ -402,9 +419,9 @@ const CandidateApplications = () => {
             customer_id: 1,
             application_id: application_id,
             ...formData,
-            annexure: annexureData, // Include annexureData here
+            annexure: mainAnnexureData, // Include annexureData here
         });
-        
+
 
         const requestOptions = {
             method: 'PUT',
@@ -427,17 +444,19 @@ const CandidateApplications = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-    
-        setAllInputDetails(prev => 
+
+        setAllInputDetails(prev =>
             prev.map(item => ({
                 ...item,
-                inputDetails: item.inputDetails.map(input => 
+                inputDetails: item.inputDetails.map(input =>
                     input.name === name ? { ...input, value } : input
                 )
             }))
         );
     };
-    
+
+
+console.log('tgrtretertt',serviceHeadings);
 
     return (
         <form onSubmit={handleFormSubmit}>
@@ -780,22 +799,23 @@ const CandidateApplications = () => {
 
                 // Mark this serviceId as rendered
                 renderedServices.add(idNumber);
-
+                // console.log(`allInputDetails - `, allInputDetails);
                 const filteredInputs = Array.isArray(allInputDetails)
-                ? allInputDetails.filter(({ serviceId: id }) => id === idNumber)
-                : [];
-            
+                    ? allInputDetails.filter(({ serviceId: id }) => id === idNumber)
+                    : [];
 
-                console.log(`Filtered Inputs for Service ID ${serviceId}:`, filteredInputs);
+
 
                 return (
                     <div key={serviceId} className="form-section mb-6">
                         <h4 className="text-2xl text-center mt-4 font-bold my-5">
-                            {form?.heading || 'No heading'}
+                        {(serviceHeadings.find(service => service.serviceId === parseInt(serviceId))?.heading) || 'No heading'}
+
+
                         </h4>
                         <div className="form-group bg-gray-200 p-3 rounded-md mb-4">
                             {filteredInputs.length > 0 ? (
-                          filteredInputs.flatMap(({ inputDetails }) => inputDetails).map((input) => (
+                                filteredInputs.flatMap(({ inputDetails }) => inputDetails).map((input) => (
                                     <div key={input.name} className="mb-4">
                                         <label className='capitalize' htmlFor={input.name}>
                                             {input.label}
@@ -805,7 +825,7 @@ const CandidateApplications = () => {
                                                 type="text"
                                                 name={input.name}
                                                 id={input.name}
-                                                value={input.value}
+                                                value={input.value || ''}
                                                 className="border w-full rounded-md p-2 mt-2"
                                                 onChange={handleChange}
                                             />

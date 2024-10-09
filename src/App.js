@@ -26,6 +26,7 @@ import { TabProvider } from './Pages/TabContext';
 import { BranchProviderExel } from './Pages/BranchContextExel';
 import CandidateMain from './Pages/Candidate/CandidateMain';
 import GenerateReportProvider from './Pages/GenerateReportContext';
+import BackgroundForm from './Pages/BackgroundForm';
 const App = () => {
   return (
     <GenerateReportProvider>
@@ -53,6 +54,7 @@ const App = () => {
                                   <Route path='/trackerstatus' element={<Admin><ExelTrackerData /></Admin>} />
                                   <Route path='/addclient' element={<Admin><AddClient /></Admin>} />
                                   <Route path='/candidate' element={<Admin><CandidateMain /></Admin>} />
+                                  <Route path='/background_form' element={<BackgroundForm />} />
                                 </Routes>
                               </Router>
                             </ServiceProvider>

@@ -6,11 +6,11 @@ import DropBoxContext from './DropBoxContext';
 import { useApi } from '../ApiContext';
 
 const DropBoxList = () => {
-    const API_URL =useApi();
-    const { handleEditDrop,fetchClientDrop,listData } = useContext(DropBoxContext)
+    const API_URL = useApi();
+
     const { currentItem, showPerPage, setTotalResults, } = useContext(PaginationContext);
     const [paginated, setPaginated] = useState([]);
-
+    const { handleEditDrop, fetchClientDrop, listData } = useContext(DropBoxContext)
     useEffect(() => {
         fetchClientDrop();
     }, [fetchClientDrop]);

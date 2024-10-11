@@ -27,6 +27,7 @@ import { BranchProviderExel } from './Pages/BranchContextExel';
 import CandidateMain from './Pages/Candidate/CandidateMain';
 import GenerateReportProvider from './Pages/GenerateReportContext';
 import BackgroundForm from './Pages/BackgroundForm';
+import DigitalAddressVerification from './Pages/DigitalAddressVerification';
 const App = () => {
   return (
     <GenerateReportProvider>
@@ -55,6 +56,7 @@ const App = () => {
                                   <Route path='/addclient' element={<Admin><AddClient /></Admin>} />
                                   <Route path='/candidate' element={<Admin><CandidateMain /></Admin>} />
                                   <Route path='/background_form' element={<BackgroundForm />} />
+                                  <Route path='/digital_form' element={<DigitalAddressVerification />} />
                                 </Routes>
                               </Router>
                             </ServiceProvider>

@@ -5,9 +5,10 @@ import { FaGraduationCap, FaBriefcase, FaIdCard } from 'react-icons/fa';
 const BackgroundForm = () => {
     const [serviceData, setServiceData] = useState([]);
     const [formData, setFormData] = useState({
-        resume_file: '',
-        govt_id: '',
+
         personal_information: {
+            resume_file: '',
+            govt_id: '',
             full_name: '',
             former_name: '',
             mb_no: '',
@@ -25,6 +26,7 @@ const BackgroundForm = () => {
             declaration_date: ''
         },
     });
+
     const [isValidApplication, setIsValidApplication] = useState(true);
     const location = useLocation();
     const currentURL = location.pathname + location.search;
@@ -62,11 +64,6 @@ const BackgroundForm = () => {
 
     const decodedValues = getValuesFromUrl(currentURL);
 
-    useEffect(() => {
-        const isValid = decodedValues.app_id && decodedValues.branch_id && decodedValues.customer_id;
-        setIsValidApplication(isValid);
-    }, [decodedValues]); // Only runs when decodedValues changes
-
     const handleChange = (e) => {
         const { name, value, type, files } = e.target;
         if (type === 'file') {
@@ -81,65 +78,18 @@ const BackgroundForm = () => {
             });
         }
     };
-    const fetchData = useCallback(() => {
-        const serviceStr = '4,5,6';
-        const serviceArr = serviceStr.split(',').map(Number);
-
-        const requestOptions = {
-            method: "GET",
-            redirect: "follow"
-        };
-
-        const fetchPromises = serviceArr.map(serviceId =>
-            fetch(`https://goldquestreact.onrender.com/branch/candidate-application/email-form/service-form-json?service_id=${serviceId}`, requestOptions)
-                .then(res => {
-                    if (!res.ok) {
-                        throw new Error(`Error fetching service ID ${serviceId}: ${res.statusText}`);
-                    }
-                    return res.json();
-                })
-        );
-
-        Promise.all(fetchPromises)
-            .then(results => {
-                console.log('API Results:', results);
-
-                const combinedResults = results.flatMap(result => result.formJson || []);
-                console.log('combinedResults:', combinedResults);
-
-                const parsedData = combinedResults.map(item => {
-                    try {
-                        const cleanedJson = item.json.replace(/\\/g, '\\\\');
-                        return JSON.parse(cleanedJson);
-                    } catch (error) {
-                        console.error('JSON Parse Error:', error, 'for item:', item);
-                        return null;
-                    }
-                }).filter(data => data !== null);
-
-                console.log('Parsed Data:', parsedData);
-                setServiceData(parsedData);
-            })
-            .catch(err => console.error('Fetch error:', err));
-    }, [setServiceData]);
-
+ 
 
     const isApplicationExists = useCallback(() => {
         if (isValidApplication && decodedValues.app_id && decodedValues.branch_id && decodedValues.customer_id) {
-            const requestOptions = {
-                method: "GET",
-                redirect: "follow"
-            };
-
-            fetch(`https://goldquestreact.onrender.com/branch/candidate-application/email-form/is-application-exist?app_id=${decodedValues.app_id}&branch_id=${decodedValues.branch_id}&customer_id=${decodedValues.customer_id}`, requestOptions)
+            fetch(`https://goldquestreact.onrender.com/branch/candidate-application/backgroud-verification/is-application-exist?app_id=${decodedValues.app_id}&branch_id=${decodedValues.branch_id}&customer_id=${decodedValues.customer_id}`)
                 .then(res => res.json())
                 .then(result => {
-
                     if (!result.status) {
                         setIsValidApplication(false);
                         Swal.fire({
                             title: 'Error',
-                            text: 'Application not found',
+                            text:result.message,
                             icon: 'error',
                             confirmButtonText: 'OK'
                         });
@@ -150,7 +100,7 @@ const BackgroundForm = () => {
                 .catch(err => {
                     Swal.fire({
                         title: 'Error',
-                        text: 'An error occurred while checking the application',
+                        text: err.message,
                         icon: 'error',
                         confirmButtonText: 'OK'
                     });
@@ -158,30 +108,123 @@ const BackgroundForm = () => {
         }
     }, [isValidApplication, decodedValues]);
 
+    const fetchData = useCallback(() => {
+        const serviceStr = '4,5,6';
+        const serviceArr = serviceStr.split(',').map(Number);
+
+        const requestOptions = {
+            method: "GET",
+            redirect: "follow"
+        };
+
+        const fetchPromises = serviceArr.map(serviceId =>
+            fetch(`https://goldquestreact.onrender.com/branch/candidate-application/backgroud-verification/service-form-json?service_id=${serviceId}`, requestOptions)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`Error fetching service ID ${serviceId}: ${res.statusText}`);
+                    }
+                    return res.json();
+                })
+        );
+
+        Promise.all(fetchPromises)
+            .then(results => {
+                const combinedResults = results.flatMap(result => result.formJson || []);
+                const parsedData = combinedResults.map(item => {
+                    try {
+                        const cleanedJson = item.json.replace(/\\/g, '\\\\');
+                        return JSON.parse(cleanedJson);
+                    } catch (error) {
+                        console.error('JSON Parse Error:', error, 'for item:', item);
+                        return null;
+                    }
+                }).filter(data => data !== null);
+
+                setServiceData(parsedData);
+            })
+            .catch(err => console.error('Fetch error:', err));
+    }, []);
+
     useEffect(() => {
         fetchData();
     }, [fetchData]);
 
     useEffect(() => {
         isApplicationExists();
-    }, [isValidApplication, decodedValues]); // Check application existence when these change
+    }, [isValidApplication, decodedValues]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
+    
+        const submittedData = {}; 
+    
+        serviceData.forEach((service) => {
+            const serviceKey = service.db_table;
+            submittedData[serviceKey] = {};
+    
+            service.rows.forEach((row) => {
+                row.inputs.forEach((input) => {
+                    submittedData[serviceKey][input.name] =
+                        input.type === 'checkbox' ? input.checked : input.value || '';
+                });
+            });
+        });
+    
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+    
+        const raw = JSON.stringify({
+            "branch_id": decodedValues.branch_id,
+            "customer_id": decodedValues.customer_id,
+            "application_id": decodedValues.app_id,
+            ...formData,
+            "annexure": submittedData, 
+        });
+    
+        const requestOptions = {
+            method: "PUT",
+            headers: myHeaders,
+            body: raw,
+            redirect: "follow",
+        };
+    
+        fetch("https://goldquestreact.onrender.com/branch/candidate-application/backgroud-verification/submit", requestOptions)
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json(); // Assuming the server returns JSON
+            })
+            .then((result) => console.log(result))
+            .catch((error) => console.error('Error:', error));
+    
+        console.log('Submitted Data:', submittedData);
     };
+    
 
-    console.log('serviceData', serviceData);
+
+    const handleServiceChange = (e, serviceIndex, rowIndex, inputIndex) => {
+        const { name, type, value, checked } = e.target;
+
+        setServiceData(prevData => {
+            const newData = [...prevData];
+            const inputValue = type === 'checkbox' ? checked : value;
+
+            newData[serviceIndex].rows[rowIndex].inputs[inputIndex].value = inputValue;
+            return newData;
+        });
+    };
 
 
     return (
         <form action="" className='py-6' onSubmit={handleSubmit} id='bg-form'>
             <h4 className="text-green-600 text-2xl mb-6 text-center font-bold">Background Verification Form</h4>
-            <div className="p-6 rounded w-8/12 m-auto ">
-                <div className="mb-6 bg-gray-200 p-4 rounded-md">
+            <div className="p-6 rounded md:w-8/12 m-auto ">
+                <div className="mb-6 bg-slate-100 p-4 rounded-md">
                     <h5 className="text-lg font-bold">Company name: <span className="text-lg font-normal">Shetty Legacy LLP</span></h5>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 bg-gray-200 p-4 rounded-md">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 bg-slate-100 p-4 rounded-md">
                     <div className="form-group col-span-2">
                         <label>Applicant’s CV: <span className="text-red-500">*</span></label>
                         <input
@@ -201,7 +244,6 @@ const BackgroundForm = () => {
                             className="form-control border rounded w-full bg-white p-3 mt-2"
                             name="govt_id"
                             onChange={handleChange}
-
                             multiple
                         />
                     </div>
@@ -209,7 +251,7 @@ const BackgroundForm = () => {
 
                 <h4 className="text-center text-2xl my-6 font-bold ">Personal Information</h4>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 bg-gray-200 p-4 rounded-md">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 bg-slate-100 p-4 rounded-md">
                     <div className="form-group">
                         <label htmlFor="full_name">Full Name as per Govt ID Proof (first, middle, last): <span className="text-red-500">*</span></label>
                         <input
@@ -371,7 +413,7 @@ const BackgroundForm = () => {
                 </div>
 
                 <h4 className="text-center text-xl my-6">Declaration and Authorization</h4>
-                <div className='mb-6 bg-gray-200 p-4 rounded-md'>
+                <div className='mb-6 bg-slate-100 p-4 rounded-md'>
                     <div className="mb-6">
                         <p>
                             I hereby authorize GoldQuest Global HR Services Private Limited and its representative to verify information provided in my application for employment and this employee background verification form, and to conduct enquiries as may be necessary, at the company’s discretion. I authorize all persons who may have information relevant to this enquiry to disclose it to GoldQuest Global HR Services Pvt Ltd or its representative. I release all persons from liability on account of such disclosure.
@@ -422,7 +464,7 @@ const BackgroundForm = () => {
 
                 <h5 className="text-center text-lg my-6">Documents  (Mandatory)</h5>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 bg-gray-200 p-4 rounded-md">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 bg-slate-100 md:p-4 p-1 rounded-md">
                     <div className="p-4">
                         <h6 className="flex items-center text-lg font-bold mb-2">
                             <FaGraduationCap className="mr-3" />
@@ -447,80 +489,50 @@ const BackgroundForm = () => {
                         <p>Aadhaar Card / Bank Passbook / Passport Copy / Driving License / Voter ID.</p>
                     </div>
                 </div>
-
-
-                {serviceData.map(service => {
-                    return (
-                        <div key={service.id} className='border p-8 rounded-md mt-5'>
-                            <h2 className='text-center py-4 text-2xl'>{service.heading}</h2>
-                            {service.rows.map((row, rowIndex) => (
-                                <div key={rowIndex} className="mb-4">
+                {serviceData.map((service, serviceIndex) => (
+                    <div key={serviceIndex} className='border md:p-8 p-2 rounded-md mt-5 bg-slate-100'>
+                        <h2 className='text-center py-4 text-2xl'>{service.heading}</h2>
+                        {service.rows.map((row, rowIndex) => (
+                            <div key={rowIndex} className="mb-4">
+                                {row.heading && <h3 className='md:text-xl font-semibold mb-2'>{row.heading}</h3>}
+                                <div className="md:flex flex-wrap gap-4">
                                     {row.inputs.map((input, inputIndex) => (
-                                        <div key={inputIndex} className="mb-2">
-                                        <div className='flex gap-3'>
-                                        {input.label}
-                                        <label htmlFor={input.name} className="block text-gray-700 font-semibold mb-1">
-                                       
-                                    </label>
-                                    {input.type === 'checkbox' && (
-                                        <input
-                                            type="checkbox"
-                                            name={input.name}
-                                            className="form-checkbox h-5 w-5"
-                                        />
-                                    )}
-                                        </div>
-                                            {input.type === 'text' && (
+                                        <div key={inputIndex} className="mb-2 md:flex-1 md:min-w-[30%] max-w-full">
+                                            <div className='flex items-center justify-start'>
+                                                {input.type === 'checkbox' && (
+                                                    <input
+                                                        type="checkbox"
+                                                        name={input.name}
+                                                        checked={input.value || false}
+                                                        onChange={(e) => handleServiceChange(e, serviceIndex, rowIndex, inputIndex)}
+                                                        className="form-checkbox w-auto me-3"
+                                                    />
+                                                )}
+                                                <label className="block text-slate-700 font-semibold mb-1 ">{input.label}</label>
+                                            </div>
+                                            {input.type !== 'checkbox' && (
                                                 <input
-                                                    type="text"
+                                                    type={input.type}
                                                     name={input.name}
                                                     required={input.required}
-                                                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none"
-                                                />
-                                            )}
-                                            {input.type === 'select' && (
-                                                <select
-                                                    name={input.name}
-                                                    required={input.required}
-                                                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none"
-                                                >
-                                                    {input.options.map((option, optionIndex) => (
-                                                        <option key={optionIndex} value={option}>
-                                                            {option}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            )}
-                                            {input.type === 'date' && (
-                                                <input
-                                                    type="date"
-                                                    name={input.name}
-                                                    required={input.required}
-                                                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none"
-                                                />
-                                            )}
-                                            {input.type === 'file' && (
-                                                <input
-                                                    type="file"
-                                                    name={input.name}
-                                                    multiple={input.multiple}
-                                                    required={input.required}
-                                                    className="mt-1 block w-full text-gray-500"
+                                                    value={input.value || ''}
+                                                    onChange={(e) => handleServiceChange(e, serviceIndex, rowIndex, inputIndex)}
+                                                    className="mt-1 block p-2 border w-full border-slate-300 rounded-md focus:outline-none"
                                                 />
                                             )}
                                         </div>
                                     ))}
                                 </div>
-                            ))}
+                            </div>
+                        ))}
+                    </div>
+                ))}
 
-                        </div>
-                    );
-                })}
                 <p className='text-center text-sm mt-4'>
                     NOTE: If you experience any issues or difficulties with submitting the form, please take screenshots of all pages, including attachments and error messages, and email them to <a href="mailto:onboarding@goldquestglobal.in">onboarding@goldquestglobal.in</a> . Additionally, you can reach out to us at <a href="mailto:onboarding@goldquestglobal.in">onboarding@goldquestglobal.in</a> .
                 </p>
 
-                <button type="submit" className='bg-green-500 p-3 rounded-md text-white '>Submit</button>
+                <button type="submit" className='bg-green-500 p-3 w-full mt-5 rounded-md text-white '>Submit</button>
             </div>
         </form>
     );

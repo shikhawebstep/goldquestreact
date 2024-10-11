@@ -36,11 +36,11 @@ const CustomerLoginForm = () => {
         };
 
         fetch(`${API_URL}/customer/fetch-branch-password?branch_email=${email}&admin_id=${admin_id}&_token=${storedToken}`, requestOptions)
-            .then((response) => response.json()) // Assuming the response is JSON
+            .then((response) => response.json()) 
             .then((result) => {
                 setInput(prev => ({
                     ...prev,
-                    password: result.password // Setting the password in the input state
+                    password: result.password 
                 }));
                 console.log(result.password);
             })
@@ -139,7 +139,7 @@ const CustomerLoginForm = () => {
     };
 
     return (
-        <div className="w-full max-w-7xl mx-auto p-4">
+        <div className="w-full md:max-w-7xl mx-auto p-4">
             <form onSubmit={handleSubmitForm} aria-live="polite">
                 <div className="mb-3">
                     <label htmlFor="email" className='d-block '>Enter Your Email:</label>

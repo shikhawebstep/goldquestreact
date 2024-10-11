@@ -99,13 +99,13 @@ const ClientForm = () => {
         }
     };
 
-  
 
     const handleSubmit = (e) => {
         e.preventDefault();
         const errors = validate();
         if (Object.keys(errors).length === 0) {
             const branch_id = JSON.parse(localStorage.getItem("branch"))?.id;
+            const customer_id = JSON.parse(localStorage.getItem("branch"))?.customer_id;
             const branch_token = localStorage.getItem("branch_token");
             const myHeaders = new Headers();
             myHeaders.append("Content-Type", "application/json");
@@ -115,6 +115,7 @@ const ClientForm = () => {
            
 
             const Raw = JSON.stringify({
+                "customer_id":customer_id,
                 "branch_id": branch_id,
                 "_token": branch_token,
                 "name": clientInput.name,
@@ -185,6 +186,8 @@ const ClientForm = () => {
             setInputError(errors);
         }
     };
+
+
 
     return (
         <>

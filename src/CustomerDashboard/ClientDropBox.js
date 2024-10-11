@@ -1,7 +1,13 @@
-import React from 'react'
+import React, { useEffect,useContext} from 'react'
 import DropBoxList from './DropBoxList';
 import ClientForm from './ClientForm';
+import DropBoxContext from './DropBoxContext';
+
 const ClientDropBox = () => {
+    const {fetchServices} =useContext(DropBoxContext);
+    useEffect(()=>{
+        fetchServices();
+    },[fetchServices])
     return (
         <>
             <div className=" py-4 md:py-16">

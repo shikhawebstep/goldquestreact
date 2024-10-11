@@ -1,36 +1,90 @@
 import React, { useContext, useEffect, useState } from 'react';
 import PaginationContext from '../Pages/PaginationContext';
 import Pagination from '../Pages/Pagination';
-import { useMemo } from 'react';
-
+import DropBoxContext from './DropBoxContext';
+import { useApi } from '../ApiContext';
 const ReportCaseTable = () => {
-    const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
-
-    const [expandedRows, setExpandedRows] = useState([]);
-
-    const ReportData =useMemo(()=> [
-        { sl: "1",id: "GQ-NLT-9", applicant_name: "Neelakumar M", applicant_id: "	NA", iniation_date: "29-07-2024", report_date: "22-06-2024",let_em: "NIL",ex_em: "NIL", prev_emp_3:"null",prev_emp_4:"null",prev_emp_5:"null", per_add:"WIP",cur_add:"NIL",post_garduation:"WIP",graduation:"NIL",twelth:"NIL",tenth:"NIL",diploama:"NIL", nat_identity:"COMPLETED GREEN",nat_identity2:"NIL", overall_status:"WIP" },
-        { sl: "1",id: "GQ-NLT-9", applicant_name: "Neelakumar M", applicant_id: "	NA", iniation_date: "29-07-2024", report_date: "22-06-2024",let_em: "NIL",ex_em: "NIL", prev_emp_3:"null",prev_emp_4:"null",prev_emp_5:"null", per_add:"WIP",cur_add:"NIL",post_garduation:"WIP",graduation:"NIL",twelth:"NIL",tenth:"NIL",diploama:"NIL", nat_identity:"COMPLETED GREEN",nat_identity2:"NIL", overall_status:"WIP" },
-        { sl: "1",id: "GQ-NLT-9", applicant_name: "Neelakumar M", applicant_id: "	NA", iniation_date: "29-07-2024", report_date: "22-06-2024",let_em: "NIL",ex_em: "NIL", prev_emp_3:"null",prev_emp_4:"null",prev_emp_5:"null", per_add:"WIP",cur_add:"NIL",post_garduation:"WIP",graduation:"NIL",twelth:"NIL",tenth:"NIL",diploama:"NIL", nat_identity:"COMPLETED GREEN",nat_identity2:"NIL", overall_status:"WIP" },
-       
-    ],[]);
-    const [paginated, setPaginated] = useState([]);
-
+    const API_URL = useApi();
+    const { fetchClientDrop, listData } = useContext(DropBoxContext);
+    const [serviceTitle, setServiceTitle] = useState([]);
     useEffect(() => {
-        setTotalResults(ReportData.length);
+        fetchClientDrop();
+    }, [fetchClientDrop]);
+    const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
+    const [expandedRows, setExpandedRows] = useState([]);
+    const [paginated, setPaginated] = useState([]);
+    useEffect(() => {
+        setTotalResults(listData.length);
         const startIndex = (currentItem - 1) * showPerPage;
         const endIndex = startIndex + showPerPage;
-        setPaginated(ReportData.slice(startIndex, endIndex));
-    }, [currentItem, setTotalResults,ReportData,showPerPage]);
+        setPaginated(listData.slice(startIndex, endIndex));
+    }, [currentItem, setTotalResults, listData, showPerPage]);
 
-    const handleToggle = (index) => {
+    const handleToggle = (index, services, branch_id, id) => {
+        const servicesArray = services.split(',').map(Number);
+        const storedToken = localStorage.getItem("branch_token");
+
         const newExpandedRows = expandedRows.includes(index)
             ? expandedRows.filter((row) => row !== index)
             : [...expandedRows, index];
+
         setExpandedRows(newExpandedRows);
+
+        const fetchPromises = servicesArray.map(serviceId => {
+            const url = `${API_URL}/branch/annexure-by-service?service_id=${serviceId}&application_id=${id}&branch_id=${branch_id}&_token=${storedToken}`;
+            const requestOptions = {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            };
+
+            return fetch(url, requestOptions)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                });
+        });
+
+        Promise.all(fetchPromises)
+            .then(results => {
+
+
+                console.log('results', results);
+                const serviceHeading = {};
+                
+                results.forEach(serviceTitle => {
+                    if (typeof serviceTitle === 'object' && serviceTitle !== null) {
+                        const hasHeading = serviceTitle.hasOwnProperty('heading');
+                        const hasAnnexureData = serviceTitle.annexureData && typeof serviceTitle.annexureData === 'object';
+                
+                        const entry = {
+                            heading: hasHeading ? serviceTitle.heading || '' : '',
+                            status: hasAnnexureData ? serviceTitle.annexureData.status || '' : ''
+                        };
+                
+                        if (!serviceHeading[id]) {
+                            serviceHeading[id] = [];
+                        }
+                        serviceHeading[id].push(entry);
+                    }
+                });
+                
+                setServiceTitle(serviceHeading);
+                
+            })
+
+            .catch(error => {
+
+                console.error('Error fetching service info:', error);
+            });
     };
 
-   
+
+    console.log(`serviceTitle - `,serviceTitle);
+
+
+
     return (
         <>
             <div className="overflow-x-auto my-14 mx-4 bg-white shadow-md rounded-md">
@@ -51,17 +105,17 @@ const ReportCaseTable = () => {
                             <React.Fragment key={index}>
                                 <tr>
                                     <td className="py-3 px-4 border-b border-r whitespace-nowrap">
-                                        <input type="checkbox" name="" id="" className='me-2' />{item.sl}
+                                        <input type="checkbox" name="" id="" className='me-2' />{index + 1}
                                     </td>
-                                    <td className="py-3 px-4 border-b border-r whitespace-nowrap">{item.id}</td>
-                                    <td className="py-3 px-4 border-b border-r whitespace-nowrap">{item.applicant_name}</td>
-                                    <td className="py-3 px-4 border-b border-r whitespace-nowrap">{item.applicant_id}</td>
-                                    <td className="py-3 px-4 border-b border-r whitespace-nowrap">{item.iniation_date}</td>
+                                    <td className="py-3 px-4 border-b border-r whitespace-nowrap">{item.application_id}</td>
+                                    <td className="py-3 px-4 border-b border-r whitespace-nowrap">{item.name}</td>
+                                    <td className="py-3 px-4 border-b border-r whitespace-nowrap">{item.employee_id}</td>
+                                    <td className="py-3 px-4 border-b border-r whitespace-nowrap">{item.created_at}</td>
                                     <td className="py-3 px-4 border-b border-r whitespace-nowrap">{item.report_date}</td>
                                     <td className="py-3 px-4 border-b border-r text-center whitespace-nowrap">
                                         <button
                                             className="bg-green-500 hover:bg-green-400 rounded-md p-2 px-3 text-white"
-                                            onClick={() => handleToggle(index)}
+                                            onClick={() => handleToggle(index, item.services, item.branch_id, item.id)}
                                         >
                                             {expandedRows.includes(index) ? "Hide Details" : "View More"}
                                         </button>
@@ -74,40 +128,27 @@ const ReportCaseTable = () => {
                                                 <table className="min-w-full max-w-full bg-gray-100 overflow-auto">
                                                     <thead>
                                                         <tr className=''>
-                                                            <th className="py-3 px-4 border-b text-center text-sm uppercase whitespace-nowrap ">LATEST EMPLOYMENT-1</th>
-                                                            <th className="py-3 px-4 border-b text-center text-sm uppercase whitespace-nowrap ">EX-EMPLOYMENT-2</th>
-                                                            <th className="py-3 px-4 border-b text-center text-sm uppercase whitespace-nowrap ">PREVIOUS EMPLOYMENT-3</th>
-                                                            <th className="py-3 px-4 border-b text-center text-sm uppercase whitespace-nowrap ">PREVIOUS EMPLOYMENT-4</th>
-                                                            <th className="py-3 px-4 border-b text-center text-sm uppercase whitespace-nowrap ">PREVIOUS EMPLOYMENT-5</th>
-                                                            <th className="py-3 px-4 border-b text-center text-sm uppercase whitespace-nowrap ">PERMANENT ADDRESS</th>
-                                                            <th className="py-3 px-4 border-b text-center text-sm uppercase whitespace-nowrap ">CURRENT ADDRESS</th>
-                                                            <th className="py-3 px-4 border-b text-center text-sm uppercase whitespace-nowrap ">POST GRADUATION	</th>
-                                                            <th className="py-3 px-4 border-b text-center text-sm uppercase whitespace-nowrap ">GRADUATION</th>
-                                                            <th className="py-3 px-4 border-b text-center text-sm uppercase whitespace-nowrap ">12TH-STD</th>
-                                                            <th className="py-3 px-4 border-b text-center text-sm uppercase whitespace-nowrap ">10TH-STD</th>
-                                                            <th className="py-3 px-4 border-b text-center text-sm uppercase whitespace-nowrap ">DIPLOMA / ITI</th>
-                                                            <th className="py-3 px-4 border-b text-center text-sm uppercase whitespace-nowrap ">NATIONAL IDENTITY-1</th>
-                                                            <th className="py-3 px-4 border-b text-center text-sm uppercase whitespace-nowrap ">NATIONAL IDENTITY-2</th>
-                                                            <th className="py-3 px-4 border-b text-center text-sm uppercase whitespace-nowrap ">Overall Status</th>
+                                                        {serviceTitle[item.id] && serviceTitle[item.id].map((service, serviceIndex) => {
+                                                                return (
+                                                                    <>
+                                                                        <th className="py-3 px-4 border-b text-center text-sm uppercase whitespace-nowrap ">{service.heading || 'N/A'}</th>
+
+                                                                    </>
+                                                                )
+                                                            })}
+
                                                         </tr>
                                                     </thead>
                                                     <tbody>
                                                         <tr>
-                                                            <td className="py-3 px-4 border-b whitespace-nowrap text-center">{item.let_em}</td>
-                                                            <td className="py-3 px-4 border-b whitespace-nowrap text-center">{item.ex_em}</td>
-                                                            <td className="py-3 px-4 border-b whitespace-nowrap text-center">{item.prev_emp_3}</td>
-                                                            <td className="py-3 px-4 border-b whitespace-nowrap text-center">{item.prev_emp_4}</td>
-                                                            <td className="py-3 px-4 border-b whitespace-nowrap text-center">{item.prev_emp_5}</td>
-                                                            <td className="py-3 px-4 border-b whitespace-nowrap text-center">{item.per_add}</td>
-                                                            <td className="py-3 px-4 border-b whitespace-nowrap text-center">{item.cur_add}</td>
-                                                            <td className="py-3 px-4 border-b whitespace-nowrap text-center">{item.post_garduation}</td>
-                                                            <td className="py-3 px-4 border-b whitespace-nowrap text-center">{item.graduation}</td>
-                                                            <td className="py-3 px-4 border-b whitespace-nowrap text-center">{item.twelth}</td>
-                                                            <td className="py-3 px-4 border-b whitespace-nowrap text-center">{item.tenth}</td>
-                                                            <td className="py-3 px-4 border-b whitespace-nowrap text-center">{item.diploama}</td>
-                                                            <td className="py-3 px-4 border-b whitespace-nowrap text-center">{item.nat_identity}</td>
-                                                            <td className="py-3 px-4 border-b whitespace-nowrap text-center">{item.nat_identity2}</td>
-                                                            <td className="py-3 px-4 border-b whitespace-nowrap text-center">{item.overall_status}</td>
+
+                                                            {serviceTitle[item.id] && serviceTitle[item.id].map((service, serviceIndex) => {
+                                                                return (
+                                                                    <>
+                                                                        <td className="py-3 px-4 border-b whitespace-nowrap text-center">{service.status || 'N/A'}</td>
+                                                                    </>
+                                                                )
+                                                            })}
                                                         </tr>
                                                     </tbody>
                                                 </table>
@@ -120,7 +161,7 @@ const ReportCaseTable = () => {
                     </tbody>
                 </table>
             </div>
-            <Pagination/>
+            <Pagination />
         </>
     );
 };

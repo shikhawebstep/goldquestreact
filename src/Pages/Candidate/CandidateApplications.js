@@ -5,7 +5,6 @@ import { useGenerateReport } from '../GenerateReportContext';
 const CandidateApplications = () => {
     const renderedServices = new Set();
     const [allInputDetails, setAllInputDetails] = useState([]);
-    const [serviceHeadings, setServiceHeadings] = useState([]);
     const [disabledFields, setDisabledFields] = useState({
         month_year: false,
         initiation_date: false,
@@ -23,28 +22,15 @@ const CandidateApplications = () => {
         nationality: false,
         insuff: false,
     });
-    const [annexureData, setAnnexureData] = useState({});
+    const [, setAnnexureData] = useState({});
     const { service_id, branch_id, application_id } = useContext(BranchContextExel);
     const [annexure, setAnnexure] = useState({});
     const [, setLoading] = useState(false);
     const [, setError] = useState(null);
     const { formData, setFormData, handleInputChange } = useGenerateReport();
-
     const [errors, setErrors] = useState({});
+    const [serviceHeadings, setServiceHeadings] = useState([]);
 
-    const validateForm = () => {
-        const newErrors = {};
-        const requiredFields = [];
-
-        requiredFields.forEach(field => {
-            if (!formData[field]) {
-                console.log(`Empty - ${field}`);
-            }
-            if (!formData[field]) newErrors[field] = "This field is required*";
-        });
-
-        return newErrors;
-    };
 
     const fetchServices = useCallback(() => {
         const servicesArray = service_id ? service_id.split(',').map(Number) : [];
@@ -53,17 +39,11 @@ const CandidateApplications = () => {
         setLoading(true);
         setError(null);
 
-        const processedServices = new Set(); // Initialize a Set to track processed services
-        const allInputDetails = []; // Initialize this array at the beginning
-
+        const allInputDetails = [];
+        let inYes = [];
+        let inNo = [];
         Promise.all(
             servicesArray.map(serviceId => {
-                if (processedServices.has(serviceId)) {
-                    // If the serviceId has already been processed, skip it
-                    return Promise.resolve({ serviceId, parsedJson: null });
-                }
-                processedServices.add(serviceId); // Add the serviceId to the Set
-
                 return fetch(
                     `https://goldquestreact.onrender.com/client-master-tracker/report-form-json-by-service-id?service_id=${serviceId}&admin_id=${admin_id}&_token=${storedToken}`,
                     {
@@ -97,104 +77,134 @@ const CandidateApplications = () => {
                             return { serviceId, parsedJson: null };
                         }
 
-                        // console.log(`JSON - `, parsedJson.db_table);
-                        // console.log('heading',parsedJson.heading);
+                        // Collect unique service headings
+                        setServiceHeadings(prevHeadings => {
+                            const updatedHeadings = [...prevHeadings];
 
+                            if (!updatedHeadings.some(service => service.service_id === serviceId)) {
+                                updatedHeadings.push({
+                                    heading: parsedJson.heading,
+                                    service_id: serviceId,
+                                });
+                            }
 
-                        if (!serviceHeadings.some(service => service.serviceId === serviceId)) {
-                            serviceHeadings.push({
-                                heading: parsedJson.heading,
-                                service_id: serviceId,
-                            });
-                        }
-                        
+                            return updatedHeadings;
+                        });
 
-                        if (parsedJson.db_table) {
-                            const requestAnnexureOptions = {
-                                method: "GET",
-                                redirect: "follow"
-                            };
-
+                        if (parsedJson.db_table && parsedJson.db_table.trim() !== '') {
                             const annexureURL = `https://goldquestreact.onrender.com/client-master-tracker/annexure-data?application_id=${application_id}&db_table=${parsedJson.db_table}&admin_id=${admin_id}&_token=${storedToken}`;
-
-                            return fetch(annexureURL, requestAnnexureOptions)
+                            
+                            return fetch(annexureURL)
                                 .then(annexureResponse => {
-                                    if (!annexureResponse.ok) {
-                                        throw new Error(`HTTP error! status: ${annexureResponse.status}`);
-                                    }
-                                    return annexureResponse.json();
-                                })
-                                .then(annexureResult => {
                                     const inputDetails = [];
-                                    console.log(`annexureResult ${serviceId} - `, annexureResult);
-
-                                    if (Array.isArray(annexureResult.annexureData)) {
-                                        parsedJson.rows.forEach(row => {
-                                            row.inputs.forEach(input => {
-                                                const foundItem = annexureResult.annexureData.find(item => item.name === input.name);
-                                                const value = foundItem ? foundItem.value : null;
-
-                                                const inputDetail = {
-                                                    label: input.label,
-                                                    name: input.name,
-                                                    type: input.type,
-                                                    value: value,
-                                                    options: input.options || undefined // Include options if present
-                                                };
-
-                                                inputDetails.push(inputDetail);
-                                            });
-                                        });
-                                    } else if (typeof annexureResult.annexureData === 'object' && annexureResult.annexureData !== null) {
-                                        parsedJson.rows.forEach(row => {
-                                            row.inputs.forEach(input => {
-                                                const value = annexureResult.annexureData[input.name] || null;
-
-                                                const inputDetail = {
-                                                    label: input.label,
-                                                    name: input.name,
-                                                    type: input.type,
-                                                    value: value,
-                                                    options: input.options || undefined // Include options if present
-                                                };
-
-                                                inputDetails.push(inputDetail);
-                                            });
-                                        });
-                                    } else {
-                                        console.error("Expected annexureData to be either an array or an object, but got:", annexureResult.annexureData);
-                                    }
                                     const db_table = parsedJson.db_table;
-                                    allInputDetails.push({ db_table, serviceId, inputDetails });
-                                    return { serviceId, parsedJson };
+                        
+                                    if (!annexureResponse.ok) {
+                                        if (!inNo.includes(db_table)) {
+                                            parsedJson.rows.forEach(row => {
+                                                row.inputs.forEach(input => {
+                                                    inputDetails.push({
+                                                        label: input.label,
+                                                        name: input.name,
+                                                        type: input.type,
+                                                        value: null,
+                                                        options: input.options || undefined,
+                                                    });
+                                                });
+                                            });
+                        
+                                            allInputDetails.push({ db_table, serviceId, inputDetails });
+                                            inNo.push(db_table);
+                        
+                                            console.error(`HTTP error! status: ${annexureResponse.status}`);
+                                        }
+                                    }
+                        
+                                    return annexureResponse.json()
+                                        .then(annexureResult => {
+                                            const inputDetails = [];
+                        
+                                            if (Array.isArray(annexureResult.annexureData)) {
+                                                parsedJson.rows.forEach(row => {
+                                                    row.inputs.forEach(input => {
+                                                        const foundItem = annexureResult.annexureData.find(item => item.name === input.name);
+                                                        const value = foundItem ? foundItem.value : null;
+                        
+                                                        inputDetails.push({
+                                                            label: input.label,
+                                                            name: input.name,
+                                                            type: input.type,
+                                                            value: value,
+                                                            options: input.options || undefined,
+                                                        });
+                                                    });
+                                                });
+                                            } else if (typeof annexureResult.annexureData === 'object' && annexureResult.annexureData !== null) {
+                                              
+                        
+                                                parsedJson.rows.forEach(row => {
+                                                    row.inputs.forEach(input => {
+                                                        const value = annexureResult.annexureData[input.name] || null;
+                        
+                                                        inputDetails.push({
+                                                            label: input.label,
+                                                            name: input.name,
+                                                            type: input.type,
+                                                            value: value,
+                                                            options: input.options || undefined,
+                                                        });
+                                                    });
+                                                });
+                                            } else {
+                                                parsedJson.rows.forEach(row => {
+                                                    row.inputs.forEach(input => {
+                                                        inputDetails.push({
+                                                            label: input.label,
+                                                            name: input.name,
+                                                            type: input.type,
+                                                            options: input.options || undefined,
+                                                        });
+                                                    });
+                                                });
+                                                console.error("Expected annexureData to be either an array or an object, but got:", annexureResult.annexureData);
+                                            }
+                        
+                                            // Check if the service already exists before adding
+                                            if (!allInputDetails.some(item => item.db_table === db_table)) {
+                                                allInputDetails.push({ db_table, serviceId, inputDetails });
+                                            }
+                        
+                                            return { serviceId, parsedJson };
+                                        });
                                 })
                                 .catch(annexureError => {
                                     console.error("Fetch error: ", annexureError);
-                                    throw annexureError; // Rethrow the error if needed
+                                    throw annexureError;
                                 });
                         }
+                        
 
                         return { serviceId, parsedJson };
                     });
             })
         )
             .then(results => {
-
                 setAllInputDetails(allInputDetails);
-                // console.log(`allInputDetails - `, allInputDetails);
 
                 const mainAnnexureData = allInputDetails.reduce((acc, { serviceId, inputDetails }) => {
+                  
                     acc[serviceId] = inputDetails.reduce((inputAcc, { name, value }) => {
-                        inputAcc[name] = value; // Map each input name to its value
+                        inputAcc[name] = value !== undefined ? value : '';
                         return inputAcc;
                     }, {});
                     return acc;
                 }, {});
 
+
+
                 const newAnnexureData = results.reduce((acc, { serviceId, parsedJson }) => {
                     const title = parsedJson.db_table;
                     const valueObject = {};
-
 
                     parsedJson.rows.forEach(row => {
                         row.inputs.forEach(input => {
@@ -205,159 +215,37 @@ const CandidateApplications = () => {
                     acc[title] = valueObject;
                     return acc;
                 }, {});
-                setAnnexure(mainAnnexureData)
 
+                setAnnexure(mainAnnexureData);
                 setAnnexureData(newAnnexureData);
             }).catch(error => {
                 console.error('Fetch error:', error);
                 setError('Failed to load data');
             })
             .finally(() => setLoading(false));
-    }, [service_id]);
+    }, [service_id, application_id]);
 
 
+    const validateForm = () => {
+        const newErrors = {};
+        const requiredFields = [];
 
-
-    const fetchClients = useCallback(() => {
-        const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
-        const storedToken = localStorage.getItem("_token");
-        setLoading(true);
-        setError(null);
-
-        fetch(
-            `https://goldquestreact.onrender.com/client-master-tracker/application-by-id?application_id=${application_id}&branch_id=${branch_id}&admin_id=${admin_id}&_token=${storedToken}`,
-            {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+        requiredFields.forEach(field => {
+            if (!formData[field]) {
             }
-        )
-            .then(response => {
-                if (!response.ok) {
-                    return response.text().then(text => {
-                        const errorData = JSON.parse(text);
-                        Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
-                        throw new Error(text);
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                const applications = data.application;
-                Object.entries(applications).forEach(([key, value]) => {
-                    const input = document.querySelector(`input[name="${key}"]`); // Select input by name
-                    if (input) {
-                        input.value = value; // Update the input's value
-                    } else {
-                        console.log(`No input found with name="${key}"`);
-                    }
-                });
-                const cmtData = data.CMTData;
+            if (!formData[field]) newErrors[field] = "This field is required*";
+        });
 
-                // Loop over keys and values in the object
-                Object.entries(cmtData).forEach(([key, value]) => {
-                    const input = document.querySelector(`input[name="${key}"]`); // Select input by name
-                    if (input) {
-                        input.value = value; // Update the input's value
-                    } else {
-                        console.log(`No input found with name="${key}"`);
-                    }
-                });
+        return newErrors;
+    };
 
 
-                // Update formData state with prefilled values
-                setFormData(prevFormData => ({
-                    updated_json: {
-                        month_year: applications.month_year || prevFormData.updated_json.month_year || '',
-                        initiation_date: applications.initiation_date || prevFormData.updated_json.initiation_date || '',
-                        organization_name: applications.organization_name || prevFormData.updated_json.organization_name || '',
-                        verification_purpose: applications.verification_purpose || prevFormData.updated_json.verification_purpose || '',
-                        employee_id: applications.employee_id || prevFormData.updated_json.employee_id || '',
-                        client_code: applications.client_code || prevFormData.updated_json.client_code || '',
-                        applicant_name: applications.applicant_name || prevFormData.updated_json.applicant_name || '',
-                        contact_number: applications.contact_number || prevFormData.updated_json.contact_number || '',
-                        contact_number2: applications.contact_number2 || prevFormData.updated_json.contact_number2 || '',
-                        father_name: applications.father_name || prevFormData.updated_json.father_name || '',
-                        dob: applications.dob || prevFormData.updated_json.dob || '',
-                        gender: applications.gender || prevFormData.updated_json.gender || '',
-                        marital_status: applications.marital_status || prevFormData.updated_json.marital_status || '',
-                        nationality: applications.nationality || prevFormData.updated_json.nationality || '',
-                        insuff: applications.insuff || prevFormData.updated_json.insuff || '',
-                        address: {
-                            address: cmtData.address || prevFormData.updated_json.address.address || '',
-                            landmark: cmtData.landmark || prevFormData.updated_json.address.landmark || '',
-                            residence_mobile_number: cmtData.residence_mobile_number || prevFormData.updated_json.address.residence_mobile_number || '',
-                            state: cmtData.state || prevFormData.updated_json.address.state || ''
-                        },
-                        permanent_address: {
-                            permanent_address: cmtData.permanent_address || prevFormData.updated_json.permanent_address.permanent_address || '',
-                            permanent_sender_name: cmtData.permanent_sender_name || prevFormData.updated_json.permanent_address.permanent_sender_name || '',
-                            permanent_receiver_name: cmtData.permanent_receiver_name || prevFormData.updated_json.permanent_address.permanent_receiver_name || '',
-                            permanent_landmark: cmtData.permanent_landmark || prevFormData.updated_json.permanent_address.permanent_landmark || '',
-                            permanent_pin_code: cmtData.permanent_pin_code || prevFormData.updated_json.permanent_address.permanent_pin_code || '',
-                            permanent_state: cmtData.permanent_state || prevFormData.updated_json.permanent_address.permanent_state || ''
-                        },
-                        insuffDetails: {
-                            first_insufficiency_marks: cmtData.first_insufficiency_marks || prevFormData.updated_json.insuffDetails.first_insufficiency_marks || '',
-                            first_insuff_date: cmtData.first_insuff_date || prevFormData.updated_json.insuffDetails.first_insuff_date || '',
-                            first_insuff_reopened_date: cmtData.first_insuff_reopened_date || prevFormData.updated_json.insuffDetails.first_insuff_reopened_date || '',
-                            second_insufficiency_marks: cmtData.second_insufficiency_marks || prevFormData.updated_json.insuffDetails.second_insufficiency_marks || '',
-                            second_insuff_date: cmtData.second_insuff_date || prevFormData.updated_json.insuffDetails.second_insuff_date || '',
-                            second_insuff_reopened_date: cmtData.second_insuff_reopened_date || prevFormData.updated_json.insuffDetails.second_insuff_reopened_date || '',
-                            third_insufficiency_marks: cmtData.third_insufficiency_marks || prevFormData.updated_json.insuffDetails.third_insufficiency_marks || '',
-                            third_insuff_date: cmtData.third_insuff_date || prevFormData.updated_json.insuffDetails.third_insuff_date || '',
-                            third_insuff_reopened_date: cmtData.third_insuff_reopened_date || prevFormData.updated_json.insuffDetails.third_insuff_reopened_date || '',
-                            overall_status: cmtData.overall_status || prevFormData.updated_json.insuffDetails.overall_status || '',
-                            report_date: cmtData.report_date || prevFormData.updated_json.insuffDetails.report_date || '',
-                            report_status: cmtData.report_status || prevFormData.updated_json.insuffDetails.report_status || '',
-                            report_type: cmtData.report_type || prevFormData.updated_json.insuffDetails.report_type || '',
-                            final_verification_status: cmtData.final_verification_status || prevFormData.updated_json.insuffDetails.final_verification_status || '',
-                            is_verify: cmtData.is_verify || prevFormData.updated_json.insuffDetails.is_verify || '',
-                            deadline_date: cmtData.deadline_date || prevFormData.updated_json.insuffDetails.deadline_date || '',
-                            insuff_address: cmtData.insuff_address || prevFormData.updated_json.insuffDetails.insuff_address || '',
-                            basic_entry: cmtData.basic_entry || prevFormData.updated_json.insuffDetails.basic_entry || '',
-                            education: cmtData.education || prevFormData.updated_json.insuffDetails.education || '',
-                            case_upload: cmtData.case_upload || prevFormData.updated_json.insuffDetails.case_upload || '',
-                            emp_spoc: cmtData.emp_spoc || prevFormData.updated_json.insuffDetails.emp_spoc || '',
-                            report_generate_by: cmtData.report_generate_by || prevFormData.updated_json.insuffDetails.report_generate_by || '',
-                            qc_done_by: cmtData.qc_done_by || prevFormData.updated_json.insuffDetails.qc_done_by || '',
-                            delay_reason: cmtData.delay_reason || prevFormData.updated_json.insuffDetails.delay_reason || ''
-                        }
-                    }
-                }));
-
-                setDisabledFields({
-                    month_year: !!applications.month_year,
-                    initiation_date: !!applications.initiation_date,
-                    organization_name: !!applications.organization_name,
-                    verification_purpose: !!applications.verification_purpose,
-                    employee_id: !!applications.employee_id,
-                    client_code: !!applications.client_code,
-                    applicant_name: !!applications.name,
-                    contact_number: !!applications.contact_number,
-                    contact_number2: !!applications.contact_number2,
-                    father_name: !!applications.father_name,
-                    dob: !!applications.dob,
-                    gender: !!applications.gender,
-                    marital_status: !!applications.marital_status,
-                    nationality: !!applications.nationality,
-                    insuff: !!applications.insuff,
-                });
-            })
-            .catch(error => {
-                console.error('Fetch error:', error);
-                setError('Failed to load client data');
-            })
-            .finally(() => setLoading(false));
-    }, [application_id, branch_id]);
 
     const annexureValues = useCallback((application_id, db_name) => {
         const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
         const storedToken = localStorage.getItem("_token");
 
         if (!admin_id || !storedToken || !application_id) {
-            console.error("Missing required parameters");
             return;
         }
 
@@ -384,45 +272,184 @@ const CandidateApplications = () => {
                 }
             })
             .catch((error) => console.error("Fetch error: ", error));
-    }, []);
+    }, [application_id]);
 
+
+
+    const fetchClients = useCallback(() => {
+        const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
+        const storedToken = localStorage.getItem("_token");
+        setLoading(true);
+        setError(null);
+
+        if (!admin_id || !storedToken || !application_id || !branch_id) {
+            console.error("Missing required parameters");
+            setError('Missing required parameters');
+            setLoading(false);
+            return;
+        }
+
+        fetch(
+            `https://goldquestreact.onrender.com/client-master-tracker/application-by-id?application_id=${application_id}&branch_id=${branch_id}&admin_id=${admin_id}&_token=${storedToken}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        )
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        const errorData = JSON.parse(text);
+                        Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
+                        throw new Error(text);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                const applications = data.application;
+                Object.entries(applications).forEach(([key, value]) => {
+                    const input = document.querySelector(`input[name="${key}"]`);
+                    if (input) {
+                        input.value = value || '';
+                    }
+                });
+                const cmtData = data.CMTData;
+
+                Object.entries(cmtData).forEach(([key, value]) => {
+                    const input = document.querySelector(`input[name="${key}"]`);
+                    if (input) {
+                        input.value = value || '';
+                    }
+                });
+
+                setFormData(prevFormData => ({
+    updated_json: {
+        month_year: applications.month_year || prevFormData.updated_json.month_year || '',
+        initiation_date: applications.initiation_date || prevFormData.updated_json.initiation_date || '',
+        organization_name: applications.organization_name || prevFormData.updated_json.organization_name || '',
+        verification_purpose: applications.verification_purpose || prevFormData.updated_json.verification_purpose || '',
+        employee_id: applications.employee_id || prevFormData.updated_json.employee_id || '',
+        client_code: applications.client_code || prevFormData.updated_json.client_code || '',
+        applicant_name: applications.applicant_name || prevFormData.updated_json.applicant_name || '',
+        contact_number: applications.contact_number || prevFormData.updated_json.contact_number || '',
+        contact_number2: applications.contact_number2 || prevFormData.updated_json.contact_number2 || '',
+        father_name: applications.father_name || prevFormData.updated_json.father_name || '',
+        dob: applications.dob || prevFormData.updated_json.dob || '',
+        gender: applications.gender || prevFormData.updated_json.gender || '',
+        marital_status: applications.marital_status || prevFormData.updated_json.marital_status || '',
+        nationality: applications.nationality || prevFormData.updated_json.nationality || '',
+        insuff: applications.insuff || prevFormData.updated_json.insuff || '',
+        address: {
+            address: cmtData.address || prevFormData.updated_json.address?.address || '',
+            landmark: cmtData.landmark || prevFormData.updated_json.address?.landmark || '',
+            residence_mobile_number: cmtData.residence_mobile_number || prevFormData.updated_json.address?.residence_mobile_number || '',
+            state: cmtData.state || prevFormData.updated_json.address?.state || ''
+        },
+        permanent_address: {
+            permanent_address: cmtData.permanent_address || prevFormData.updated_json.permanent_address?.permanent_address || '',
+            permanent_sender_name: cmtData.permanent_sender_name || prevFormData.updated_json.permanent_address?.permanent_sender_name || '',
+            permanent_receiver_name: cmtData.permanent_receiver_name || prevFormData.updated_json.permanent_address?.permanent_receiver_name || '',
+            permanent_landmark: cmtData.permanent_landmark || prevFormData.updated_json.permanent_address?.permanent_landmark || '',
+            permanent_pin_code: cmtData.permanent_pin_code || prevFormData.updated_json.permanent_address?.permanent_pin_code || '',
+            permanent_state: cmtData.permanent_state || prevFormData.updated_json.permanent_address?.permanent_state || ''
+        },
+        insuffDetails: {
+            first_insufficiency_marks: cmtData.first_insufficiency_marks || prevFormData.updated_json.insuffDetails?.first_insufficiency_marks || '',
+            first_insuff_date: cmtData.first_insuff_date || prevFormData.updated_json.insuffDetails?.first_insuff_date || '',
+            first_insuff_reopened_date: cmtData.first_insuff_reopened_date || prevFormData.updated_json.insuffDetails?.first_insuff_reopened_date || '',
+            second_insufficiency_marks: cmtData.second_insufficiency_marks || prevFormData.updated_json.insuffDetails?.second_insufficiency_marks || '',
+            second_insuff_date: cmtData.second_insuff_date || prevFormData.updated_json.insuffDetails?.second_insuff_date || '',
+            second_insuff_reopened_date: cmtData.second_insuff_reopened_date || prevFormData.updated_json.insuffDetails?.second_insuff_reopened_date || '',
+            third_insufficiency_marks: cmtData.third_insufficiency_marks || prevFormData.updated_json.insuffDetails?.third_insufficiency_marks || '',
+            third_insuff_date: cmtData.third_insuff_date || prevFormData.updated_json.insuffDetails?.third_insuff_date || '',
+            third_insuff_reopened_date: cmtData.third_insuff_reopened_date || prevFormData.updated_json.insuffDetails?.third_insuff_reopened_date || '',
+            overall_status: cmtData.overall_status || prevFormData.updated_json.insuffDetails?.overall_status || '',
+            report_date: cmtData.report_date || prevFormData.updated_json.insuffDetails?.report_date || '',
+            report_status: cmtData.report_status || prevFormData.updated_json.insuffDetails?.report_status || '',
+            report_type: cmtData.report_type || prevFormData.updated_json.insuffDetails?.report_type || '',
+            final_verification_status: cmtData.final_verification_status || prevFormData.updated_json.insuffDetails?.final_verification_status || '',
+            is_verify: cmtData.is_verify || prevFormData.updated_json.insuffDetails?.is_verify || '',
+            deadline_date: cmtData.deadline_date || prevFormData.updated_json.insuffDetails?.deadline_date || '',
+            insuff_address: cmtData.insuff_address || prevFormData.updated_json.insuffDetails?.insuff_address || '',
+            basic_entry: cmtData.basic_entry || prevFormData.updated_json.insuffDetails?.basic_entry || '',
+            education: cmtData.education || prevFormData.updated_json.insuffDetails?.education || '',
+            case_upload: cmtData.case_upload || prevFormData.updated_json.insuffDetails?.case_upload || '',
+            emp_spoc: cmtData.emp_spoc || prevFormData.updated_json.insuffDetails?.emp_spoc || '',
+            report_generate_by: cmtData.report_generate_by || prevFormData.updated_json.insuffDetails?.report_generate_by || '',
+            qc_done_by: cmtData.qc_done_by || prevFormData.updated_json.insuffDetails?.qc_done_by || '',
+            delay_reason: cmtData.delay_reason || prevFormData.updated_json.insuffDetails?.delay_reason || ''
+        }
+    }
+}));
+
+
+
+                setDisabledFields({
+                    month_year: !!applications.month_year,
+                    initiation_date: !!applications.initiation_date,
+                    organization_name: !!applications.organization_name,
+                    verification_purpose: !!applications.verification_purpose,
+                    employee_id: !!applications.employee_id,
+                    client_code: !!applications.client_code,
+                    applicant_name: !!applications.name,
+                    contact_number: !!applications.contact_number,
+                    contact_number2: !!applications.contact_number2,
+                    father_name: !!applications.father_name,
+                    dob: !!applications.dob,
+                    gender: !!applications.gender,
+                    marital_status: !!applications.marital_status,
+                    nationality: !!applications.nationality,
+                    insuff: !!applications.insuff,
+                });
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                setError('Failed to load client data');
+            })
+            .finally(() => setLoading(false));
+    }, [application_id, branch_id]);
 
     useEffect(() => {
+        // Call the functions to fetch data
         fetchServices();
-        annexureValues();
+        annexureValues(application_id); // Make sure to pass necessary parameters
         fetchClients();
-    }, [fetchServices, fetchClients, annexureValues]);
+    }, [fetchServices, fetchClients, annexureValues, application_id, service_id]);
 
     const handleFormSubmit = (e) => {
         e.preventDefault();
+    
         const validationErrors = validateForm();
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
             return;
         }
-
+    
         const adminData = JSON.parse(localStorage.getItem("admin"));
         const token = localStorage.getItem("_token");
-
-        const mainAnnexureData = allInputDetails.reduce((acc, { db_table, serviceId, inputDetails }) => {
+    
+        const mainAnnexureData = allInputDetails.reduce((acc, { db_table, inputDetails }) => {
             acc[db_table] = inputDetails.reduce((inputAcc, { name, value }) => {
-                inputAcc[name] = value; // Map each input name to its value
+                inputAcc[name] = value !== undefined ? value : '';
                 return inputAcc;
             }, {});
             return acc;
         }, {});
-
+    
         const raw = JSON.stringify({
             admin_id: adminData?.id,
             _token: token,
             branch_id: branch_id,
             customer_id: 1,
             application_id: application_id,
+            annexure: mainAnnexureData,
             ...formData,
-            annexure: mainAnnexureData, // Include annexureData here
         });
-
-
+        console.log('raw-data',raw)
+    
         const requestOptions = {
             method: 'PUT',
             headers: {
@@ -430,17 +457,24 @@ const CandidateApplications = () => {
             },
             body: raw,
         };
-
+    
         fetch(`https://goldquestreact.onrender.com/client-master-tracker/generate-report`, requestOptions)
-            .then(response => response.text())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            })
             .then(result => {
                 Swal.fire('Success!', 'Application updated successfully.', 'success');
+                // Optionally, reset form or state here
             })
             .catch(error => {
                 console.error(error);
                 setError('Failed to update application data');
             });
     };
+    
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -456,8 +490,6 @@ const CandidateApplications = () => {
     };
 
 
-console.log('tgrtretertt',serviceHeadings);
-
     return (
         <form onSubmit={handleFormSubmit}>
             <div className="grid grid-cols-2 gap-3">
@@ -468,7 +500,7 @@ console.log('tgrtretertt',serviceHeadings);
                         name="month_year"
                         id="month_year"
                         className="border w-full rounded-md p-2 mt-2 capitalize"
-                        value={formData.month_year} // Ensure to access the correct path
+                        value={formData.month_year}
                         disabled={disabledFields.month_year}
                         onChange={handleInputChange}
                     />
@@ -788,32 +820,71 @@ console.log('tgrtretertt',serviceHeadings);
                     {errors.residence_mobile_number && <span className="text-red-500">{errors.residence_mobile_number}</span>}
                 </div>
             </div>
+
+
+            <div className="services-table border p-2 mt-5">
+                <h3 className='text-center text-2xl py-4'>Selected Services</h3>
+                {serviceHeadings.map((item) => {
+
+                    return (
+                        <> <div className="service-box border p-3 rounded-md w-full mb-3 flex items-center bg-slate-100" > <span className='w-5/12'>{item.heading}</span>
+                            <select class="border p-2 w-7/12" id="stapermanent_address" name="stapermanent_address" required="">
+                                <option disabled="" selected="">--Select status--</option>
+                                <option value="nil" data-sname="permanent-address">NIL</option>
+                                <option value="initiated" selected="" data-sname="permanent-address">INITIATED</option>
+                                <option value="hold" data-sname="permanent-address">HOLD</option>
+                                <option value="closure advice" data-sname="permanent-address">CLOSURE ADVICE</option>
+                                <option value="wip" data-sname="permanent-address">WIP</option>
+                                <option value="insuff" data-sname="permanent-address">INSUFF</option>
+                                <option value="completed" data-sname="permanent-address">COMPLETED</option>
+                                <option value="nil" >NIL</option>
+                                <option value="stopcheck" data-sname="permanent-address">STOPCHECK</option>
+                                <option value="active employment" data-sname="permanent-address">ACTIVE EMPLOYMENT</option>
+                                <option value="nil" data-sname="permanent-address">NIL</option>
+                                <option value="not doable" data-sname="permanent-address">NOT DOABLE</option>
+                                <option value="candidate denied" data-sname="permanent-address">CANDIDATE DENIED</option>
+
+                                <option value="completed_green" data-sname="permanent-address">COMPLETED GREEN</option>
+                                <option value="completed_orange" data-sname="permanent-address">COMPLETED ORANGE</option>
+                                <option value="completed_red" data-sname="permanent-address">COMPLETED RED</option>
+                                <option value="completed_yellow" data-sname="permanent-address">COMPLETED YELLOW</option>
+                                <option value="completed_pink" data-sname="permanent-address">COMPLETED PINK</option>
+
+
+                            </select>
+
+                        </div>
+
+                        </>
+                    )
+                })}
+            </div>
+
             {Array.from(new Set(Object.keys(annexure))).map(serviceId => {
                 const form = annexure[serviceId];
                 const idNumber = Number(serviceId);
 
-                // Check if this serviceId has already been rendered
                 if (renderedServices.has(idNumber)) {
-                    return null; // Skip rendering this service
+                    return null;
                 }
 
-                // Mark this serviceId as rendered
                 renderedServices.add(idNumber);
-                // console.log(`allInputDetails - `, allInputDetails);
+
                 const filteredInputs = Array.isArray(allInputDetails)
                     ? allInputDetails.filter(({ serviceId: id }) => id === idNumber)
                     : [];
 
+             
 
+                const heading = serviceHeadings.find(service => service.service_id === idNumber)?.heading || 'No heading';
 
                 return (
                     <div key={serviceId} className="form-section mb-6">
                         <h4 className="text-2xl text-center mt-4 font-bold my-5">
-                        {(serviceHeadings.find(service => service.serviceId === parseInt(serviceId))?.heading) || 'No heading'}
-
-
+                            {heading}
                         </h4>
-                        <div className="form-group bg-gray-200 p-3 rounded-md mb-4">
+
+                        <div className="form-group bg-slate-100 p-3 rounded-md mb-4">
                             {filteredInputs.length > 0 ? (
                                 filteredInputs.flatMap(({ inputDetails }) => inputDetails).map((input) => (
                                     <div key={input.name} className="mb-4">
@@ -825,7 +896,7 @@ console.log('tgrtretertt',serviceHeadings);
                                                 type="text"
                                                 name={input.name}
                                                 id={input.name}
-                                                value={input.value || ''}
+                                                value={input.value}
                                                 className="border w-full rounded-md p-2 mt-2"
                                                 onChange={handleChange}
                                             />
@@ -834,8 +905,8 @@ console.log('tgrtretertt',serviceHeadings);
                                                 name={input.name}
                                                 id={input.name}
                                                 className="border w-full rounded-md p-2 mt-2"
-                                                value={input.value}
                                                 onChange={handleChange}
+                                                value={input.value}
                                             >
                                                 <option value="">Select...</option>
                                                 {input.options.map((option) => (
@@ -1170,7 +1241,7 @@ console.log('tgrtretertt',serviceHeadings);
 
                 </div>
             </div>
-            <button type='submit' className='w-full bg-green-500 p-3'>submit</button>
+            <button type='submit' className='w-full bg-green-500 p-3 rounded-md m-3 text-white'>submit</button>
         </form>
     );
 };

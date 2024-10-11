@@ -108,6 +108,7 @@ const CandidateForm = () => {
 
         const errors = validate();
         if (Object.keys(errors).length === 0) {
+            const customer_id = JSON.parse(localStorage.getItem("branch"))?.customer_id;
             const branch_id = JSON.parse(localStorage.getItem("branch"))?.id;
             const branch_token = localStorage.getItem("branch_token");
             const myHeaders = new Headers();
@@ -116,6 +117,7 @@ const CandidateForm = () => {
             const servicesString = Array.isArray(input.services) ? input.services.join(',') : '';
 
             const Raw = JSON.stringify({
+                customer_id:customer_id,
                 "branch_id": branch_id,
                 "_token": branch_token,
                 name: input.name,

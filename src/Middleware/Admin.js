@@ -5,6 +5,8 @@ import { LoaderContext } from '../LoaderContext';
 import Loader from '../Loader'
 import { useApi } from '../ApiContext';
 const Admin = ({ children }) => {
+
+
   const {loading, setLoading} = useContext(LoaderContext);
   const API_URL = useApi();
   const navigate = useNavigate();

@@ -79,7 +79,6 @@ const EmailLogin = () => {
               localStorage.setItem("branch_token", newToken);
             }
           } else {
-            console.log('Login successful:', response);
 
             const branchData = response.branchData;
             const branch_token = response.token;
@@ -94,7 +93,6 @@ const EmailLogin = () => {
               confirmButtonText: "Ok"
             });
 
-            console.log('Navigating to Customer dashboard...');
 
             navigate('/customer-dashboard', { state: { from: location }, replace: true });
             setError({});

@@ -17,7 +17,6 @@ const SelectBox = () => {
     const [animal, setAnimal] = useState(null);
 
     const handleChange = value => {
-        console.log("value:", value);
         setAnimal(value);
     };
 

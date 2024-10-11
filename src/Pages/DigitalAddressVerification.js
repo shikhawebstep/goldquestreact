@@ -158,10 +158,6 @@ const DigitalAddressVerification = () => {
             personal_information,
         });
 
-        console.log('====================================');
-        console.log(raw);
-        console.log('====================================');
-
         const requestOptions = {
             method: "PUT",
             headers: myHeaders,

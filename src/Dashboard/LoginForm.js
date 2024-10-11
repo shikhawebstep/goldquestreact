@@ -23,7 +23,6 @@ const LoginForm = () => {
       [name]: value,
     }));
   };
-  console.log(typeof API_URL);
 
   const validateError = () => {
     const newErrors = {};
@@ -57,7 +56,6 @@ const LoginForm = () => {
               localStorage.setItem("_token", newToken);
             }
           } else {
-            console.log('Login successful:', response.data);
 
             const adminData = response.data.adminData;
             const _token = response.data.token;
@@ -71,7 +69,6 @@ const LoginForm = () => {
               confirmButtonText: "Ok"
             })
 
-            console.log('Navigating to dashboard...');
 
             navigate('/', { state: { from: location }, replace: true });
             setError({});

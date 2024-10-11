@@ -30,7 +30,7 @@ const InactiveClients = () => {
       })
       .then((result) => {
         setData(result.customers || []);
-        console.log(result);
+       
       })
       .catch((error) => console.error(error));
   }, []);
@@ -81,7 +81,6 @@ const InactiveClients = () => {
             if (newToken) {
               localStorage.setItem("_token", newToken);
             }
-            console.log('Package blockd:', result);
             Swal.fire('blockd!', 'Your package has been blockd.', 'success');
             fetchClients();
           })

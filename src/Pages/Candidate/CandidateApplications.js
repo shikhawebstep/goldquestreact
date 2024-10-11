@@ -448,7 +448,6 @@ const CandidateApplications = () => {
             annexure: mainAnnexureData,
             ...formData,
         });
-        console.log('raw-data',raw)
     
         const requestOptions = {
             method: 'PUT',
@@ -467,7 +466,7 @@ const CandidateApplications = () => {
             })
             .then(result => {
                 Swal.fire('Success!', 'Application updated successfully.', 'success');
-                // Optionally, reset form or state here
+                
             })
             .catch(error => {
                 console.error(error);
@@ -1223,8 +1222,8 @@ const CandidateApplications = () => {
                         value={formData.qc_done_by}
                         onChange={handleInputChange}
                         id="" className="border w-full rounded-md p-2 mt-2 uppercase">
-                        <option value="">yes</option>
-                        <option value="">no</option>
+                        <option value="yes">yes</option>
+                        <option value="no">no</option>
                     </select>
 
                 </div>

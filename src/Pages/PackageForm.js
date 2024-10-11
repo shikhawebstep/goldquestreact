@@ -79,7 +79,6 @@ const PackageForm = ({ onSuccess }) => {
                 _token: token,
             });
 
-            console.log('Request body:', raw);
 
             const requestOptions = {
                 method: isEditMode ? "PUT" : "POST",

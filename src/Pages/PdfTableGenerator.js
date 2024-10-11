@@ -6,7 +6,6 @@ import { BranchContextExel } from './BranchContextExel';
 
 const PdfTableGenerator = () => {
   const { service_id, branch_id, application_id } = useContext(BranchContextExel);
-  console.log(branch_id)
   const [error,setError]=useState(false)
   const [loading,setLoading]=useState(null)
   const [data,setData]=useState([]);

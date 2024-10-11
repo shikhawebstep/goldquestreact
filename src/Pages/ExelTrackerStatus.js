@@ -361,7 +361,6 @@ const ExelTrackerStatus = () => {
         fetchCustomers();
     }, [fetchCustomers])
 
-    console.log('serviceHeadings', serviceHeadings)
 
     return (
         <>

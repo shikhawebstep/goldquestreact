@@ -61,7 +61,6 @@ const [loading, setLoading] = useState(true);
                 if (newToken) {
                     localStorage.setItem("_token", newToken); // Replace the old token with the new one
                 }
-                console.log('Fetched data:', data);
                 setData(data.packages || []);
                 setTotalResults(data.totalResults || 0);
             })

@@ -105,7 +105,6 @@ const ClientManagementList = () => {
                         if (newToken) {
                             localStorage.setItem("_token", newToken);
                         }
-                        console.log(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted:`, result);
                         fetchData();
                         Swal.fire(
                             'Deleted!',

@@ -195,10 +195,11 @@ const BackgroundForm = () => {
                 }
                 return response.json(); // Assuming the server returns JSON
             })
-            .then((result) => console.log(result))
+            .then((result) => {
+                 console.log(result);
+            })
             .catch((error) => console.error('Error:', error));
     
-        console.log('Submitted Data:', submittedData);
     };
     
 

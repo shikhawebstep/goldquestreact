@@ -11,9 +11,9 @@ const EmailTemplate = () => {
     <div className="mb-5">
      <label htmlFor="" className='block'> Module Name</label>
     <select name="" id="" className="w-full border p-3 outline-none rounded-md  mt-2">
-      <option value="">Modile_01</option>
-      <option value="">Modile_02</option>
-      <option value="">Modile_03</option>
+      <option value="1">Modile 1</option>
+      <option value="2">Modile 2</option>
+      <option value="3">Modile 3</option>
 
     </select>
     </div>

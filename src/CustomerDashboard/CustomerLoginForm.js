@@ -42,7 +42,6 @@ const CustomerLoginForm = () => {
                     ...prev,
                     password: result.password 
                 }));
-                console.log(result.password);
             })
             .catch((error) => console.error('Error:', error));
     };

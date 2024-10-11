@@ -199,19 +199,19 @@ const ClientManagementData = () => {
             <table className="min-w-full">
                 <thead>
                     <tr className='bg-green-500'>
-                        <th className="py-3 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Service Name</th>
-                        <th className="py-3 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Price</th>
-                        <th className="py-3 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Select Package</th>
+                        <th className="py-2 md:py-3 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Service Name</th>
+                        <th className="py-2 md:py-3 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Price</th>
+                        <th className="py-2 md:py-3 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Select Package</th>
                     </tr>
                 </thead>
                 <tbody>
                 {paginated.map((item, index) => (
                     <tr key={item.serviceId}>
-                        <td className="py-3 px-4 border-l border-r border-b whitespace-nowrap">
+                        <td className="py-2 md:py-3 px-4 border-l border-r border-b whitespace-nowrap">
                             <input type="checkbox" className='me-2' />
                             {item.serviceTitle}
                         </td>
-                        <td className="py-3 px-4 border-r border-b whitespace-nowrap">
+                        <td className="py-2 md:py-3 px-4 border-r border-b whitespace-nowrap">
                             <input
                                 type="number"
                                 name="price"
@@ -221,7 +221,7 @@ const ClientManagementData = () => {
                             />
                             {validationsErrors[item.serviceId]?.price && <span className="text-red-500">{validationsErrors[item.serviceId].price}</span>}
                         </td>
-                        <td className="py-3 px-4 border-r border-b whitespace-nowrap uppercase text-left">
+                        <td className="py-2 md:py-3 px-4 border-r border-b whitespace-nowrap uppercase text-left">
                             <Multiselect
                                 options={packageList.map(pkg => ({ name: pkg.title, id: pkg.id }))}
                                 selectedValues={packageList

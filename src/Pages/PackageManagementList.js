@@ -24,7 +24,6 @@ const PackageManagementList = () => {
 
     const handleEdit = (pkg) => {
         editPackage(pkg);
-        console.log('Editing package:', pkg);
     };
 
 
@@ -73,7 +72,6 @@ const PackageManagementList = () => {
                             localStorage.setItem("_token", newToken);
                         }
                         setError(null); // Reset error state
-                        console.log('Package deleted:', result);
                         // Refresh data after deletion
                         Swal.fire('Deleted!', 'Your package has been deleted.', 'success');
                         fetchData(); 

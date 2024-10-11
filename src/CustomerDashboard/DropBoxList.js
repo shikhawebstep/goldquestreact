@@ -71,7 +71,6 @@ const DropBoxList = () => {
                         if (newToken) {
                             localStorage.setItem("branch_token", newToken);
                         }
-                        console.log('Client deleted:', result);
                         fetchClientDrop();
                         Swal.fire(
                             'Deleted!',

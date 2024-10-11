@@ -24,7 +24,6 @@ const ServiceList = () => {
     const handleEditService = (service) => {
         editService(service);
         fetchData();
-        console.log('Editing service:', service);
     };
 
     const handleDelete = (serviceId) => {
@@ -72,7 +71,6 @@ const ServiceList = () => {
                         if (newToken) {
                             localStorage.setItem("_token", newToken);
                         }
-                        console.log('Service deleted:', result);
                         fetchData();
                         Swal.fire(
                             'Deleted!',

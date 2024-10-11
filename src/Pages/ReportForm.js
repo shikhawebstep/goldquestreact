@@ -41,7 +41,7 @@ const ReportForm = () => {
     e.preventDefault();
     const validateError = Validate();
     if (Object.keys(validateError).length === 0) {
-      console.log(input);
+     
       setError({});
     } else {
       setError(validateError);

@@ -63,22 +63,22 @@ const Sidebar = () => {
   return (
     <div className="w-full md:w-1/5 flex flex-col bg-white">
       <div className="px-3">
-        <div className="flex flex-col px-3 py-8">
-          <h2 className="w-full text-green-600 text-5xl text-left font-bold pb-6 font-poppins">GoldQuest.</h2>
-          <p className="text-gray-400 text-xl mb-7 text-left w-full">Background Verification Tracking System.</p>
+        <div className="flex flex-col px-3 md:py-8 p-2">
+          <h2 className="w-full text-green-600 md:text-5xl text-2xl text-left font-bold md:pb-6 pb-2 font-poppins">GoldQuest.</h2>
+          <p className="text-gray-400 text-lg md:mb-7 mb-2 text-left w-full">Background Verification Tracking System.</p>
           <div className='md:hidden sm:block'>
             <div className='flex items-center justify-between border-b p-3'>
               <div>Menu</div>
               <div className='md:hidden sm:block' onClick={handleToggle} aria-label="Toggle Sidebar">
-                <span className='border-b-8 border-black w-8 block text-black mb-1'></span>
-                <span className='border-b-8 border-black w-8 block text-black mb-1'></span>
-                <span className='border-b-8 border-black w-8 block text-black mb-1'></span>
+                <span className='border-b-4 border-black w-8 block text-black mb-1'></span>
+                <span className='border-b-4 border-black w-8 block text-black mb-1'></span>
+                <span className='border-b-4 border-black w-8 block text-black mb-1'></span>
               </div>
             </div>
           </div>
           {
             toggle && (
-              <ul className='md:hidden'>
+              <ul className='md:hidden mb-2'>
                 {Object.keys(tabNames).map((tab) => {
                   const tabContent = tabNames[tab];
                   return (

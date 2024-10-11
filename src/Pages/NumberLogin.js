@@ -31,7 +31,7 @@ const NumberLogin = () => {
     e.preventDefault();
     const errors = validate();
     if (Object.keys(errors).length === 0) {
-      console.log(number);
+ 
       setError({});
     }
     else {

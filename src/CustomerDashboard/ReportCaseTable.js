@@ -49,8 +49,6 @@ const ReportCaseTable = () => {
         Promise.all(fetchPromises)
             .then(results => {
 
-
-                console.log('results', results);
                 const serviceHeading = {};
                 
                 results.forEach(serviceTitle => {
@@ -81,7 +79,6 @@ const ReportCaseTable = () => {
     };
 
 
-    console.log(`serviceTitle - `,serviceTitle);
 
 
 

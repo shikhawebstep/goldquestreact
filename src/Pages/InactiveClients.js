@@ -7,90 +7,71 @@ import Swal from 'sweetalert2';
 const InactiveClients = () => {
   const [data, setData] = useState([]);
   const [paginated, setPaginated] = useState([]);
-  const [showAll, setShowAll] = useState(false); // State to toggle service visibility
-
+  const [showAll, setShowAll] = useState(false);
   const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
 
-  const fetchClients = useCallback(() => {
+  const fetchClients = useCallback(async () => {
     const admin_id = JSON.parse(localStorage.getItem('admin'))?.id;
     const storedToken = localStorage.getItem('_token');
 
-    fetch(`https://goldquestreact.onrender.com/customer/inactive-list?&admin_id=${admin_id}&_token=${storedToken}`, {
-      method: 'GET',
-    })
-      .then((response) => {
-        if (!response.ok) {
-          return response.text().then((text) => {
-            const errorData = JSON.parse(text);
-            Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
-            throw new Error(text);
-          });
-        }
-        return response.json();
-      })
-      .then((result) => {
-        setData(result.customers || []);
-       
-      })
-      .catch((error) => console.error(error));
+    try {
+      const response = await fetch(`https://goldquestreact.onrender.com/customer/inactive-list?admin_id=${admin_id}&_token=${storedToken}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
+        return;
+      }
+      const result = await response.json();
+      setData(result.customers || []);
+    } catch (error) {
+      console.error(error);
+      Swal.fire('Error!', 'Failed to fetch inactive clients.', 'error');
+    }
   }, []);
 
   useEffect(() => {
     fetchClients();
   }, [fetchClients]);
 
-  const inActive = (id) => {
-    Swal.fire({
+  const inActive = async (id) => {
+    const confirm = await Swal.fire({
       title: 'Are you sure?',
       text: "You won't be able to revert this!",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, block it!',
       cancelButtonText: 'No, cancel!',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
-        const storedToken = localStorage.getItem("_token");
+    });
 
-        if (!admin_id || !storedToken) {
-          console.error("Admin ID or token is missing.");
-          Swal.fire('Error!', 'Admin ID or token is missing.', 'error');
+    if (confirm.isConfirmed) {
+      const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
+      const storedToken = localStorage.getItem("_token");
+
+      if (!admin_id || !storedToken) {
+        Swal.fire('Error!', 'Admin ID or token is missing.', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch(`https://goldquestreact.onrender.com/customer/active?customer_id=${id}&admin_id=${admin_id}&_token=${storedToken}`, { method: 'GET' });
+        if (!response.ok) {
+          const errorData = await response.json();
+          Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
           return;
         }
-
-        const requestOptions = {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        };
-
-        fetch(`https://goldquestreact.onrender.com/customer/active?customer_id=${id}&admin_id=${admin_id}&_token=${storedToken}`, requestOptions)
-          .then((response) => {
-            if (!response.ok) {
-              return response.text().then((text) => {
-                const errorData = JSON.parse(text);
-                Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
-                throw new Error(errorData.message);
-              });
-            }
-            return response.json();
-          })
-          .then((result) => {
-            const newToken = result._token || result.token;
-            if (newToken) {
-              localStorage.setItem("_token", newToken);
-            }
-            Swal.fire('blockd!', 'Your package has been blockd.', 'success');
-            fetchClients();
-          })
-          .catch((error) => {
-            console.error('Fetch error:', error);
-            Swal.fire('Error!', `Could not block the package: ${error.message}`, 'error');
-          });
+        const result = await response.json();
+        const newToken = result._token || result.token;
+        if (newToken) {
+          localStorage.setItem("_token", newToken);
+        }
+        Swal.fire('Blocked!', 'Your package has been blocked.', 'success');
+        fetchClients();
+      } catch (error) {
+        console.error('Fetch error:', error);
+        Swal.fire('Error!', `Could not block the package: ${error.message}`, 'error');
       }
-    });
-  }
+    }
+  };
 
   useEffect(() => {
     setTotalResults(data.length);
@@ -99,9 +80,8 @@ const InactiveClients = () => {
     setPaginated(data.slice(startIndex, endIndex));
   }, [currentItem, setTotalResults, data, showPerPage]);
 
-  // Function to handle the "View More" button click
   const handleViewMore = () => {
-    setShowAll(!showAll);
+    setShowAll(prev => !prev);
   };
 
   return (
@@ -141,24 +121,25 @@ const InactiveClients = () => {
                   <td className="py-3 px-4 border-b border-r whitespace-nowrap text-center">{item.mobile}</td>
                   <td className="py-3 px-4 border-b border-r whitespace-nowrap text-center">{item.client_standard}</td>
                   <td className="py-3 px-4 border-b border-r whitespace-nowrap text-center">
-                    {item.services ? (
-                      <div className='text-start '>
-                        {JSON.parse(item.services).slice(0, showAll ? undefined : 1).map((service, index) => (
-                          <div key={service.serviceId} className='py-2 text-start'>
-                            <div className='text-start pb-2'><strong>Title:</strong> {service.serviceTitle}</div>
-                            <div className='text-start pb-2'><strong>Price:</strong> {service.price}</div>
-                            <div className='text-start pb-2'><strong>Packages:</strong> {Object.values(service.packages).join(', ')}</div>
-                            {index < JSON.parse(item.services).length - 1 && <hr />}
-                          </div>
-                        ))}
-                        <button className='bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded' onClick={handleViewMore}>
-                          {showAll ? 'View Less' : 'View More'}
-                        </button>
-                      </div>
-                    ) : (
-                      'No services available'
-                    )}
-                  </td>
+                  {item.services ? (
+                    <div className='text-start'>
+                      {JSON.parse(item.services).slice(0, showAll ? undefined : 1).map((service, index) => (
+                        <div key={service.serviceId} className='py-2 text-start'>
+                          <div className='text-start pb-2'><strong>Title:</strong> {service.serviceTitle}</div>
+                          <div className='text-start pb-2'><strong>Price:</strong> {service.price}</div>
+                          <div className='text-start pb-2'><strong>Packages:</strong> {service.packages ? Object.values(service.packages).join(', ') : 'No packages available'}</div>
+                          {index < JSON.parse(item.services).length - 1 && <hr />}
+                        </div>
+                      ))}
+                      <button className='bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded' onClick={handleViewMore}>
+                        {showAll ? 'View Less' : 'View More'}
+                      </button>
+                    </div>
+                  ) : (
+                    'No services available'
+                  )}
+                </td>
+                
                   <td className="py-3 px-4 border-b border-r text-center whitespace-nowrap">
                     <button className='bg-red-600 hover:bg-red-200 rounded-md p-2 text-white mx-2' onClick={() => inActive(item.id)}>Unblock</button>
                   </td>

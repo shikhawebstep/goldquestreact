@@ -4,7 +4,8 @@ import Pagination from './Pagination';
 import PaginationContext from './PaginationContext';
 import Swal from 'sweetalert2';
 import { Link } from 'react-router-dom';
-import { useApi } from '../ApiContext';;
+import { useApi } from '../ApiContext';
+
 const ExternalLoginData = () => {
   const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
   const API_URL = useApi();
@@ -13,7 +14,7 @@ const ExternalLoginData = () => {
   const [error, setError] = useState(null);
   const [paginatedData, setPaginatedData] = useState([]);
   const [messageShown, setMessageShown] = useState(false);
- 
+
   const fetchBranches = useCallback(() => {
     setLoading(true);
     setError(null);
@@ -39,7 +40,7 @@ const ExternalLoginData = () => {
               title: 'Error!',
               text: `An error occurred: ${res.statusText || 'Unknown error'}`,
               icon: 'error',
-              confirmButtonText: 'Ok'
+              confirmButtonText: 'Ok',
             });
             setMessageShown(true);
           }
@@ -61,10 +62,7 @@ const ExternalLoginData = () => {
         setError('Failed to load data');
       })
       .finally(() => setLoading(false));
-  }, [setTotalResults, messageShown]);
-
-
-
+  }, [API_URL, setTotalResults, messageShown]);
 
   useEffect(() => {
     fetchBranches();
@@ -96,34 +94,33 @@ const ExternalLoginData = () => {
               </tr>
             </thead>
             <tbody>
-            {paginatedData.length > 0 ? (
-              paginatedData.map((item, index) => (
-                <tr key={index}>
-                  <td className="py-2 px-4 border-b border-r border-l whitespace-nowrap text-center">{index + 1}</td>
-                  <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.name}</td>
-                  <td className="py-2 px-4 border-b border-r whitespace-nowrap">{item.email}</td>
-                  <td className="py-2 px-4 border-b border-r whitespace-nowrap text-center uppercase text-blue-500 font-bold ">
-                    <Link 
-                      to={`/customer-login?email=${encodeURIComponent(item.email)}`}
-                      target='_blank'
-                      className="hover:underline"
-
-                    >
-                      Go
-                    </Link>
-                  </td>
-                  <td className="py-2 px-4 border-b border-r whitespace-nowrap text-center">
-                    <button className="bg-red-600 hover:bg-red-200 rounded-md p-2 text-white">Delete</button>
+              {paginatedData.length > 0 ? (
+                paginatedData.map((item, index) => (
+                  <tr key={item.id || index}>
+                    <td className="py-2 px-4 border-b border-r border-l whitespace-nowrap text-center">{index + 1 + (currentItem - 1) * showPerPage}</td>
+                    <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.name}</td>
+                    <td className="py-2 px-4 border-b border-r whitespace-nowrap">{item.email}</td>
+                    <td className="py-2 px-4 border-b border-r whitespace-nowrap text-center uppercase text-blue-500 font-bold">
+                      <Link 
+                        to={`/customer-login?email=${encodeURIComponent(item.email)}`}
+                        target='_blank'
+                        className="hover:underline"
+                      >
+                        Go
+                      </Link>
+                    </td>
+                    <td className="py-2 px-4 border-b border-r whitespace-nowrap text-center">
+                      <button className="bg-red-600 hover:bg-red-200 rounded-md p-2 text-white">Delete</button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="py-2 px-4 text-center">
+                    No data available
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="5" className="py-2 px-4 text-center">
-                  No data available
-                </td>
-              </tr>
-            )}
+              )}
             </tbody>
           </table>
         </div>

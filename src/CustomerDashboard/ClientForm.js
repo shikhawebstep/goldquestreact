@@ -2,18 +2,18 @@ import React, { useContext, useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import DropBoxContext from './DropBoxContext';
 import { useApi } from '../ApiContext';
+import axios from 'axios';
 
 const ClientForm = () => {
     const API_URL=useApi();
+    const [files, setFiles] = useState({});
     const [clientInput, setClientInput] = useState({
         name: '',
-        attach_documents: '1.pdf',
         employee_id: '',
         spoc: '',
         location: '',
         batch_number: '',
         sub_client: '',
-        photo: '2.pdg',
         services: [], 
         package: '',
         client_application_id: ''
@@ -27,15 +27,49 @@ const ClientForm = () => {
     const validate = () => {
         const newErrors = {};
         if (!clientInput.name) { newErrors.name = "This Field is Required" }
-        if (!clientInput.attach_documents) { newErrors.attach_documents = "This Field is Required" }
         if (!clientInput.employee_id) { newErrors.employee_id = "This Field is Required" }
         if (!clientInput.spoc) { newErrors.spoc = "This Field is Required" }
         if (!clientInput.location) { newErrors.location = "This Field is Required" }
         if (!clientInput.batch_number) { newErrors.batch_number = "This Field is Required" }
         if (!clientInput.sub_client) { newErrors.sub_client = "This Field is Required" }
-        if (!clientInput.photo) { newErrors.photo = "This Field is Required" }
         return newErrors;
     };
+
+
+// file code here
+const handleFileChange = (fileName, e) => {
+    const selectedFiles = Array.from(e.target.files);
+    setFiles(prevFiles => ({ ...prevFiles, [fileName]: selectedFiles }));
+};
+
+const uploadCustomerLogo = async () => {
+
+    const storedBranchData = JSON.parse(localStorage.getItem("branch"));
+    const branch_token = localStorage.getItem("branch_token");
+
+    const customerLogoFormData = new FormData();
+    customerLogoFormData.append('branch_id', storedBranchData?.id);
+    customerLogoFormData.append('branch_token', branch_token);
+    customerLogoFormData.append('customer_code', clientInput.client_code);
+    
+    for (const [key, value] of Object.entries(files)) {
+        for (const file of value) {
+            customerLogoFormData.append('images', file);
+            customerLogoFormData.append('upload_category', key);
+        }
+        try {
+            await axios.post(`${API_URL}/customer/upload/custom-logo`, customerLogoFormData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+        } catch (err) {
+            Swal.fire('Error!', `An error occurred while uploading logo: ${err.message}`, 'error');
+        }
+    }
+};
+
+// file code end here
 
     useEffect(() => {
         const storedBranchData = JSON.parse(localStorage.getItem("branch"));
@@ -99,7 +133,7 @@ const ClientForm = () => {
         }
     };
 
-
+  
     const handleSubmit = (e) => {
         e.preventDefault();
         const errors = validate();
@@ -209,6 +243,7 @@ const ClientForm = () => {
                         <div className="mb-4">
                             <label htmlFor="attach_documents" className='text-sm'>Attach documents: *</label>
                             <input type="file" name="attach_documents" id="Attach_Docs" className="border w-full capitalize rounded-md p-2 mt-2" onChange={handleChange} />
+                            <input type="file" name="attach_document" id="attach_document" className="border w-full capitalize rounded-md p-2 mt-2 outline-none" onChange={(e) => handleFileChange('attach_document', e)} />
                             {inputError.attach_documents && <p className='text-red-500'>{inputError.attach_documents}</p>}
                         </div>
                         <div className="md:flex gap-5">
@@ -242,6 +277,8 @@ const ClientForm = () => {
                         </div>
                         <div className="mb-4">
                             <label htmlFor="photo">Upload photo:</label>
+
+                            <input type="file" name="photo" id="upPhoto" className="border w-full capitalize rounded-md p-2 mt-2 outline-none" onChange={(e) => handleFileChange('photo', e)} />
                             <input type="file" name="photo" id="upPhoto" className="border w-full capitalize rounded-md p-2 mt-2 outline-none" onChange={handleChange} />
                             {inputError.photo && <p className='text-red-500'>{inputError.photo}</p>}
                         </div>

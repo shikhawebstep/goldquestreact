@@ -5,7 +5,7 @@ import Pagination from '../Pages/Pagination';
 const BulkUploadList = () => {
   const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
 
-  // Wrap bulkList in useMemo to avoid unnecessary re-renders
+  // Memoized bulkList to avoid unnecessary re-renders
   const bulkList = useMemo(() => [
     {
       sl: "",
@@ -33,16 +33,16 @@ const BulkUploadList = () => {
           <thead>
             <tr className="bg-green-500">
               <th className="py-3 px-4 border-b border-r-2 text-white text-left uppercase whitespace-nowrap">Sl No.</th>
-              <th className="py-3 px-4 border-b text-white border-r-2 text-left uppercase whitespace-nowrap">Organisation Name</th>
-              <th className="py-3 px-4 border-b text-white border-r-2 text-left uppercase whitespace-nowrap">Spoc Name</th>
-              <th className="py-3 px-4 border-b text-white border-r-2 text-left uppercase whitespace-nowrap">Date & Time</th>
-              <th className="py-3 px-4 border-b text-white border-r-2 text-left uppercase whitespace-nowrap">Folder</th>
-              <th className="py-3 px-4 border-b text-white border-r-2 text-left uppercase whitespace-nowrap">Remarks</th>
+              <th className="py-3 px-4 border-b border-r-2 text-white text-left uppercase whitespace-nowrap">Organisation Name</th>
+              <th className="py-3 px-4 border-b border-r-2 text-white text-left uppercase whitespace-nowrap">Spoc Name</th>
+              <th className="py-3 px-4 border-b border-r-2 text-white text-left uppercase whitespace-nowrap">Date & Time</th>
+              <th className="py-3 px-4 border-b border-r-2 text-white text-left uppercase whitespace-nowrap">Folder</th>
+              <th className="py-3 px-4 border-b border-r-2 text-white text-left uppercase whitespace-nowrap">Remarks</th>
               <th className="py-3 px-4 border-b text-white text-left uppercase whitespace-nowrap">Action</th>
             </tr>
           </thead>
           <tbody>
-            {paginated.length > 1 ? (
+            {paginated.length > 0 ? (
               paginated.map((item, index) => (
                 <tr key={index}>
                   <td className="py-2 px-4 border-b text-center border-r-2 whitespace-nowrap">{item.sl}</td>
@@ -65,6 +65,6 @@ const BulkUploadList = () => {
       <Pagination />
     </>
   );
-}
+};
 
 export default BulkUploadList;

@@ -93,12 +93,12 @@ const CandidateApplications = () => {
 
                         if (parsedJson.db_table && parsedJson.db_table.trim() !== '') {
                             const annexureURL = `https://goldquestreact.onrender.com/client-master-tracker/annexure-data?application_id=${application_id}&db_table=${parsedJson.db_table}&admin_id=${admin_id}&_token=${storedToken}`;
-                            
+
                             return fetch(annexureURL)
                                 .then(annexureResponse => {
                                     const inputDetails = [];
                                     const db_table = parsedJson.db_table;
-                        
+
                                     if (!annexureResponse.ok) {
                                         if (!inNo.includes(db_table)) {
                                             parsedJson.rows.forEach(row => {
@@ -112,24 +112,24 @@ const CandidateApplications = () => {
                                                     });
                                                 });
                                             });
-                        
+
                                             allInputDetails.push({ db_table, serviceId, inputDetails });
                                             inNo.push(db_table);
-                        
+
                                             console.error(`HTTP error! status: ${annexureResponse.status}`);
                                         }
                                     }
-                        
+
                                     return annexureResponse.json()
                                         .then(annexureResult => {
                                             const inputDetails = [];
-                        
+
                                             if (Array.isArray(annexureResult.annexureData)) {
                                                 parsedJson.rows.forEach(row => {
                                                     row.inputs.forEach(input => {
                                                         const foundItem = annexureResult.annexureData.find(item => item.name === input.name);
                                                         const value = foundItem ? foundItem.value : null;
-                        
+
                                                         inputDetails.push({
                                                             label: input.label,
                                                             name: input.name,
@@ -140,12 +140,12 @@ const CandidateApplications = () => {
                                                     });
                                                 });
                                             } else if (typeof annexureResult.annexureData === 'object' && annexureResult.annexureData !== null) {
-                                              
-                        
+
+
                                                 parsedJson.rows.forEach(row => {
                                                     row.inputs.forEach(input => {
                                                         const value = annexureResult.annexureData[input.name] || null;
-                        
+
                                                         inputDetails.push({
                                                             label: input.label,
                                                             name: input.name,
@@ -168,12 +168,12 @@ const CandidateApplications = () => {
                                                 });
                                                 console.error("Expected annexureData to be either an array or an object, but got:", annexureResult.annexureData);
                                             }
-                        
+
                                             // Check if the service already exists before adding
                                             if (!allInputDetails.some(item => item.db_table === db_table)) {
                                                 allInputDetails.push({ db_table, serviceId, inputDetails });
                                             }
-                        
+
                                             return { serviceId, parsedJson };
                                         });
                                 })
@@ -182,7 +182,7 @@ const CandidateApplications = () => {
                                     throw annexureError;
                                 });
                         }
-                        
+
 
                         return { serviceId, parsedJson };
                     });
@@ -192,7 +192,7 @@ const CandidateApplications = () => {
                 setAllInputDetails(allInputDetails);
 
                 const mainAnnexureData = allInputDetails.reduce((acc, { serviceId, inputDetails }) => {
-                  
+
                     acc[serviceId] = inputDetails.reduce((inputAcc, { name, value }) => {
                         inputAcc[name] = value !== undefined ? value : '';
                         return inputAcc;
@@ -326,64 +326,64 @@ const CandidateApplications = () => {
                 });
 
                 setFormData(prevFormData => ({
-    updated_json: {
-        month_year: applications.month_year || prevFormData.updated_json.month_year || '',
-        initiation_date: applications.initiation_date || prevFormData.updated_json.initiation_date || '',
-        organization_name: applications.organization_name || prevFormData.updated_json.organization_name || '',
-        verification_purpose: applications.verification_purpose || prevFormData.updated_json.verification_purpose || '',
-        employee_id: applications.employee_id || prevFormData.updated_json.employee_id || '',
-        client_code: applications.client_code || prevFormData.updated_json.client_code || '',
-        applicant_name: applications.applicant_name || prevFormData.updated_json.applicant_name || '',
-        contact_number: applications.contact_number || prevFormData.updated_json.contact_number || '',
-        contact_number2: applications.contact_number2 || prevFormData.updated_json.contact_number2 || '',
-        father_name: applications.father_name || prevFormData.updated_json.father_name || '',
-        dob: applications.dob || prevFormData.updated_json.dob || '',
-        gender: applications.gender || prevFormData.updated_json.gender || '',
-        marital_status: applications.marital_status || prevFormData.updated_json.marital_status || '',
-        nationality: applications.nationality || prevFormData.updated_json.nationality || '',
-        insuff: applications.insuff || prevFormData.updated_json.insuff || '',
-        address: {
-            address: cmtData.address || prevFormData.updated_json.address?.address || '',
-            landmark: cmtData.landmark || prevFormData.updated_json.address?.landmark || '',
-            residence_mobile_number: cmtData.residence_mobile_number || prevFormData.updated_json.address?.residence_mobile_number || '',
-            state: cmtData.state || prevFormData.updated_json.address?.state || ''
-        },
-        permanent_address: {
-            permanent_address: cmtData.permanent_address || prevFormData.updated_json.permanent_address?.permanent_address || '',
-            permanent_sender_name: cmtData.permanent_sender_name || prevFormData.updated_json.permanent_address?.permanent_sender_name || '',
-            permanent_receiver_name: cmtData.permanent_receiver_name || prevFormData.updated_json.permanent_address?.permanent_receiver_name || '',
-            permanent_landmark: cmtData.permanent_landmark || prevFormData.updated_json.permanent_address?.permanent_landmark || '',
-            permanent_pin_code: cmtData.permanent_pin_code || prevFormData.updated_json.permanent_address?.permanent_pin_code || '',
-            permanent_state: cmtData.permanent_state || prevFormData.updated_json.permanent_address?.permanent_state || ''
-        },
-        insuffDetails: {
-            first_insufficiency_marks: cmtData.first_insufficiency_marks || prevFormData.updated_json.insuffDetails?.first_insufficiency_marks || '',
-            first_insuff_date: cmtData.first_insuff_date || prevFormData.updated_json.insuffDetails?.first_insuff_date || '',
-            first_insuff_reopened_date: cmtData.first_insuff_reopened_date || prevFormData.updated_json.insuffDetails?.first_insuff_reopened_date || '',
-            second_insufficiency_marks: cmtData.second_insufficiency_marks || prevFormData.updated_json.insuffDetails?.second_insufficiency_marks || '',
-            second_insuff_date: cmtData.second_insuff_date || prevFormData.updated_json.insuffDetails?.second_insuff_date || '',
-            second_insuff_reopened_date: cmtData.second_insuff_reopened_date || prevFormData.updated_json.insuffDetails?.second_insuff_reopened_date || '',
-            third_insufficiency_marks: cmtData.third_insufficiency_marks || prevFormData.updated_json.insuffDetails?.third_insufficiency_marks || '',
-            third_insuff_date: cmtData.third_insuff_date || prevFormData.updated_json.insuffDetails?.third_insuff_date || '',
-            third_insuff_reopened_date: cmtData.third_insuff_reopened_date || prevFormData.updated_json.insuffDetails?.third_insuff_reopened_date || '',
-            overall_status: cmtData.overall_status || prevFormData.updated_json.insuffDetails?.overall_status || '',
-            report_date: cmtData.report_date || prevFormData.updated_json.insuffDetails?.report_date || '',
-            report_status: cmtData.report_status || prevFormData.updated_json.insuffDetails?.report_status || '',
-            report_type: cmtData.report_type || prevFormData.updated_json.insuffDetails?.report_type || '',
-            final_verification_status: cmtData.final_verification_status || prevFormData.updated_json.insuffDetails?.final_verification_status || '',
-            is_verify: cmtData.is_verify || prevFormData.updated_json.insuffDetails?.is_verify || '',
-            deadline_date: cmtData.deadline_date || prevFormData.updated_json.insuffDetails?.deadline_date || '',
-            insuff_address: cmtData.insuff_address || prevFormData.updated_json.insuffDetails?.insuff_address || '',
-            basic_entry: cmtData.basic_entry || prevFormData.updated_json.insuffDetails?.basic_entry || '',
-            education: cmtData.education || prevFormData.updated_json.insuffDetails?.education || '',
-            case_upload: cmtData.case_upload || prevFormData.updated_json.insuffDetails?.case_upload || '',
-            emp_spoc: cmtData.emp_spoc || prevFormData.updated_json.insuffDetails?.emp_spoc || '',
-            report_generate_by: cmtData.report_generate_by || prevFormData.updated_json.insuffDetails?.report_generate_by || '',
-            qc_done_by: cmtData.qc_done_by || prevFormData.updated_json.insuffDetails?.qc_done_by || '',
-            delay_reason: cmtData.delay_reason || prevFormData.updated_json.insuffDetails?.delay_reason || ''
-        }
-    }
-}));
+                    updated_json: {
+                        month_year: applications.month_year || prevFormData.updated_json.month_year || '',
+                        initiation_date: applications.initiation_date || prevFormData.updated_json.initiation_date || '',
+                        organization_name: applications.organization_name || prevFormData.updated_json.organization_name || '',
+                        verification_purpose: applications.verification_purpose || prevFormData.updated_json.verification_purpose || '',
+                        employee_id: applications.employee_id || prevFormData.updated_json.employee_id || '',
+                        client_code: applications.client_code || prevFormData.updated_json.client_code || '',
+                        applicant_name: applications.applicant_name || prevFormData.updated_json.applicant_name || '',
+                        contact_number: applications.contact_number || prevFormData.updated_json.contact_number || '',
+                        contact_number2: applications.contact_number2 || prevFormData.updated_json.contact_number2 || '',
+                        father_name: applications.father_name || prevFormData.updated_json.father_name || '',
+                        dob: applications.dob || prevFormData.updated_json.dob || '',
+                        gender: applications.gender || prevFormData.updated_json.gender || '',
+                        marital_status: applications.marital_status || prevFormData.updated_json.marital_status || '',
+                        nationality: applications.nationality || prevFormData.updated_json.nationality || '',
+                        insuff: applications.insuff || prevFormData.updated_json.insuff || '',
+                        address: {
+                            address: cmtData.address || prevFormData.updated_json.address?.address || '',
+                            landmark: cmtData.landmark || prevFormData.updated_json.address?.landmark || '',
+                            residence_mobile_number: cmtData.residence_mobile_number || prevFormData.updated_json.address?.residence_mobile_number || '',
+                            state: cmtData.state || prevFormData.updated_json.address?.state || ''
+                        },
+                        permanent_address: {
+                            permanent_address: cmtData.permanent_address || prevFormData.updated_json.permanent_address?.permanent_address || '',
+                            permanent_sender_name: cmtData.permanent_sender_name || prevFormData.updated_json.permanent_address?.permanent_sender_name || '',
+                            permanent_receiver_name: cmtData.permanent_receiver_name || prevFormData.updated_json.permanent_address?.permanent_receiver_name || '',
+                            permanent_landmark: cmtData.permanent_landmark || prevFormData.updated_json.permanent_address?.permanent_landmark || '',
+                            permanent_pin_code: cmtData.permanent_pin_code || prevFormData.updated_json.permanent_address?.permanent_pin_code || '',
+                            permanent_state: cmtData.permanent_state || prevFormData.updated_json.permanent_address?.permanent_state || ''
+                        },
+                        insuffDetails: {
+                            first_insufficiency_marks: cmtData.first_insufficiency_marks || prevFormData.updated_json.insuffDetails?.first_insufficiency_marks || '',
+                            first_insuff_date: cmtData.first_insuff_date || prevFormData.updated_json.insuffDetails?.first_insuff_date || '',
+                            first_insuff_reopened_date: cmtData.first_insuff_reopened_date || prevFormData.updated_json.insuffDetails?.first_insuff_reopened_date || '',
+                            second_insufficiency_marks: cmtData.second_insufficiency_marks || prevFormData.updated_json.insuffDetails?.second_insufficiency_marks || '',
+                            second_insuff_date: cmtData.second_insuff_date || prevFormData.updated_json.insuffDetails?.second_insuff_date || '',
+                            second_insuff_reopened_date: cmtData.second_insuff_reopened_date || prevFormData.updated_json.insuffDetails?.second_insuff_reopened_date || '',
+                            third_insufficiency_marks: cmtData.third_insufficiency_marks || prevFormData.updated_json.insuffDetails?.third_insufficiency_marks || '',
+                            third_insuff_date: cmtData.third_insuff_date || prevFormData.updated_json.insuffDetails?.third_insuff_date || '',
+                            third_insuff_reopened_date: cmtData.third_insuff_reopened_date || prevFormData.updated_json.insuffDetails?.third_insuff_reopened_date || '',
+                            overall_status: cmtData.overall_status || prevFormData.updated_json.insuffDetails?.overall_status || '',
+                            report_date: cmtData.report_date || prevFormData.updated_json.insuffDetails?.report_date || '',
+                            report_status: cmtData.report_status || prevFormData.updated_json.insuffDetails?.report_status || '',
+                            report_type: cmtData.report_type || prevFormData.updated_json.insuffDetails?.report_type || '',
+                            final_verification_status: cmtData.final_verification_status || prevFormData.updated_json.insuffDetails?.final_verification_status || '',
+                            is_verify: cmtData.is_verify || prevFormData.updated_json.insuffDetails?.is_verify || '',
+                            deadline_date: cmtData.deadline_date || prevFormData.updated_json.insuffDetails?.deadline_date || '',
+                            insuff_address: cmtData.insuff_address || prevFormData.updated_json.insuffDetails?.insuff_address || '',
+                            basic_entry: cmtData.basic_entry || prevFormData.updated_json.insuffDetails?.basic_entry || '',
+                            education: cmtData.education || prevFormData.updated_json.insuffDetails?.education || '',
+                            case_upload: cmtData.case_upload || prevFormData.updated_json.insuffDetails?.case_upload || '',
+                            emp_spoc: cmtData.emp_spoc || prevFormData.updated_json.insuffDetails?.emp_spoc || '',
+                            report_generate_by: cmtData.report_generate_by || prevFormData.updated_json.insuffDetails?.report_generate_by || '',
+                            qc_done_by: cmtData.qc_done_by || prevFormData.updated_json.insuffDetails?.qc_done_by || '',
+                            delay_reason: cmtData.delay_reason || prevFormData.updated_json.insuffDetails?.delay_reason || ''
+                        }
+                    }
+                }));
 
 
 
@@ -421,16 +421,16 @@ const CandidateApplications = () => {
 
     const handleFormSubmit = (e) => {
         e.preventDefault();
-    
+
         const validationErrors = validateForm();
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
             return;
         }
-    
+
         const adminData = JSON.parse(localStorage.getItem("admin"));
         const token = localStorage.getItem("_token");
-    
+
         const mainAnnexureData = allInputDetails.reduce((acc, { db_table, inputDetails }) => {
             acc[db_table] = inputDetails.reduce((inputAcc, { name, value }) => {
                 inputAcc[name] = value !== undefined ? value : '';
@@ -438,7 +438,7 @@ const CandidateApplications = () => {
             }, {});
             return acc;
         }, {});
-    
+
         const raw = JSON.stringify({
             admin_id: adminData?.id,
             _token: token,
@@ -448,7 +448,7 @@ const CandidateApplications = () => {
             annexure: mainAnnexureData,
             ...formData,
         });
-    
+
         const requestOptions = {
             method: 'PUT',
             headers: {
@@ -456,7 +456,7 @@ const CandidateApplications = () => {
             },
             body: raw,
         };
-    
+
         fetch(`https://goldquestreact.onrender.com/client-master-tracker/generate-report`, requestOptions)
             .then(response => {
                 if (!response.ok) {
@@ -466,14 +466,14 @@ const CandidateApplications = () => {
             })
             .then(result => {
                 Swal.fire('Success!', 'Application updated successfully.', 'success');
-                
+
             })
             .catch(error => {
                 console.error(error);
                 setError('Failed to update application data');
             });
     };
-    
+
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -873,7 +873,7 @@ const CandidateApplications = () => {
                     ? allInputDetails.filter(({ serviceId: id }) => id === idNumber)
                     : [];
 
-             
+
 
                 const heading = serviceHeadings.find(service => service.service_id === idNumber)?.heading || 'No heading';
 

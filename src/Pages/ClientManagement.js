@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import countryList from 'react-select-country-list';
 import Swal from 'sweetalert2';
 import { useClient } from "./ClientManagementContext";
 import ClientManagementData from "./ClientManagementData";
 import { useApi } from "../ApiContext";
 import { Country, State, City } from 'country-state-city';
-// Debounce utility function
+import axios from "axios";
+
 const debounce = (func, delay) => {
   let timeoutId;
   return (...args) => {
@@ -13,14 +13,15 @@ const debounce = (func, delay) => {
     timeoutId = setTimeout(() => func(...args), delay);
   };
 };
-const states = State.getStatesOfCountry('IN'); // 'IN' is the country code for India
+const states = State.getStatesOfCountry('IN');
 
 const options = states.map(state => ({ value: state.isoCode, label: state.name }));
 
 const ClientManagement = () => {
-  const API_URL=useApi();
+  const [files, setFiles] = useState([]);
+  const API_URL = useApi();
   const { clientData, setClientData } = useClient();
-  
+
   const [input, setInput] = useState({
     company_name: "",
     client_code: "",
@@ -36,14 +37,26 @@ const ClientManagement = () => {
     date_agreement: "",
     agreement_period: "",
     client_standard: "",
-    custom_logo: "",
-    agr_upload: "",
     additional_login: "no",
     custom_template: "",
     custom_address: "",
     username: "",
   });
-  
+
+  const handleFileChange = (fileName, e) => {
+    alert(fileName);
+    const selectedFiles = Array.from(e.target.files); // Convert FileList to an array
+
+    // Assuming `file` is the state variable holding the files
+    setFiles((prevFiles) => {
+      return {
+        ...prevFiles,
+        [fileName]: selectedFiles,
+      };
+    });
+  };
+
+
   const [branchForms, setBranchForms] = useState([{ branch_name: "", branch_email: "" }]);
   const [emails, setEmails] = useState([""]);
   const [errors, setErrors] = useState({});
@@ -72,7 +85,7 @@ const ClientManagement = () => {
     const requiredFields = [
       "company_name", "client_code", "address", "state_code", "state", "mobile_number",
       "name_of_escalation", "client_spoc", "contact_person", "gstin", "tat",
-      "date_agreement", "agreement_period", "client_standard", "agr_upload",
+      "date_agreement", "agreement_period", "client_standard",
       "additional_login", "custom_template",
     ];
 
@@ -90,8 +103,8 @@ const ClientManagement = () => {
         newErrors[`email${index}`] = "This field is required*";
       } else if (emailSet.has(email)) {
         newErrors[`email${index}`] = "This email is already used*";
-      } 
-      
+      }
+
       else {
         emailSet.add(email);
       }
@@ -113,24 +126,25 @@ const ClientManagement = () => {
     return newErrors;
   };
 
+
   const handleFocusOut = useCallback(debounce((event) => {
     const value = event.target.value;
     const adminData = JSON.parse(localStorage.getItem("admin"))?.id;
     const token = localStorage.getItem("_token");
-  
+
     if (value) {
-      fetch(`${API_URL}/branch/is-email-used?email=${value}&admin_id=${adminData}&_token=${token}`, { 
-        method: "GET" 
+      fetch(`${API_URL}/branch/is-email-used?email=${value}&admin_id=${adminData}&_token=${token}`, {
+        method: "GET"
       })
-      .then(response => response.json())
-      .then(data => {
-        if (!data.status) {
-          event.target.setCustomValidity('The Provided Email is Already Used By Client please enter diffrent email!');
-        } else {
-          event.target.setCustomValidity('');
-        }
-      })
-      .catch(error => console.error('Error:', error));
+        .then(response => response.json())
+        .then(data => {
+          if (!data.status) {
+            event.target.setCustomValidity('The Provided Email is Already Used By Client please enter diffrent email!');
+          } else {
+            event.target.setCustomValidity('');
+          }
+        })
+        .catch(error => console.error('Error:', error));
     }
   }, 300), []);
 
@@ -144,73 +158,110 @@ const ClientManagement = () => {
     e.preventDefault();
 
     const validationErrors = validate();
-    if (Object.keys(validationErrors).length === 0) {
-      try {
-        const adminData = JSON.parse(localStorage.getItem("admin"));
-        const token = localStorage.getItem("_token");
-
-        const requestData = {
-          admin_id: adminData.id,
-          ...input,
-          _token: token,
-          branches: branchForms,
-          emails: emails,
-          clientData: clientData,
-        };
-
-        const response = await fetch(`${API_URL}/customer/create`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestData),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
-          throw new Error(errorData.message);
-        }
-
-        Swal.fire({
-          title: "Success",
-          text: 'Client Created Successfully',
-          icon: "success",
-          confirmButtonText: "Ok"
-        });
-
-        setInput({
-          company_name: "",
-          client_code: "",
-          address: "",
-          state_code: "",
-          state: "",
-          mobile_number: "",
-          name_of_escalation: "",
-          client_spoc: "",
-          contact_person: "",
-          gstin: "",
-          tat: "",
-          date_agreement: "",
-          agreement_period: "",
-          client_standard: "",
-          custom_logo: "",
-          agr_upload: "",
-          additional_login: "no",
-          custom_template: "",
-          custom_address: "",
-          username: "",
-        });
-        setBranchForms([{ branch_name: "", branch_email: "" }]);
-        setEmails([""]);
-        setErrors({});
-        setClientData([""]); 
-      } catch (error) {
-        console.error("Error:", error);
-      }
-    } else {
+    if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
+      return;
+    }
+
+    try {
+      const adminData = JSON.parse(localStorage.getItem("admin"));
+      const token = localStorage.getItem("_token");
+
+      const requestData = {
+        admin_id: adminData.id,
+        ...input,
+        _token: token,
+        branches: branchForms,
+        emails: emails,
+        clientData: clientData,
+      };
+
+      const response = await fetch(`${API_URL}/customer/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message);
+      }
+
+      Swal.fire({
+        title: "Success",
+        text: 'Client Created Successfully',
+        icon: "success",
+        confirmButtonText: "Ok",
+      });
+
+      // Resetting input fields
+      resetFormFields();
+
+      await uploadCustomerLogo(adminData.id, token);
+
+    } catch (error) {
+      console.error("Error:", error);
+      Swal.fire('Error!', `An error occurred: ${error.message}`, 'error');
     }
   };
 
+  const resetFormFields = () => {
+    setInput({
+      company_name: "",
+      client_code: "",
+      address: "",
+      state_code: "",
+      state: "",
+      mobile_number: "",
+      name_of_escalation: "",
+      client_spoc: "",
+      contact_person: "",
+      gstin: "",
+      tat: "",
+      date_agreement: "",
+      agreement_period: "",
+      client_standard: "",
+      additional_login: "no",
+      custom_template: "",
+      custom_address: "",
+      username: "",
+    });
+
+    setBranchForms([{ branch_name: "", branch_email: "" }]);
+    setEmails([""]);
+    setErrors({});
+    setClientData([""]);
+  };
+
+  const uploadCustomerLogo = async (adminId, token) => {
+    const customerLogoFormData = new FormData();
+    customerLogoFormData.append('admin_id', adminId);
+    customerLogoFormData.append('_token', token);
+    customerLogoFormData.append('customer_code', input.client_code);
+  
+    for (const [key, value] of Object.entries(files)) {
+      for (const file of value) {
+        customerLogoFormData.append('images', file);
+        customerLogoFormData.append('upload_category', key);
+      }
+  
+      try {
+        await axios.post(
+          `${API_URL}/customer/upload/custom-logo`,
+          customerLogoFormData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+      } catch (err) {
+        Swal.fire('Error!', `An error occurred while uploading logo: ${err.message}`, 'error');
+      }
+    }
+  };
+  
+  
   const addMoreFields = () => {
     setBranchForms([...branchForms, { branch_name: "", branch_email: "" }]);
   };
@@ -308,11 +359,11 @@ const ClientManagement = () => {
               <div className="mb-4 md:w-6/12">
                 <label className="text-gray-500" htmlFor="state">State: *</label>
                 <select name="state" id="state" className="w-full border p-2 rounded-md mt-2" value={input.state} onChange={handleChange}>
-                {options.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
+                  {options.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
 
                 {errors.state && <p className="text-red-500">{errors.state}</p>}
@@ -347,28 +398,28 @@ const ClientManagement = () => {
 
             </div>
             <div className="my-8 grid gap-5 grid-cols-2 items-center flex-wrap">
-            {emails.map((email, index) => (
-              <div key={index} className="mb-4 md:flex items-center gap-3 ">
-                <label className="text-gray-500 whitespace-nowrap">Email {index + 1}: *</label>
-                <input
-                  type="email"
-                  name={`email${index}`}
-                  value={email}
-                  onChange={(e) => handleChange(e, index)}
-                  className="border w-full rounded-md p-2 mt-2 outline-none emailCheck"
-                />
-                {errors[`email${index}`] && <p className="text-red-500 text-sm whitespace-nowrap">{errors[`email${index}`]}</p>}
-                {index > 0 && (
-                  <button
-                    className="bg-red-500 rounded-md p-3  text-white"
-                    type="button"
-                    onClick={() => deleteEmails(index)}
-                  >
-                    Delete
-                  </button>
-                )}
-              </div>
-            ))}
+              {emails.map((email, index) => (
+                <div key={index} className="mb-4 md:flex items-center gap-3 ">
+                  <label className="text-gray-500 whitespace-nowrap">Email {index + 1}: *</label>
+                  <input
+                    type="email"
+                    name={`email${index}`}
+                    value={email}
+                    onChange={(e) => handleChange(e, index)}
+                    className="border w-full rounded-md p-2 mt-2 outline-none emailCheck"
+                  />
+                  {errors[`email${index}`] && <p className="text-red-500 text-sm whitespace-nowrap">{errors[`email${index}`]}</p>}
+                  {index > 0 && (
+                    <button
+                      className="bg-red-500 rounded-md p-3  text-white"
+                      type="button"
+                      onClick={() => deleteEmails(index)}
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
+              ))}
 
               <button className="bg-green-500 text-white rounded-3 p-2 mt-0 rounded-md" type="button" onClick={addMoreEmails}>ADD MORE</button>
             </div>
@@ -460,9 +511,8 @@ const ClientManagement = () => {
                 name="agr_upload"
                 id="agr_upload"
                 className="border w-full rounded-md p-2 mt-2 outline-none"
-                onChange={handleChange}
+                onChange={(e) => handleFileChange('agr_upload', e)}
               />
-              {errors.agr_upload && <p className="text-red-500">{errors.agr_upload}</p>}
             </div>
 
             <div className="mb-4">
@@ -479,9 +529,7 @@ const ClientManagement = () => {
                       type="file"
                       name="custom_logo"
                       id="custom_logo"
-                      onChange={handleChange}
-                      className="border w-full rounded-md p-2 mt-2 outline-none"
-                    />
+                      onChange={(e) => handleFileChange('custom_logo', e)} />
                   </div>
                   <div className="mb-4">
                     <label htmlFor="" className="text-gray-500">Custom Address</label>

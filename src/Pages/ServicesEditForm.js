@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Multiselect from 'multiselect-react-dropdown';
 import { useEditClient } from './ClientEditContext';
 import { useApi } from '../ApiContext';
+
 const ServicesEditForm = () => {
     const [serviceList, setServiceList] = useState([]);
     const [packageList, setPackageList] = useState([]);
@@ -22,25 +23,28 @@ const ServicesEditForm = () => {
                 _token: storedToken || '',
             }).toString();
 
-
-            const serviceRes = await fetch(`API_URL/service/list?${queryParams}`, {
+            const serviceRes = await fetch(`${API_URL}/service/list?${queryParams}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
+
             if (!serviceRes.ok) {
                 const errorText = await serviceRes.text();
                 throw new Error(`Network response for services was not ok: ${serviceRes.status} ${errorText}`);
             }
+
             const newToken = serviceRes._token || serviceRes.token; // Use result.token if result._token is not available
             if (newToken) {
                 localStorage.setItem("_token", newToken); // Replace the old token with the new one
             }
+
             const serviceResult = await serviceRes.json();
             if (!serviceResult || !Array.isArray(serviceResult.services)) {
                 throw new Error('Invalid service response format');
             }
+
             const processedServices = (serviceResult.services || []).map((item) => ({
                 ...item,
                 service_name: item.title,
@@ -49,6 +53,7 @@ const ServicesEditForm = () => {
                 price: item.price,
                 selectedPackages: []
             }));
+
             setServiceList(processedServices);
 
             // Fetch packages
@@ -58,6 +63,7 @@ const ServicesEditForm = () => {
                     'Content-Type': 'application/json'
                 }
             });
+
             if (!packageRes.ok) {
                 const errorText = await packageRes.text();
                 throw new Error(`Network response for packages was not ok: ${packageRes.status} ${errorText}`);
@@ -73,12 +79,11 @@ const ServicesEditForm = () => {
         } catch (error) {
             console.error("Error fetching data:", error);
         }
-    }, []);
+    }, [API_URL]);
 
     useEffect(() => {
         fetchData();
     }, [fetchData]);
-
 
     const handleChange = (e, index) => {
         const { name, value } = e.target;
@@ -88,7 +93,6 @@ const ServicesEditForm = () => {
             return updated;
         });
     };
-
 
     const handlePackageSelect = (selectedList, index) => {
         const selectedIds = selectedList.map(pkg => pkg.id);
@@ -109,13 +113,13 @@ const ServicesEditForm = () => {
         });
     };
 
-    let Services = [];
+    const Services = Array.isArray(clientData.Services) ? clientData.Services : [];
+
     try {
         if (clientData.services) {
-            Services = JSON.parse(clientData.services)
+            Services = JSON.parse(clientData.services);
         }
-    }
-    catch (error) {
+    } catch (error) {
         console.error('Error parsing services:', error);
     }
 
@@ -128,9 +132,9 @@ const ServicesEditForm = () => {
         };
     });
 
-    
     return (
-        <>   <h2 className='text-2xl mb-3'>Services:</h2>
+        <>
+            <h2 className='text-2xl mb-3'>Services:</h2>
             <table className='min-w-full'>
                 <thead>
                     <tr className='bg-green-500'>
@@ -161,58 +165,22 @@ const ServicesEditForm = () => {
                                 </div>
                             </td>
                             <td className='py-3 px-4 border-l border-r border-b whitespace-nowrap'>
-                            {/* Console logs for debugging */}
-                            {(() => {
-                                const selectedPackagesKeysArr = []; // Initialize inside the loop
-                        
-                                for (const key in item.selectedPackages) {
-                                    if (item.selectedPackages.hasOwnProperty(key)) {
-                                        const parsedKey = parseInt(key, 10); // Convert key to an integer
-                        
-                                        // Check if the key is valid
-                                        if (parsedKey && item.selectedPackages[key] != null && item.selectedPackages[key] !== '') {
-                                            selectedPackagesKeysArr.push(parsedKey);
-                                        }
-                                    }
-                                }
-                                return selectedPackagesKeysArr;
-                            })()}
-                        
                             <Multiselect
-                                options={packageList.map((pkg) => ({ name: pkg.title, id: pkg.id }))}
-                                selectedValues={packageList
-                                    .filter(pkg => {
-                                        const selectedKeys = (() => {
-                                            // Initialize inside the filter function to ensure it's scoped
-                                            const keysArr = [];
-                                            for (const key in item.selectedPackages) {
-                                                if (item.selectedPackages.hasOwnProperty(key)) {
-                                                    const parsedKey = parseInt(key, 10);
-                                                    if (parsedKey && item.selectedPackages[key] != null && item.selectedPackages[key] !== '') {
-                                                        keysArr.push(parsedKey);
-                                                    }
-                                                }
-                                            }
-                                            return keysArr;
-                                        })();
-                                        return selectedKeys.includes(pkg.id);
-                                    }) 
-                                    .map(pkg => ({ name: pkg.title, id: pkg.id }))}
-                                onSelect={(selectedList) => handlePackageSelect(selectedList, index)}
-                                onRemove={(selectedList) => handlePackageRemove(selectedList, index)}
-                                displayValue="name"
-                                className='text-left'
-                            />
-                        </td>
+                            options={packageList.map((pkg) => ({ name: pkg.title, id: pkg.id }))}
+                            selectedValues={packageList
+                                .filter(pkg => Array.isArray(item.selectedPackages) && item.selectedPackages.includes(pkg.id))
+                                .map(pkg => ({ name: pkg.title, id: pkg.id }))}
+                            onSelect={(selectedList) => handlePackageSelect(selectedList, index)}
+                            onRemove={(selectedList) => handlePackageRemove(selectedList, index)}
+                            displayValue="name"
+                            className='text-left'
+                        />
                         
-
+                            </td>
                         </tr>
-
                     ))}
                 </tbody>
             </table>
-            
-
         </>
     );
 };

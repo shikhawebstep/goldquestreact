@@ -317,46 +317,48 @@ const ClientManagementList = () => {
                                     <td className="py-3 px-4 border-b border-r text-center cursor-pointer">{item.contact_person_name}</td>
                                     <td className="py-3 px-4 border-b border-r text-center cursor-pointer">{item.mobile}</td>
                                     <td className="py-3 px-4 border-b border-r text-left cursor-pointer">
-                                        {displayedServices.length > 0 ? (
-                                            <div>
-                                                {displayedServices.map((service, index) => (
-                                                    <div key={index} className='flex gap-3'>
-                                                        <>
-                                                            {service.price ? (
-                                                                <>
-                                                                    <p className='whitespace-nowrap capitalize text-left'>service: {service.serviceTitle}</p>
-                                                                    <p className='whitespace-nowrap capitalize text-left'>Price: {service.price}</p>
-                                                                </>
-                                                            ) : (
-                                                                <p className='whitespace-nowrap capitalize text-left text-red-500'>Service not available</p>
-                                                            )}
-
-                                                            {service.packages && Object.keys(service.packages).length > 0 ? (
-                                                                <p className='whitespace-nowrap capitalize text-left'>
-                                                                    Packages: {Object.values(service.packages).filter(Boolean).join(', ')}
-                                                                </p>
-                                                            ) : (
-                                                                <p className='whitespace-nowrap capitalize text-left text-red-500'>No packages available</p>
-                                                            )}
-                                                        </>
-                                                    </div>
-                                                ))}
-
-
-                                                {displayedServices.length > 1 && !showAllServices && (
-                                                    <button onClick={() => toggleShowAllServices(item.main_id)} className="text-green-500 underline text-left">
-                                                        Show more
-                                                    </button>
-                                                )}
-                                                {showAllServices && (
-                                                    <button onClick={() => toggleShowAllServices(item.main_id)} className="text-green-500 underline">
-                                                        Show less
-                                                    </button>
-                                                )}
-                                            </div>
-                                        ) : (
-                                            <p className='whitespace-nowrap capitalize'>No services available.</p>
-                                        )}
+                                    <td className="py-3 px-4 border-b border-r text-left cursor-pointer">
+                                    {result.length > 0 ? (
+                                        <div>
+                                            {displayedServices.map((service, idx) => (
+                                                <div key={idx} className='flex gap-3'>
+                                                    <>
+                                                        {service.price ? (
+                                                            <>
+                                                                <p className='whitespace-nowrap capitalize text-left'>Service: {service.serviceTitle}</p>
+                                                                <p className='whitespace-nowrap capitalize text-left'>Price: {service.price}</p>
+                                                            </>
+                                                        ) : (
+                                                            <p className='whitespace-nowrap capitalize text-left text-red-500'>Service not available</p>
+                                                        )}
+                                
+                                                        {service.packages && Object.keys(service.packages).length > 0 ? (
+                                                            <p className='whitespace-nowrap capitalize text-left'>
+                                                                Packages: {Object.values(service.packages).filter(Boolean).join(', ')}
+                                                            </p>
+                                                        ) : (
+                                                            <p className='whitespace-nowrap capitalize text-left text-red-500'>No packages available</p>
+                                                        )}
+                                                    </>
+                                                </div>
+                                            ))}
+                                
+                                            {result.length > 1 && !showAllServices && (
+                                                <button onClick={() => toggleShowAllServices(item.main_id)} className="text-green-500 underline text-left">
+                                                    Show more
+                                                </button>
+                                            )}
+                                            {showAllServices && (
+                                                <button onClick={() => toggleShowAllServices(item.main_id)} className="text-green-500 underline">
+                                                    Show less
+                                                </button>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <p className='whitespace-nowrap capitalize'>No services available.</p>
+                                    )}
+                                </td>
+                                
                                     </td>
                                     <td className="py-3 px-4 border-b border-r whitespace-nowrap capitalize">{item.address}</td>
                                     <td className="py-3 px-4 border-b border-r text-left whitespace-nowrap capitalize fullwidth">

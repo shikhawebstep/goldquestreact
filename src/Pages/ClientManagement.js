@@ -3,7 +3,7 @@ import Swal from 'sweetalert2';
 import { useClient } from "./ClientManagementContext";
 import ClientManagementData from "./ClientManagementData";
 import { useApi } from "../ApiContext";
-import { Country, State, City } from 'country-state-city';
+import { State } from 'country-state-city';
 import axios from "axios";
 
 const debounce = (func, delay) => {
@@ -18,6 +18,7 @@ const states = State.getStatesOfCountry('IN');
 const options = states.map(state => ({ value: state.isoCode, label: state.name }));
 
 const ClientManagement = () => {
+  const [insertId, setInsertId] = useState();
   const [files, setFiles] = useState([]);
   const API_URL = useApi();
   const { clientData, setClientData } = useClient();
@@ -154,6 +155,11 @@ const ClientManagement = () => {
     return () => inputs.forEach(input => input.removeEventListener('focusout', handleFocusOut));
   }, [handleFocusOut]);
 
+
+  console.log('insertId', insertId);
+
+
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
 
@@ -167,14 +173,32 @@ const ClientManagement = () => {
       const adminData = JSON.parse(localStorage.getItem("admin"));
       const token = localStorage.getItem("_token");
 
-      const requestData = {
-        admin_id: adminData.id,
-        ...input,
-        _token: token,
-        branches: branchForms,
-        emails: emails,
-        clientData: clientData,
-      };
+      let requestData;
+      const fileCount = Object.keys(files).length;
+      if(fileCount==0){
+         requestData = {
+          admin_id: adminData.id,
+          ...input,
+          _token: token,
+          branches: branchForms,
+          emails: emails,
+          clientData: clientData,
+          send_mail:1,
+        };
+    
+      }
+      else{
+         requestData = {
+          admin_id: adminData.id,
+          ...input,
+          _token: token,
+          branches: branchForms,
+          emails: emails,
+          clientData: clientData,
+        };
+      }
+
+     
 
       const response = await fetch(`${API_URL}/customer/create`, {
         method: "POST",
@@ -187,9 +211,15 @@ const ClientManagement = () => {
         throw new Error(errorData.message);
       }
 
+      const data = await response.json();
+      const customerInsertId = data.data.customerId;
+      const password=data.password;
+      alert(password)
+      setInsertId(customerInsertId)
+
       Swal.fire({
         title: "Success",
-        text: 'Client Created Successfully',
+        text: 'Client Created Successfully. Customer ID: ' + customerInsertId,
         icon: "success",
         confirmButtonText: "Ok",
       });
@@ -197,12 +227,15 @@ const ClientManagement = () => {
       // Resetting input fields
       resetFormFields();
 
-      await uploadCustomerLogo(adminData.id, token);
+      console.log('Customer Insert ID:', customerInsertId);
+
+      await uploadCustomerLogo(adminData.id, token, customerInsertId,password);
 
     } catch (error) {
       console.error("Error:", error);
       Swal.fire('Error!', `An error occurred: ${error.message}`, 'error');
     }
+
   };
 
   const resetFormFields = () => {
@@ -233,21 +266,30 @@ const ClientManagement = () => {
     setClientData([""]);
   };
 
-  const uploadCustomerLogo = async (adminId, token) => {
-    const customerLogoFormData = new FormData();
-    customerLogoFormData.append('admin_id', adminId);
-    customerLogoFormData.append('_token', token);
-    customerLogoFormData.append('customer_code', input.client_code);
-  
-    for (const [key, value] of Object.entries(files)) {
+
+  const uploadCustomerLogo = async (adminId, token, customerInsertId,password) => {
+    
+
+    const fileCount = Object.keys(files).length;
+    for (const [index, [key, value]] of Object.entries(files).entries()) {
+      const customerLogoFormData = new FormData();
+      customerLogoFormData.append('admin_id', adminId);
+      customerLogoFormData.append('_token', token);
+      customerLogoFormData.append('customer_code', input.client_code);
+      customerLogoFormData.append('customer_id', customerInsertId);
       for (const file of value) {
         customerLogoFormData.append('images', file);
         customerLogoFormData.append('upload_category', key);
       }
-  
+      if (fileCount === (index + 1)) {
+        customerLogoFormData.append('send_mail', 1);
+        customerLogoFormData.append('company_name', input.company_name);
+        customerLogoFormData.append('password', password);
+    }
+
       try {
         await axios.post(
-          `${API_URL}/customer/upload/custom-logo`,
+          `${API_URL}/customer/upload`,
           customerLogoFormData,
           {
             headers: {
@@ -260,8 +302,8 @@ const ClientManagement = () => {
       }
     }
   };
-  
-  
+
+
   const addMoreFields = () => {
     setBranchForms([...branchForms, { branch_name: "", branch_email: "" }]);
   };

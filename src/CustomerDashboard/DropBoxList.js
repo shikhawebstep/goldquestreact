@@ -108,13 +108,19 @@ const DropBoxList = () => {
                             <th className="py-3 text-center text-white px-4 border-b whitespace-nowrap uppercase">Action</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {paginated.length > 0 ?
-
-                            (paginated.map((report, index) => (
-                                <tr key={index} id={report}>
+                  
+                    {paginated.length > 0 ? (
+                        <tbody>
+                            {paginated.map((report, index) => (
+                                <tr key={index} id={report.id}>
                                     <td className="py-3 px-4 border-b border-r text-center border-l whitespace-nowrap">{index + 1}</td>
-                                    <td className="py-3 px-4 border-b border-r text-center whitespace-nowrap"><img src={report.attach_documents} alt={report.photo} />
+                                    <td className="py-3 px-4 border-b border-r text-center whitespace-nowrap">
+                                        {report.photo ? (
+                                            <img
+                                                src={`https://goldquestreact.onrender.com/${report.photo}`}
+                                                alt={report.photo}
+                                            />
+                                        ) : '----'}
                                     </td>
                                     <td className="py-3 px-4 border-b border-r text-center whitespace-nowrap">{report.application_id}</td>
                                     <td className="py-3 px-4 border-b border-r whitespace-nowrap">{report.name}</td>
@@ -122,20 +128,35 @@ const DropBoxList = () => {
                                     <td className="py-3 px-4 border-b border-r whitespace-nowrap">{report.location}</td>
                                     <td className="py-3 px-4 border-b border-r whitespace-nowrap">{report.batch_number}</td>
                                     <td className="py-3 px-4 border-b border-r whitespace-nowrap">{report.sub_client}</td>
-                                    <td className="py-3 px-4 border-b border-r whitespace-nowrap"><img src={report.attach_documents} alt={report.attach_documents} /></td>
-                                    <td className="py-3 px-4 border-b border-r whitespace-nowrap text-center">{report.services} <button className='block text-blue-600 text-center'>{report.more}</button></td>
-                                    <td className="py-3 px-4 border-b border-r whitespace-nowrap">{report.package}</td>
+                                    <td className="py-3 px-4 border-b border-r text-center whitespace-nowrap">
+                                        {report.attach_documents ? (
+                                            <img
+                                                src={`https://goldquestreact.onrender.com/${report.attach_documents}`}
+                                                alt={report.attach_documents}
+                                            />
+                                        ) : '----'}
+                                    </td>
+                                    <td className="py-3 px-4 border-b border-r whitespace-nowrap text-center">
+                                        {report.services || 'no data available'}
+                                        <button className='block text-blue-600'>{report.more}</button>
+                                    </td>
+                                    <td className="py-3 px-4 border-b border-r whitespace-nowrap">{report.package || 'no data available'}</td>
                                     <td className="py-3 px-4 border-b border-r whitespace-nowrap text-center">{report.spoc}</td>
                                     <td className="py-3 px-4 border-b border-r whitespace-nowrap">{report.employee_id}</td>
                                     <td className="py-3 px-4 border-b whitespace-nowrap border-r">
-                                        <button className="bg-green-600 text-white p-3  rounded-md hover:bg-green-200" onClick={() => handleEdit(report)}>Edit</button>
-                                        <button className="bg-red-600 text-white p-3  ms-2 rounded-md hover:bg-red-200" onClick={() => handleDelete(report.id)}>Delete</button>
+                                        <button className="bg-green-600 text-white p-3 rounded-md hover:bg-green-200" onClick={() => handleEdit(report)}>Edit</button>
+                                        <button className="bg-red-600 text-white p-3 ms-2 rounded-md hover:bg-red-200" onClick={() => handleDelete(report.id)}>Delete</button>
                                     </td>
                                 </tr>
-                            ))) : (<p className='text-center p-5 w-full whitespace-nowrap flex justify-center'>No Data Available</p>)
-                        }
-
-                    </tbody>
+                            ))}
+                        </tbody>
+                    ) : (
+                        <tr>
+                            <td colSpan={13} className='text-center p-5 w-full whitespace-nowrap'>No Data Available</td>
+                        </tr>
+                    )}
+                    
+                    
                 </table>
             </div>
             <Pagination />

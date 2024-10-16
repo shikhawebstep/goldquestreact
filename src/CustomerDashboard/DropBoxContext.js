@@ -28,50 +28,56 @@ export const DropBoxProvider = ({ children }) => {
 
     const fetchServices = useCallback(async () => {
         if (!branchId || !customerId || !token) return; // Exit early if data is not ready
-    
+
         try {
             const response = await fetch(`${API_URL}/branch/customer-info?customer_id=${customerId}&branch_id=${branchId}&branch_token=${token}`, {
                 method: "GET",
                 redirect: "follow"
             });
-    
+
             if (!response.ok) {
                 const errorData = await response.json();
                 Swal.fire('Error!', `An error occurred: ${errorData.message}`, 'error');
                 return;
             }
-    
+
             const data = await response.json();
-    
             if (data.customers.length > 0) {
                 const customer = data.customers[0];
-                const parsedServices = customer.services ? JSON.parse(customer.services) : [];
+                const customer_code = customer.client_unique_id;
+                localStorage.setItem('customer_code', customer_code);
+
+                const parsedServices = customer.services && customer.services !== '""' ? JSON.parse(customer.services) : []; // Check for non-empty services
+
                 setServices(parsedServices);
-    
+
                 const packageSet = new Set();
                 const uniquePackagesList = [];
-    
+
                 parsedServices.forEach(service => {
-                    Object.keys(service.packages).forEach(packageId => {
-                        if (!packageSet.has(packageId)) {
-                            packageSet.add(packageId);
-                            uniquePackagesList.push({ id: packageId, name: service.packages[packageId] });
-                        }
-                    });
+                    if (service.packages) { // Ensure packages exist
+                        Object.keys(service.packages).forEach(packageId => {
+                            if (!packageSet.has(packageId)) {
+                                packageSet.add(packageId);
+                                uniquePackagesList.push({ id: packageId, name: service.packages[packageId] });
+                            }
+                        });
+                    }
                 });
-    
+
                 setUniquePackages(uniquePackagesList);
+            } else {
+                Swal.fire('No customers found');
             }
+
+
         } catch (error) {
-            console.error('Fetch Error:', error);
             Swal.fire('Error!', 'An unexpected error occurred.', 'error');
         }
     }, [API_URL, branchId, customerId, token]);
-    
-    useEffect(() => {
-        fetchServices(); 
-    }, [fetchServices]);
-    
+
+ 
+
 
     const fetchClient = useCallback(async () => {
         if (!branchId || !token) return;
@@ -124,6 +130,7 @@ export const DropBoxProvider = ({ children }) => {
             Swal.fire('Error!', 'An unexpected error occurred.', 'error');
         }
     }, [API_URL, branchId, token]);
+  
 
     return (
         <DropBoxContext.Provider value={{

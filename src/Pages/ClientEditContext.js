@@ -1,8 +1,7 @@
 import React, { createContext, useState, useContext } from 'react';
 import Swal from 'sweetalert2';
 import { useData } from './DataContext';
-import { useApi } from '../ApiContext'; // use the custom hook
-
+import { useApi } from '../ApiContext'; 
 const ClientEditContext = createContext();
 
 
@@ -50,7 +49,6 @@ export const ClientEditProvider = ({ children }) => {
             Swal.fire('Error!', 'Missing required fields: Branch ID, Name, Email', 'error');
             return;
         }
-
         const raw = JSON.stringify({
             ...clientData,
             admin_id,

@@ -2,15 +2,13 @@ import React, { useContext, useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import DropBoxContext from './DropBoxContext';
 import { useApi } from '../ApiContext';
-import axios from 'axios';
+import axios from 'axios'; 
 import Multiselect from 'multiselect-react-dropdown';
 
 const ClientForm = () => {
     const storedBranchData = JSON.parse(localStorage.getItem("branch"));
     const branch_token = localStorage.getItem("branch_token");
     const API_URL = useApi();
-    const customer_id = storedBranchData?.customer_id;
-    const customer_code = localStorage.getItem("customer_code");
     const [files, setFiles] = useState({});
     const [clientInput, setClientInput] = useState({
         name: '',
@@ -19,17 +17,16 @@ const ClientForm = () => {
         location: '',
         batch_number: '',
         sub_client: '',
-        services: [],
+        services: [], 
         package: [],
         client_application_id: '',
-        attach_documents: 'abc.png',
-        photo: 'xyz.png',
+        attach_documents:'abc.png',
+        photo:'xyz.png',
     });
 
     const { selectedDropBox, fetchClientDrop, services, uniquePackages } = useContext(DropBoxContext);
     const [isEditClient, setIsEditClient] = useState(false);
     const [inputError, setInputError] = useState({});
-    const [isLoading, setIsLoading] = useState(false); // New loading state
 
     const validate = () => {
         const newErrors = {};
@@ -48,11 +45,11 @@ const ClientForm = () => {
                 location: selectedDropBox.location,
                 batch_number: selectedDropBox.batch_number,
                 sub_client: selectedDropBox.sub_client,
-                services: selectedDropBox.services || [],
+                services: selectedDropBox.services || [], 
                 package: selectedDropBox.package || '',
                 client_application_id: selectedDropBox.id,
-                attach_documents: 'abc.png',
-                photo: 'xyz.png',
+                attach_documents:'abc.png',
+                photo:'xyz.png',
             });
             setIsEditClient(true);
         } else {
@@ -63,11 +60,11 @@ const ClientForm = () => {
                 location: "",
                 batch_number: "",
                 sub_client: "",
-                services: [],
+                services: [], 
                 package: "",
                 client_application_id: "",
-                attach_documents: 'abc.png',
-                photo: 'xyz.png',
+                attach_documents:'abc.png',
+                photo:'xyz.png',
             });
             setIsEditClient(false);
         }
@@ -75,12 +72,11 @@ const ClientForm = () => {
 
     const handleChange = (event) => {
         const { name, value, checked } = event.target;
-
         if (name === 'services') {
             setClientInput(prev => {
                 const updatedServices = checked
-                    ? [...prev.services, value] // Add the value
-                    : prev.services.filter(serviceId => serviceId !== value); // Remove the value
+                    ? [...prev.services, value]
+                    : prev.services.filter(serviceId => serviceId !== value);
 
                 return { ...prev, services: updatedServices };
             });
@@ -94,29 +90,19 @@ const ClientForm = () => {
         setFiles(prevFiles => ({ ...prevFiles, [fileName]: selectedFiles }));
     };
 
-    const uploadCustomerLogo = async (insertedId, new_application_id) => {
-        const fileCount = Object.keys(files).length;
-        const serviceData = JSON.stringify(services);
-        for (const [index, [key, value]] of Object.entries(files).entries()) {
-            const customerLogoFormData = new FormData();
-            customerLogoFormData.append('branch_id', storedBranchData?.id);
-            customerLogoFormData.append('_token', branch_token);
-            customerLogoFormData.append('customer_code', customer_code);
-            customerLogoFormData.append('client_application_id', insertedId);
-
+    const uploadCustomerLogo = async () => {
+        const customerLogoFormData = new FormData();
+        customerLogoFormData.append('branch_id', storedBranchData?.id);
+        customerLogoFormData.append('branch_token', branch_token);
+        customerLogoFormData.append('customer_code', clientInput.client_code);
+        
+        for (const [key, value] of Object.entries(files)) {
             for (const file of value) {
                 customerLogoFormData.append('images', file);
                 customerLogoFormData.append('upload_category', key);
             }
-
-            if (fileCount === (index + 1)) {
-                customerLogoFormData.append('send_mail', 1);
-                customerLogoFormData.append('services', serviceData);
-                customerLogoFormData.append('client_application_name', clientInput.name);
-                customerLogoFormData.append('client_application_generated_id', new_application_id);
-            }
             try {
-                await axios.post(`${API_URL}/branch/client-application/upload`, customerLogoFormData, {
+                await axios.post(`${API_URL}/customer/upload/custom-logo`, customerLogoFormData, {
                     headers: {
                         "Content-Type": "multipart/form-data",
                     },
@@ -129,31 +115,17 @@ const ClientForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        let requestBody;
         const errors = validate();
         if (Object.keys(errors).length === 0) {
-            setIsLoading(true); // Set loading state to true
             const branch_id = storedBranchData?.id;
-            const fileCount = Object.keys(files).length;
-            if (fileCount == 0) {
-                requestBody = {
-                    customer_id,
-                    branch_id,
-                    send_mail: 1,
-                    _token: branch_token,
-                    ...clientInput
-                };
-            }
-            else {
-                requestBody = {
-                    customer_id,
-                    branch_id,
-                    send_mail: 0,
-                    _token: branch_token,
-                    ...clientInput
-                };
-            }
+            const customer_id = storedBranchData?.customer_id;
 
+            const requestBody = {
+                customer_id,
+                branch_id,
+                _token: branch_token,
+                ...clientInput
+            };
 
             try {
                 const response = await fetch(
@@ -176,10 +148,6 @@ const ClientForm = () => {
                 }
 
                 const data = await response.json();
-                fetchClientDrop();
-                const insertedId = data.result.results.insertId;
-                const new_application_id = data.result.new_application_id;
-                alert(insertedId);
                 const newToken = data._token || data.token;
                 if (newToken) {
                     localStorage.setItem("branch_token", newToken);
@@ -196,7 +164,8 @@ const ClientForm = () => {
                     client_application_id: ''
                 });
                 setInputError({});
-
+                fetchClientDrop();
+                await uploadCustomerLogo(); // No need for parameters here
 
                 Swal.fire({
                     title: "Success",
@@ -204,11 +173,8 @@ const ClientForm = () => {
                     icon: "success",
                     confirmButtonText: "Ok"
                 });
-                await uploadCustomerLogo(insertedId, new_application_id);
             } catch (error) {
                 console.error("There was an error!", error);
-            } finally {
-                setIsLoading(false); // Reset loading state
             }
         } else {
             setInputError(errors);
@@ -217,7 +183,7 @@ const ClientForm = () => {
 
     const handlePackageChange = (selectedList) => {
         const selectedIds = selectedList.map(pkg => pkg.id);
-        setClientInput(prev => ({ ...prev, package: selectedIds }));
+        setClientInput(prev => ({ ...prev, package: selectedIds })); // Fixed 'packages' to 'package'
     };
 
     return (
@@ -279,7 +245,7 @@ const ClientForm = () => {
                     </div>
                     <div className="col bg-white shadow-md rounded-md p-3 md:p-6">
                         <div className="flex flex-wrap flex-col-reverse">
-                            <div className='mt-4'>
+                            <div>
                                 <h2 className='bg-green-500 rounded-md p-4 text-white mb-4 hover:bg-green-200'>Service Names</h2>
                                 {services.length > 0 ? (
                                     <ul>
@@ -301,7 +267,7 @@ const ClientForm = () => {
                                 )}
                             </div>
                             <div>
-                                <strong className='mb-2'>Packages:</strong>
+                                <strong>Packages:</strong>
                                 {uniquePackages.length > 0 ? (
                                     <Multiselect
                                         options={uniquePackages.map(pkg => ({ name: pkg.name || "No Name", id: pkg.id }))}
@@ -318,12 +284,9 @@ const ClientForm = () => {
                         </div>
                     </div>
                 </div>
-                <button type="submit" className='bg-green-400 hover:bg-green-200 text-white p-3 rounded-md w-auto' disabled={isLoading}>
-                    {isLoading ? 'Submitting...' : (isEditClient ? "Edit" : "Send")}
-                </button>
+                <button type="submit" className='bg-green-400 hover:bg-green-200 text-white p-3 rounded-md w-auto'>{isEditClient ? "Edit" : "Send"}</button>
                 <button type="button" className='bg-green-400 hover:bg-green-200 mt-4 text-white p-3 rounded-md w-auto ms-3'>Bulk Upload</button>
             </form>
-            {isLoading && <div className="loader">Loading...</div>} {/* Add a simple loader here */}
         </>
     );
 }

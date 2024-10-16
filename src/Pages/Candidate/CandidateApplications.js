@@ -1,8 +1,12 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { BranchContextExel } from '../BranchContextExel';
 import Swal from 'sweetalert2';
+import axios from 'axios';
 import { useGenerateReport } from '../GenerateReportContext';
+
 const CandidateApplications = () => {
+    const [files, setFiles] = useState([]);
+
     const renderedServices = new Set();
     const [allInputDetails, setAllInputDetails] = useState([]);
     const [disabledFields, setDisabledFields] = useState({
@@ -31,6 +35,8 @@ const CandidateApplications = () => {
     const [errors, setErrors] = useState({});
     const [serviceHeadings, setServiceHeadings] = useState([]);
 
+
+    console.log('files---',files)
 
     const fetchServices = useCallback(() => {
         const servicesArray = service_id ? service_id.split(',').map(Number) : [];
@@ -418,7 +424,65 @@ const CandidateApplications = () => {
         annexureValues(application_id); // Make sure to pass necessary parameters
         fetchClients();
     }, [fetchServices, fetchClients, annexureValues, application_id, service_id]);
+    const handleFileChange = (fileName, e, selectedDb) => {
 
+        const selectedFiles = Array.from(e.target.files);
+
+        // Update the state with the new selected files
+        setFiles((prevFiles) => ({
+            ...prevFiles,
+            [selectedDb]: { selectedFiles, fileName },
+        }));
+    };
+
+
+    const uploadCustomerLogo = async () => {
+        const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
+        const storedToken = localStorage.getItem("_token");
+    
+        const fileCount = Object.keys(files).length;
+        for (const [key, value] of Object.entries(files)) {
+            const customerLogoFormData = new FormData();
+    
+            customerLogoFormData.append('admin_id', admin_id);
+            customerLogoFormData.append('_token', storedToken);
+            customerLogoFormData.append('application_id', application_id);
+            customerLogoFormData.append('customer_code', formData.employee_id);
+    
+            // Check if selectedFiles is not empty
+            if (value.selectedFiles.length > 0) {
+                for (const file of value.selectedFiles) {
+                    // Ensure file is a valid File object
+                    if (file instanceof File) {
+                        customerLogoFormData.append('images', file); // Append each valid file
+                    } else {
+                        console.error('Invalid file object:', file);
+                    }
+                }
+                customerLogoFormData.append('db_column', value.fileName);
+                customerLogoFormData.append('db_table', key);
+            }
+    
+            if (fileCount === Object.keys(files).indexOf(key) + 1) {
+                customerLogoFormData.append('send_mail', 1);
+            }
+    
+            try {
+                await axios.post(
+                    `https://goldquestreact.onrender.com/client-master-tracker/upload`,
+                    customerLogoFormData,
+                    {
+                        headers: {
+                            "Content-Type": "multipart/form-data",
+                        },
+                    }
+                );
+            } catch (err) {
+                Swal.fire('Error!', `An error occurred while uploading logo: ${err.message}`, 'error');
+            }
+        }
+    };
+    
     const handleFormSubmit = (e) => {
         e.preventDefault();
 
@@ -465,7 +529,11 @@ const CandidateApplications = () => {
                 return response.text();
             })
             .then(result => {
+
                 Swal.fire('Success!', 'Application updated successfully.', 'success');
+
+                uploadCustomerLogo();
+
 
             })
             .catch(error => {
@@ -873,6 +941,7 @@ const CandidateApplications = () => {
                     ? allInputDetails.filter(({ serviceId: id }) => id === idNumber)
                     : [];
 
+                const selectedDb = filteredInputs[0].db_table
 
 
                 const heading = serviceHeadings.find(service => service.service_id === idNumber)?.heading || 'No heading';
@@ -886,6 +955,7 @@ const CandidateApplications = () => {
                         <div className="form-group bg-slate-100 p-3 rounded-md mb-4">
                             {filteredInputs.length > 0 ? (
                                 filteredInputs.flatMap(({ inputDetails }) => inputDetails).map((input) => (
+
                                     <div key={input.name} className="mb-4">
                                         <label className='capitalize' htmlFor={input.name}>
                                             {input.label}
@@ -920,7 +990,7 @@ const CandidateApplications = () => {
                                                 name={input.name}
                                                 id={input.name}
                                                 className="border w-full rounded-md p-2 mt-2"
-                                                onChange={handleChange}
+                                                onChange={(e) => handleFileChange(input.name, e, selectedDb)}
                                             />
                                         ) : null}
                                         {errors[input.name] && (

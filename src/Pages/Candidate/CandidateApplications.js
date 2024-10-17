@@ -7,6 +7,7 @@ import { useGenerateReport } from '../GenerateReportContext';
 const CandidateApplications = () => {
     const [files, setFiles] = useState([]);
 
+
     const renderedServices = new Set();
     const [allInputDetails, setAllInputDetails] = useState([]);
     const [disabledFields, setDisabledFields] = useState({
@@ -34,9 +35,21 @@ const CandidateApplications = () => {
     const { formData, setFormData, handleInputChange } = useGenerateReport();
     const [errors, setErrors] = useState({});
     const [serviceHeadings, setServiceHeadings] = useState([]);
+    const [selectedStatuses, setSelectedStatuses] = useState(Array(serviceHeadings.length).fill(''));
+
+    const handleSelectChange = (index, value) => {
+        const updatedStatuses = [...selectedStatuses];
+        updatedStatuses[index] = value;
+        setSelectedStatuses(updatedStatuses);
+    };
+    // Check if all selected statuses contain the word "completed"
+    const isAllCompleted = selectedStatuses.every(status => status.includes("completed"));
 
 
-    console.log('files---',files)
+    useEffect(() => {
+        console.log("Selected Statuses: ", selectedStatuses);
+        console.log("Is All Completed: ", isAllCompleted);
+    }, [selectedStatuses]); // Log whenever selected statuses change
 
     const fetchServices = useCallback(() => {
         const servicesArray = service_id ? service_id.split(',').map(Number) : [];
@@ -186,6 +199,7 @@ const CandidateApplications = () => {
                                 .catch(annexureError => {
                                     console.error("Fetch error: ", annexureError);
                                     throw annexureError;
+
                                 });
                         }
 
@@ -424,6 +438,8 @@ const CandidateApplications = () => {
         annexureValues(application_id); // Make sure to pass necessary parameters
         fetchClients();
     }, [fetchServices, fetchClients, annexureValues, application_id, service_id]);
+
+
     const handleFileChange = (fileName, e, selectedDb) => {
 
         const selectedFiles = Array.from(e.target.files);
@@ -436,19 +452,21 @@ const CandidateApplications = () => {
     };
 
 
-    const uploadCustomerLogo = async () => {
+    const uploadCustomerLogo = async (email_status) => {
         const admin_id = JSON.parse(localStorage.getItem("admin"))?.id;
         const storedToken = localStorage.getItem("_token");
-    
+
         const fileCount = Object.keys(files).length;
         for (const [key, value] of Object.entries(files)) {
             const customerLogoFormData = new FormData();
-    
+
             customerLogoFormData.append('admin_id', admin_id);
             customerLogoFormData.append('_token', storedToken);
             customerLogoFormData.append('application_id', application_id);
-            customerLogoFormData.append('customer_code', formData.employee_id);
-    
+            customerLogoFormData.append('email_status', email_status || 0);
+            customerLogoFormData.append('branch_id', branch_id);
+            customerLogoFormData.append('customer_code', formData.updated_json.employee_id);
+
             // Check if selectedFiles is not empty
             if (value.selectedFiles.length > 0) {
                 for (const file of value.selectedFiles) {
@@ -462,11 +480,11 @@ const CandidateApplications = () => {
                 customerLogoFormData.append('db_column', value.fileName);
                 customerLogoFormData.append('db_table', key);
             }
-    
+
             if (fileCount === Object.keys(files).indexOf(key) + 1) {
                 customerLogoFormData.append('send_mail', 1);
             }
-    
+
             try {
                 await axios.post(
                     `https://goldquestreact.onrender.com/client-master-tracker/upload`,
@@ -482,7 +500,7 @@ const CandidateApplications = () => {
             }
         }
     };
-    
+
     const handleFormSubmit = (e) => {
         e.preventDefault();
 
@@ -503,15 +521,33 @@ const CandidateApplications = () => {
             return acc;
         }, {});
 
-        const raw = JSON.stringify({
-            admin_id: adminData?.id,
-            _token: token,
-            branch_id: branch_id,
-            customer_id: 1,
-            application_id: application_id,
-            annexure: mainAnnexureData,
-            ...formData,
-        });
+        let raw;
+        const fileCount = Object.keys(files).length;
+        if (fileCount == 0) {
+            raw = JSON.stringify({
+                admin_id: adminData?.id,
+                _token: token,
+                branch_id: branch_id,
+                customer_id: 1,
+                application_id: application_id,
+                annexure: mainAnnexureData,
+                ...formData,
+                send_mail: 1,
+            });
+        }
+        else {
+            raw = JSON.stringify({
+                admin_id: adminData?.id,
+                _token: token,
+                branch_id: branch_id,
+                customer_id: 1,
+                application_id: application_id,
+                annexure: mainAnnexureData,
+                ...formData,
+                send_mail: 0,
+            });
+        }
+
 
         const requestOptions = {
             method: 'PUT',
@@ -529,10 +565,14 @@ const CandidateApplications = () => {
                 return response.text();
             })
             .then(result => {
+                const parsedData = JSON.parse(result);
+
+                const email_status = parsedData.email_status;
+                alert(email_status)
 
                 Swal.fire('Success!', 'Application updated successfully.', 'success');
 
-                uploadCustomerLogo();
+                uploadCustomerLogo(email_status);
 
 
             })
@@ -891,40 +931,35 @@ const CandidateApplications = () => {
 
             <div className="services-table border p-2 mt-5">
                 <h3 className='text-center text-2xl py-4'>Selected Services</h3>
-                {serviceHeadings.map((item) => {
-
-                    return (
-                        <> <div className="service-box border p-3 rounded-md w-full mb-3 flex items-center bg-slate-100" > <span className='w-5/12'>{item.heading}</span>
-                            <select class="border p-2 w-7/12" id="stapermanent_address" name="stapermanent_address" required="">
-                                <option disabled="" selected="">--Select status--</option>
-                                <option value="nil" data-sname="permanent-address">NIL</option>
-                                <option value="initiated" selected="" data-sname="permanent-address">INITIATED</option>
-                                <option value="hold" data-sname="permanent-address">HOLD</option>
-                                <option value="closure advice" data-sname="permanent-address">CLOSURE ADVICE</option>
-                                <option value="wip" data-sname="permanent-address">WIP</option>
-                                <option value="insuff" data-sname="permanent-address">INSUFF</option>
-                                <option value="completed" data-sname="permanent-address">COMPLETED</option>
-                                <option value="nil" >NIL</option>
-                                <option value="stopcheck" data-sname="permanent-address">STOPCHECK</option>
-                                <option value="active employment" data-sname="permanent-address">ACTIVE EMPLOYMENT</option>
-                                <option value="nil" data-sname="permanent-address">NIL</option>
-                                <option value="not doable" data-sname="permanent-address">NOT DOABLE</option>
-                                <option value="candidate denied" data-sname="permanent-address">CANDIDATE DENIED</option>
-
-                                <option value="completed_green" data-sname="permanent-address">COMPLETED GREEN</option>
-                                <option value="completed_orange" data-sname="permanent-address">COMPLETED ORANGE</option>
-                                <option value="completed_red" data-sname="permanent-address">COMPLETED RED</option>
-                                <option value="completed_yellow" data-sname="permanent-address">COMPLETED YELLOW</option>
-                                <option value="completed_pink" data-sname="permanent-address">COMPLETED PINK</option>
-
-
-                            </select>
-
-                        </div>
-
-                        </>
-                    )
-                })}
+               {serviceHeadings.map((item, index) => (
+                <div key={index} className="service-box border p-3 rounded-md w-full mb-3 flex items-center bg-slate-100">
+                    <span className='w-5/12'>{item.heading}</span>
+                    <select
+                        className="border p-2 w-7/12"
+                        value={selectedStatuses[index]}
+                        onChange={(e) => handleSelectChange(index, e.target.value)}
+                        required
+                    >
+                        <option disabled value="">--Select status--</option>
+                        <option value="nil">NIL</option>
+                        <option value="initiated">INITIATED</option>
+                        <option value="hold">HOLD</option>
+                        <option value="closure advice">CLOSURE ADVICE</option>
+                        <option value="wip">WIP</option>
+                        <option value="insuff">INSUFF</option>
+                        <option value="completed">COMPLETED</option>
+                        <option value="completed_green">COMPLETED GREEN</option>
+                        <option value="completed_orange">COMPLETED ORANGE</option>
+                        <option value="completed_red">COMPLETED RED</option>
+                        <option value="completed_yellow">COMPLETED YELLOW</option>
+                        <option value="completed_pink">COMPLETED PINK</option>
+                        <option value="stopcheck">STOPCHECK</option>
+                        <option value="active employment">ACTIVE EMPLOYMENT</option>
+                        <option value="not doable">NOT DOABLE</option>
+                        <option value="candidate denied">CANDIDATE DENIED</option>
+                    </select>
+                </div>
+            ))}
             </div>
 
             {Array.from(new Set(Object.keys(annexure))).map(serviceId => {
@@ -1116,16 +1151,20 @@ const CandidateApplications = () => {
                 </div>
                 <div className="mb-4 ">
                     <label className='capitalize text-gray-500' htmlFor="overall status">overall status</label>
-                    <select name="overall_status" id=""
-                        value={formData.overall_status}
-                        onChange={handleInputChange}
-                        className="border rounded-md p-2 mt-2 uppercase w-full">
-                        <option value="insuff">insuff</option>
-                        <option value="inititated">inititated</option>
-                        <option value="wip" >wip</option>
-                        <option value="hold">hold</option>
-                        <option value="completed">completed</option>
-                    </select>
+                     <select
+                name="overall_status"
+                value={formData.overall_status}
+                onChange={handleInputChange}
+                className="border rounded-md p-2 mt-2 uppercase w-full"
+            >
+                <option value="insuff">insuff</option>
+                <option value="initiated">initiated</option>
+                <option value="wip">wip</option>
+                <option value="hold">hold</option>
+                <option value="completed" disabled={!isAllCompleted}>
+                    completed
+                </option>
+            </select>
 
                 </div>
                 <div className="grid grid-cols-2 gap-3">

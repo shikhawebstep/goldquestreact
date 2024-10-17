@@ -33,7 +33,7 @@ const tabComponents = {
   client_master: <ClientMasterTracker />,
   exel_tracker: <ExelTracker />,
   tat_delay: <TatDelay />,
-  acknowledgement: <Acknowledgement />,
+  Acknowledgement: <Acknowledgement />,
   update_password: <UpdatePassword />,
   invoice: <Invoice />,
   email_temp: <EmailTemplate />,

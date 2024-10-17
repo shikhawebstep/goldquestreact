@@ -11,7 +11,7 @@ const ServiceEditForm = () => {
     const [selectedData, setSelectedData] = useState([]);
     const API_URL = useApi();
     const { validationsErrors, setValidationsErrors } = useClient();
-    const {clientData, setClientData } = useEditClient();
+    const { clientData, setClientData } = useEditClient();
     const [serviceData, setServiceData] = useState([]);
     const [packageList, setPackageList] = useState([]);
     const [paginated, setPaginated] = useState([]);
@@ -20,7 +20,6 @@ const ServiceEditForm = () => {
     const [selectedPackages, setSelectedPackages] = useState({});
     const [priceData, setPriceData] = useState({});
     const { setTotalResults, currentItem, showPerPage } = useContext(PaginationContext);
-
 
     const fetchServices = useCallback(async () => {
         setLoading(true);
@@ -93,47 +92,124 @@ const ServiceEditForm = () => {
         return Object.keys(errors).length === 0;
     };
 
-useEffect(() => {
-    const updatedServiceData = serviceData.map((item) => {
-        const packageObject = (selectedPackages[item.service_id] || []).reduce((acc, pkgId) => {
-            const pkg = packageList.find(p => p.id === pkgId);
-            if (pkg) {
-                acc[pkg.id] = pkg.title; 
+    useEffect(() => {
+        let PrefilledData;
+        try {
+            PrefilledData = typeof clientData.services === 'string' 
+                ? JSON.parse(clientData.services) 
+                : clientData.services;
+        } catch (error) {
+            console.error('Error parsing PrefilledData:', error);
+            PrefilledData = []; 
+        }
+    
+        const updatedServiceData = serviceData.map((item) => {
+            const prefilledService = PrefilledData.find(service => service.serviceId === item.service_id) || {};
+            
+            const packageObject = (selectedPackages[item.service_id] || []).reduce((acc, pkgId) => {
+                const pkg = packageList.find(p => p.id === pkgId);
+                if (pkg) {
+                    acc[pkg.id] = pkg.title; 
+                }
+                return acc;
+            }, {});
+    
+            return {
+                serviceId: item.service_id,
+                serviceTitle: item.service_title,
+                price: prefilledService.price || priceData[item.service_id]?.price || '', 
+                packages: prefilledService.packages || packageObject, 
+            };
+        });
+    
+        // Track currently preselected services
+        const preselectedServices = PrefilledData.reduce((acc, service) => {
+            acc[service.serviceId] = true; 
+            return acc;
+        }, {});
+    
+        // Remove deselected services
+        const deselectedServiceIds = Object.keys(selectedServices).filter(serviceId => !preselectedServices[serviceId]);
+        const updatedPreselectedServices = removeDeselectedServices(preselectedServices, deselectedServiceIds);
+    
+        // Prepare updated prices, titles, and packages
+        const updatedPrices = {};
+        const updatedTitles = {};
+        const updatedPackages = {};
+    
+        // Update titles, prices, and packages for both newly selected and preselected services
+        updatedServiceData.forEach(service => {
+            if (selectedServices[service.serviceId] || updatedPreselectedServices[service.serviceId]) {
+                // Only update price if it's a valid number
+                if (service.price) {
+                    updatedPrices[service.serviceId] = service.price;
+                }
+    
+                // Update title
+                updatedTitles[service.serviceId] = service.serviceTitle;
+    
+                // Merge packages
+                updatedPackages[service.serviceId] = {
+                    ...updatedPackages[service.serviceId],
+                    ...service.packages,
+                };
+            }
+        });
+    
+        // Update selected services state
+        setSelectedServices((prev) => ({
+            ...prev,
+            ...updatedPreselectedServices,
+            ...updatedPrices,
+            ...updatedTitles,
+            ...updatedPackages,
+        }));
+    
+        // Merging services
+        const services = updatedServiceData.filter(item => updatedPreselectedServices[item.serviceId]);
+        const addedServices = updatedServiceData.filter(item => !updatedPreselectedServices[item.serviceId] && selectedServices[item.serviceId]);
+    
+        const allSelectedServices = [...services, ...addedServices];
+    
+        if (allSelectedServices.length > 0) {
+            setClientData((prev) => ({
+                ...prev,
+                services: allSelectedServices,
+            }));
+        }
+    
+        setSelectedData(updatedServiceData);
+    
+        if (validateServices()) {
+            setTotalResults(allSelectedServices.length);
+            const startIndex = (currentItem - 1) * showPerPage;
+            const endIndex = startIndex + showPerPage;
+            setPaginated(updatedServiceData.slice(startIndex, endIndex)); 
+        }
+    }, [currentItem, showPerPage, serviceData, selectedPackages, priceData, setTotalResults, setClientData, packageList, clientData.services, selectedServices]);
+    
+
+    function removeDeselectedServices(preselectedServices, deselectedServiceIds) {
+        return Object.keys(preselectedServices).reduce((acc, serviceId) => {
+            if (!deselectedServiceIds.includes(serviceId)) {
+                acc[serviceId] = true; 
             }
             return acc;
         }, {});
-
-        return {
-            serviceId: item.service_id,
-            serviceTitle: item.service_title,
-            price: priceData[item.service_id]?.price || '',
-            packages: packageObject, 
-        };
-    });
-
-    const services = updatedServiceData.filter(item => selectedServices[item.serviceId]);
-
-    // Log the selected services before setting
-    console.log('Selected Services:', services);
-
-    // Set client data only if there are selected services
-    if (services.length > 0) {
-        setClientData((prev) => ({
-            ...prev,
-            services,
-        }));
     }
-
-    setSelectedData(updatedServiceData);
-
-    if (validateServices()) {
-        setTotalResults(services.length);
-        const startIndex = (currentItem - 1) * showPerPage;
-        const endIndex = startIndex + showPerPage;
-        setPaginated(updatedServiceData.slice(startIndex, endIndex)); 
+    
+    // Function to handle package removal
+    function handlePackageRemoval(serviceId, pkgId) {
+        setSelectedPackages((prev) => {
+            const updatedPackages = { ...prev };
+            if (updatedPackages[serviceId]) {
+                updatedPackages[serviceId] = updatedPackages[serviceId].filter(id => id !== pkgId);
+            }
+            return updatedPackages;
+        });
     }
-}, [currentItem, showPerPage, serviceData, selectedPackages, priceData, selectedServices, setTotalResults, setClientData, packageList]);
-
+    
+    
     if (loading) return <p>Loading...</p>;
     if (error) return <p>Error: {error}</p>;
 
@@ -171,39 +247,39 @@ useEffect(() => {
                     </tr>
                 </thead>
                 <tbody>
-                    {paginated.map((item) => (
-                        <tr key={item.serviceId}>
-                            <td className="py-2 md:py-3 px-4 border-l border-r border-b whitespace-nowrap">
-                                <input
-                                    type="checkbox"
-                                    className='me-2'
-                                    checked={!!selectedServices[item.serviceId]}
-                                    onChange={() => handleCheckboxChange(item.serviceId)}
-                                /> {item.serviceTitle}
-                            </td>
-                            <td className="py-2 md:py-3 px-4 border-r border-b whitespace-nowrap">
-                                <input
-                                    type="number"
-                                    name="price"
-                                    value={priceData[item.serviceId]?.price || ''}
-                                    onChange={(e) => handleChange(e, item.serviceId)}
-                                    className='outline-none'
-                                />
-                                {validationsErrors[item.serviceId]?.price && <span className="text-red-500">{validationsErrors[item.serviceId].price}</span>}
-                            </td>
-                            <td className="py-2 md:py-3 px-4 border-r border-b whitespace-nowrap uppercase text-left">
-                                <Multiselect
-                                    options={packageList.map(pkg => ({ name: pkg.title, id: pkg.id }))}
-                                    selectedValues={packageList.filter(pkg => (selectedPackages[item.serviceId] || []).includes(pkg.id)).map(pkg => ({ name: pkg.title, id: pkg.id }))}
-                                    onSelect={(selectedList) => handlePackageChange(selectedList, item.serviceId)}
-                                    onRemove={(selectedList) => handlePackageChange(selectedList, item.serviceId)}
-                                    displayValue="name"
-                                    className='text-left'
-                                />
-                                {validationsErrors[item.serviceId]?.packages && <span className="text-red-500">{validationsErrors[item.serviceId].packages}</span>}
-                            </td>
-                        </tr>
-                    ))}
+                {paginated.map((item) => (
+                    <tr key={item.serviceId}>
+                        <td className="py-2 md:py-3 px-4 border-l border-r border-b whitespace-nowrap">
+                            <input
+                                type="checkbox"
+                                className='me-2'
+                                checked={!!selectedServices[item.serviceId]} // Reflect selected state
+                                onChange={() => handleCheckboxChange(item.serviceId)}
+                            /> {item.serviceTitle}
+                        </td>
+                        <td className="py-2 md:py-3 px-4 border-r border-b whitespace-nowrap">
+                            <input
+                                type="number"
+                                name="price"
+                                value={item.price} 
+                                onChange={(e) => handleChange(e, item.serviceId)}
+                                className='outline-none'
+                            />
+                            {validationsErrors[item.serviceId]?.price && <span className="text-red-500">{validationsErrors[item.serviceId].price}</span>}
+                        </td>
+                        <td className="py-2 md:py-3 px-4 border-r border-b whitespace-nowrap uppercase text-left">
+                            <Multiselect
+                                options={packageList.map(pkg => ({ name: pkg.title, id: pkg.id }))}
+                                selectedValues={Object.entries(item.packages).map(([id, name]) => ({ name, id }))} // Get selected packages
+                                onSelect={(selectedList) => handlePackageChange(selectedList, item.serviceId)}
+                                onRemove={(selectedList) => handlePackageChange(selectedList, item.serviceId)}
+                                displayValue="name"
+                                className='text-left'
+                            />
+                            {validationsErrors[item.serviceId]?.packages && <span className="text-red-500">{validationsErrors[item.serviceId].packages}</span>}
+                        </td>
+                    </tr>
+                ))}
                 </tbody>
             </table>
             {paginated.length > 0 && <Pagination />}

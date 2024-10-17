@@ -66,17 +66,17 @@ const ExelTrackerStatus = () => {
             console.error("Missing required parameters");
             return;
         }
-    
+
         const newExpandedRow = expandedRows === index ? null : index;
         setExpandedRows(newExpandedRow);
-    
+
         if (newExpandedRow === index && services) {
             const servicesArray = services.split(',').map(Number);
-    
+
             Promise.all(
                 servicesArray.map(serviceId => {
                     const url = `${API_URL}/client-master-tracker/report-form-json-by-service-id?service_id=${serviceId}&admin_id=${admin_id}&_token=${storedToken}`;
-    
+
                     return fetch(url, requestOptions)
                         .then(response => {
                             if (!response.ok) throw new Error('Network response was not ok');
@@ -87,13 +87,13 @@ const ExelTrackerStatus = () => {
                             const parsedData = JSON.parse(newService);
                             const parsedDb = parsedData.db_table;
                             const parsedDbHeading = parsedData.heading;
-    
+
                             // Initialize or update serviceHeadings
                             if (!serviceHeadings[parsedDb]) {
                                 serviceHeadings[parsedDb] = [];
                             }
                             serviceHeadings[parsedDb].push(parsedDbHeading); // Push heading
-    
+
                             const newToken = result._token || result.token;
                             if (newToken) localStorage.setItem("_token", newToken);
                             return parsedDb;
@@ -102,10 +102,10 @@ const ExelTrackerStatus = () => {
                 })
             ).then(parsedDbs => {
                 const uniqueDbNames = [...new Set(parsedDbs.filter(Boolean))];
-    
+
                 const annexureFetches = uniqueDbNames.map(db_name => {
                     const url = `${API_URL}/client-master-tracker/annexure-data?application_id=${id}&db_table=${db_name}&admin_id=${admin_id}&_token=${storedToken}`;
-    
+
                     return fetch(url, requestOptions)
                         .then(response => {
                             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -117,15 +117,15 @@ const ExelTrackerStatus = () => {
                         }))
                         .catch(error => console.error("Fetch error: ", error));
                 });
-                
+
                 return Promise.all(annexureFetches).then(annexureStatusArr => {
                     setDBHeadingsStatus(prev => ({ ...prev, [id]: annexureStatusArr }));
                 });
             })
-            .catch(error => console.error("Error during service fetch or annexure fetch: ", error));
+                .catch(error => console.error("Error during service fetch or annexure fetch: ", error));
         }
     }, [expandedRows, admin_id, storedToken, API_URL, requestOptions]);
-    
+
     const generateReport = (id, services) => {
         navigate('/candidate');
         setApplicationId(id);
@@ -644,28 +644,52 @@ const ExelTrackerStatus = () => {
                                 </thead>
                                 <tbody>
                                     {annexure.inputDetails.map((input, idx) => (
-                                        input.type !== 'file' && ( // Only render if the type is not 'file'
-                                            <tr key={idx}>
-                                                <th style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>
-                                                    {input.label}
-                                                </th>
-                                                <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>
-                                                    {input.type === 'datepicker' ? (
-                                                        input.value
-                                                            ? new Date(input.value).toLocaleDateString(undefined, {
-                                                                year: 'numeric',
-                                                                month: 'long',
-                                                                day: 'numeric'
-                                                            })
-                                                            : 'N/A'
-                                                    ) : (
-                                                        input.value ? input.value.replace(/[_-]/g, ' ') : 'N/A'
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        )
+                                        <React.Fragment key={idx}>
+                                            {input.type !== 'file' ? (
+                                                <tr>
+                                                    <th style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>
+                                                        {input.label}
+                                                    </th>
+                                                    <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>
+                                                        {input.type === 'datepicker' ? (
+                                                            input.value
+                                                                ? new Date(input.value).toLocaleDateString(undefined, {
+                                                                    year: 'numeric',
+                                                                    month: 'long',
+                                                                    day: 'numeric'
+                                                                })
+                                                                : 'N/A'
+                                                        ) : (
+                                                            input.value ? input.value.replace(/[_-]/g, ' ') : 'N/A'
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                // Handle the case for 'file' type
+                                                <tr>
+                                                    <th style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>
+                                                        {input.label}
+                                                    </th>
+                                                    <td style={{ padding: '12px', fontSize: '17px', textAlign: 'left', whiteSpace: 'nowrap' }}>
+                                                        {input.value ? (
+                                                            input.value.split(',').map((url, index) => (
+                                                                <img
+                                                                    key={index}
+                                                                    src={`https://goldquestreact.onrender.com/${url.trim()}`}
+                                                                    alt={`Image ${index + 1}`}
+                                                                    style={{ width: '50px', height: '50px', marginLeft: '10px' }} // Adjust styles as needed
+                                                                />
+                                                            ))
+                                                        ) : (
+                                                            'N/A'
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </React.Fragment>
                                     ))}
                                 </tbody>
+
                             </table>
                         </div>
                     ))}

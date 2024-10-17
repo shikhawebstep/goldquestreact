@@ -29,8 +29,9 @@ export const ClientEditProvider = ({ children }) => {
         custom_address: '',
         additional_login: 'No',
         username: '',
-        services: [],
+        services:[] ,
     });
+
     const {fetchData}=useData()
     const handleClientChange = (e, index) => {
         const { name, value, type, files } = e.target;

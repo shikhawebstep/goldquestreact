@@ -1,10 +1,10 @@
-import React, {useState } from 'react';
-import {useSidebar} from './SidebarContext';
+import React, { useState } from 'react';
+import { useSidebar } from './SidebarContext';
 import { BiSolidPackage } from "react-icons/bi";
 import { HomeIcon, UserIcon } from "@heroicons/react/24/outline";
 import { IoMdPersonAdd } from "react-icons/io";
 import { RiLockPasswordFill, RiCustomerServiceFill } from "react-icons/ri";
-import { FaFileInvoiceDollar,FaEye ,FaEyeSlash  } from "react-icons/fa";
+import { FaFileInvoiceDollar, FaEye, FaEyeSlash } from "react-icons/fa";
 import { TiCloudStorage } from "react-icons/ti";
 import { TbReportSearch } from "react-icons/tb";
 import { VscLinkExternal } from "react-icons/vsc";
@@ -19,9 +19,9 @@ const tabNames = {
   profile: {
     icon: (<><UserIcon className="h-6 w-6 mr-3 text-gray-600" />Client Management</>),
     subItems: [
-      { id: 'add_clients', name: 'Add New Client', icon: <IoMdPersonAdd  className="h-5 w-5 mr-2 text-gray-500" /> },
-      { id: 'active_clients', name: 'Active Clients', icon: <FaEye  className="h-5 w-5 mr-2 text-gray-500" /> },
-      { id: 'inactive_clients', name: 'Inactive Clients', icon: <FaEyeSlash  className="h-5 w-5 mr-2 text-gray-500" /> }
+      { id: 'add_clients', name: 'Add New Client', icon: <IoMdPersonAdd className="h-5 w-5 mr-2 text-gray-500" /> },
+      { id: 'active_clients', name: 'Active Clients', icon: <FaEye className="h-5 w-5 mr-2 text-gray-500" /> },
+      { id: 'inactive_clients', name: 'Inactive Clients', icon: <FaEyeSlash className="h-5 w-5 mr-2 text-gray-500" /> }
     ]
   },
   package_management: (<><BiSolidPackage className="h-6 w-6 mr-3 text-gray-600" />Package Management</>),
@@ -53,11 +53,11 @@ const Sidebar = () => {
 
   const onTabChange = (tab) => {
     handleTabChange(tab);
-    setToggle(!toggle); 
+    setToggle(!toggle);
   };
 
   const handleExpand = (tab) => {
-    setExpandedTab(expandedTab === tab ? null : tab); 
+    setExpandedTab(expandedTab === tab ? null : tab);
   };
 
   return (
@@ -155,7 +155,7 @@ const Sidebar = () => {
                           )}
                           onClick={() => {
                             onTabChange(subItem.id);
-                            setToggle(false); 
+                            setToggle(false);
                           }}
                         >
                           {subItem.icon}

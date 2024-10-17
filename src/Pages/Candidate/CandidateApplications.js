@@ -6,8 +6,6 @@ import { useGenerateReport } from '../GenerateReportContext';
 
 const CandidateApplications = () => {
     const [files, setFiles] = useState([]);
-
-
     const renderedServices = new Set();
     const [allInputDetails, setAllInputDetails] = useState([]);
     const [disabledFields, setDisabledFields] = useState({
@@ -37,15 +35,15 @@ const CandidateApplications = () => {
     const [serviceHeadings, setServiceHeadings] = useState([]);
     const [selectedStatuses, setSelectedStatuses] = useState(Array(serviceHeadings.length).fill(''));
 
+    // Handle status changes
     const handleSelectChange = (index, value) => {
         const updatedStatuses = [...selectedStatuses];
         updatedStatuses[index] = value;
         setSelectedStatuses(updatedStatuses);
     };
 
-    // Check if all selected statuses contain the word "completed"
     const isAllCompleted = selectedStatuses.length > 0 && selectedStatuses.every(status => status.includes("completed"));
-
+    console.log('All Completed:', isAllCompleted);
 
     useEffect(() => {
         console.log("Selected Statuses: ", selectedStatuses);
@@ -512,19 +510,29 @@ const CandidateApplications = () => {
 
         const adminData = JSON.parse(localStorage.getItem("admin"));
         const token = localStorage.getItem("_token");
+        console.log('allInputDetails', allInputDetails)
 
         const mainAnnexureData = allInputDetails.reduce((acc, { db_table, inputDetails }) => {
             acc[db_table] = inputDetails.reduce((inputAcc, { name, value }) => {
                 inputAcc[name] = value !== undefined ? value : '';
-                return inputAcc; // Make sure to return inputAcc here
+                return inputAcc; 
             }, {});
-        
-            // Add selectedStatuses to the db_table object
-            acc[db_table].status = selectedStatuses;
-        
-            return acc; // Return the accumulator
+
+            const serviceIndex = serviceHeadings.findIndex(heading => heading.heading.replace(/ /g, '').toLowerCase() === db_table.replace(/_/g, '').toLowerCase());
+
+            console.log('Current db_table:', db_table);
+            console.log('Service Index:', serviceIndex); 
+
+          
+            if (serviceIndex !== -1) {
+                acc[db_table].status = selectedStatuses[serviceIndex] || ''; // Use selected status or empty string
+            } else {
+                acc[db_table].status = 'Status not found'; // Handle unmatched db_table
+            }
+
+            return acc;
         }, {});
-        
+
 
         let raw;
         const fileCount = Object.keys(files).length;
@@ -586,7 +594,6 @@ const CandidateApplications = () => {
                 setError('Failed to update application data');
             });
     };
-
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -936,35 +943,35 @@ const CandidateApplications = () => {
 
             <div className="services-table border p-2 mt-5">
                 <h3 className='text-center text-2xl py-4'>Selected Services</h3>
-               {serviceHeadings.map((item, index) => (
-                <div key={index} className="service-box border p-3 rounded-md w-full mb-3 flex items-center bg-slate-100">
-                    <span className='w-5/12'>{item.heading}</span>
-                    <select
-                        className="border p-2 w-7/12"
-                        value={selectedStatuses[index]}
-                        onChange={(e) => handleSelectChange(index, e.target.value)}
-                        required
-                    >
-                        <option disabled value="">--Select status--</option>
-                        <option value="nil">NIL</option>
-                        <option value="initiated">INITIATED</option>
-                        <option value="hold">HOLD</option>
-                        <option value="closure advice">CLOSURE ADVICE</option>
-                        <option value="wip">WIP</option>
-                        <option value="insuff">INSUFF</option>
-                        <option value="completed">COMPLETED</option>
-                        <option value="completed_green">COMPLETED GREEN</option>
-                        <option value="completed_orange">COMPLETED ORANGE</option>
-                        <option value="completed_red">COMPLETED RED</option>
-                        <option value="completed_yellow">COMPLETED YELLOW</option>
-                        <option value="completed_pink">COMPLETED PINK</option>
-                        <option value="stopcheck">STOPCHECK</option>
-                        <option value="active employment">ACTIVE EMPLOYMENT</option>
-                        <option value="not doable">NOT DOABLE</option>
-                        <option value="candidate denied">CANDIDATE DENIED</option>
-                    </select>
-                </div>
-            ))}
+                {serviceHeadings.map((item, index) => (
+                    <div key={index} className="service-box border p-3 rounded-md w-full mb-3 flex items-center bg-slate-100">
+                        <span className='w-5/12'>{item.heading}</span>
+                        <select
+                            className="border p-2 w-7/12"
+                            value={selectedStatuses[index]}
+                            onChange={(e) => handleSelectChange(index, e.target.value)}
+                            required
+                        >
+                            <option disabled value="">--Select status--</option>
+                            <option value="nil">NIL</option>
+                            <option value="initiated">INITIATED</option>
+                            <option value="hold">HOLD</option>
+                            <option value="closure advice">CLOSURE ADVICE</option>
+                            <option value="wip">WIP</option>
+                            <option value="insuff">INSUFF</option>
+                            <option value="completed">COMPLETED</option>
+                            <option value="completed_green">COMPLETED GREEN</option>
+                            <option value="completed_orange">COMPLETED ORANGE</option>
+                            <option value="completed_red">COMPLETED RED</option>
+                            <option value="completed_yellow">COMPLETED YELLOW</option>
+                            <option value="completed_pink">COMPLETED PINK</option>
+                            <option value="stopcheck">STOPCHECK</option>
+                            <option value="active employment">ACTIVE EMPLOYMENT</option>
+                            <option value="not doable">NOT DOABLE</option>
+                            <option value="candidate denied">CANDIDATE DENIED</option>
+                        </select>
+                    </div>
+                ))}
             </div>
 
             {Array.from(new Set(Object.keys(annexure))).map(serviceId => {
@@ -1156,20 +1163,20 @@ const CandidateApplications = () => {
                 </div>
                 <div className="mb-4 ">
                     <label className='capitalize text-gray-500' htmlFor="overall status">overall status</label>
-                     <select
-                name="overall_status"
-                value={formData.overall_status}
-                onChange={handleInputChange}
-                className="border rounded-md p-2 mt-2 uppercase w-full"
-            >
-                <option value="insuff">insuff</option>
-                <option value="initiated">initiated</option>
-                <option value="wip">wip</option>
-                <option value="hold">hold</option>
-                <option value="completed" disabled={!isAllCompleted}>
-                    completed
-                </option>
-            </select>
+                    <select
+                        name="overall_status"
+                        value={formData.overall_status}
+                        onChange={handleInputChange}
+                        className="border rounded-md p-2 mt-2 uppercase w-full"
+                    >
+                        <option value="insuff">insuff</option>
+                        <option value="initiated">initiated</option>
+                        <option value="wip">wip</option>
+                        <option value="hold">hold</option>
+                        <option value="completed" disabled={!isAllCompleted}>
+                            completed
+                        </option>
+                    </select>
 
                 </div>
                 <div className="grid grid-cols-2 gap-3">

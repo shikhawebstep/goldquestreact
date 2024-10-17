@@ -18,6 +18,18 @@ div#root {
     margin: auto;
 
 }
+.table-row {
+  transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  overflow: hidden;
+  opacity: 0;
+  max-height: 0;
+}
+
+.table-row-open {
+  opacity: 1;
+  max-height: 100px; /* Adjust this value based on your expected content height */
+}
+
 /* this is my demo comment */
 
 [role='tooltip'].popup-content {

@@ -97,7 +97,7 @@ const ServiceEditForm = () => {
         try {
             PrefilledData = typeof clientData.services === 'string' 
                 ? JSON.parse(clientData.services) 
-                : clientData.services;
+                : clientData.services || [];
         } catch (error) {
             console.error('Error parsing PrefilledData:', error);
             PrefilledData = []; 
@@ -118,45 +118,37 @@ const ServiceEditForm = () => {
                 serviceId: item.service_id,
                 serviceTitle: item.service_title,
                 price: prefilledService.price || priceData[item.service_id]?.price || '', 
-                packages: prefilledService.packages || packageObject, 
+                packages: { ...prefilledService.packages, ...packageObject }, // Merging packages here
             };
         });
     
-        // Track currently preselected services
         const preselectedServices = PrefilledData.reduce((acc, service) => {
             acc[service.serviceId] = true; 
             return acc;
         }, {});
     
-        // Remove deselected services
         const deselectedServiceIds = Object.keys(selectedServices).filter(serviceId => !preselectedServices[serviceId]);
         const updatedPreselectedServices = removeDeselectedServices(preselectedServices, deselectedServiceIds);
     
-        // Prepare updated prices, titles, and packages
         const updatedPrices = {};
         const updatedTitles = {};
         const updatedPackages = {};
     
-        // Update titles, prices, and packages for both newly selected and preselected services
         updatedServiceData.forEach(service => {
             if (selectedServices[service.serviceId] || updatedPreselectedServices[service.serviceId]) {
-                // Only update price if it's a valid number
                 if (service.price) {
                     updatedPrices[service.serviceId] = service.price;
                 }
     
-                // Update title
                 updatedTitles[service.serviceId] = service.serviceTitle;
     
-                // Merge packages
                 updatedPackages[service.serviceId] = {
-                    ...updatedPackages[service.serviceId],
+                    ...updatedPackages[service.serviceId], // Preserve existing packages
                     ...service.packages,
                 };
             }
         });
     
-        // Update selected services state
         setSelectedServices((prev) => ({
             ...prev,
             ...updatedPreselectedServices,
@@ -165,7 +157,6 @@ const ServiceEditForm = () => {
             ...updatedPackages,
         }));
     
-        // Merging services
         const services = updatedServiceData.filter(item => updatedPreselectedServices[item.serviceId]);
         const addedServices = updatedServiceData.filter(item => !updatedPreselectedServices[item.serviceId] && selectedServices[item.serviceId]);
     
@@ -186,7 +177,7 @@ const ServiceEditForm = () => {
             const endIndex = startIndex + showPerPage;
             setPaginated(updatedServiceData.slice(startIndex, endIndex)); 
         }
-    }, [currentItem, showPerPage, serviceData, selectedPackages, priceData, setTotalResults, setClientData, packageList, clientData.services, selectedServices]);
+    }, [currentItem, showPerPage, serviceData, selectedPackages, priceData, packageList, clientData.services, selectedServices, setTotalResults, setClientData]);
     
 
     function removeDeselectedServices(preselectedServices, deselectedServiceIds) {

@@ -28,15 +28,16 @@ const ClientManagementList = () => {
     }, [fetchData]);
 
 
-    // set pagination
     useEffect(() => {
-        const startIndex = (currentItem - 1) * showPerPage;
-        const endIndex = startIndex + showPerPage;
-        setPaginated(listData.slice(startIndex, endIndex));
-    }, [currentItem, listData, showPerPage]);
+      const startIndex = (currentItem - 1) * showPerPage;
+      const endIndex = startIndex + showPerPage;
+  
+      const paginatedData = listData.slice(startIndex, endIndex);
+      
+      setPaginated(paginatedData);
+  }, [currentItem, listData, showPerPage]);
+  
 
-
-    // toggle services
     const toggleShowAllServices = (id) => {
         setShowAllServicesState((prevState) => ({
             ...prevState,
@@ -45,7 +46,6 @@ const ClientManagementList = () => {
     };
 
 
-    // delete clients or branch
     const handleDelete = (id, type) => {
         Swal.fire({
             title: 'Are you sure?',
@@ -325,8 +325,8 @@ const ClientManagementList = () => {
                                                     <>
                                                         {service.price ? (
                                                             <>
-                                                                <p className='whitespace-nowrap capitalize text-left'>Service: {String(service.serviceTitle)}</p>
-                                                                <p className='whitespace-nowrap capitalize text-left'>Price: {String(service.price)}</p>
+                                                                <p className='whitespace-nowrap capitalize text-left'>Service: {service.serviceTitle}</p>
+                                                                <p className='whitespace-nowrap capitalize text-left'>Price: {service.price}</p>
                                                             </>
                                                         ) : (
                                                             <p className='whitespace-nowrap capitalize text-left text-red-500'>Service not available</p>
@@ -334,7 +334,7 @@ const ClientManagementList = () => {
                                 
                                                         {service.packages && Object.keys(service.packages).length > 0 ? (
                                                             <p className='whitespace-nowrap capitalize text-left'>
-                                                                Packages: {Object.values(service.packages).filter(Boolean).map(pkg => String(pkg)).join(', ')}
+                                                                Packages: {Object.values(service.packages).filter(Boolean).join(', ')}
                                                             </p>
                                                         ) : (
                                                             <p className='whitespace-nowrap capitalize text-left text-red-500'>No packages available</p>
@@ -358,7 +358,6 @@ const ClientManagementList = () => {
                                         <p className='whitespace-nowrap capitalize'>No services available.</p>
                                     )}
                                 </td>
-                                
                                 
                                     </td>
                                     <td className="py-3 px-4 border-b border-r whitespace-nowrap capitalize">{item.address}</td>

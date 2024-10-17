@@ -29,7 +29,7 @@ const ClientForm = () => {
     const { selectedDropBox, fetchClientDrop, services, uniquePackages } = useContext(DropBoxContext);
     const [isEditClient, setIsEditClient] = useState(false);
     const [inputError, setInputError] = useState({});
-    const [isLoading, setIsLoading] = useState(false); // New loading state
+    const [isLoading, setIsLoading] = useState(false); 
 
     const validate = () => {
         const newErrors = {};
@@ -51,8 +51,6 @@ const ClientForm = () => {
                 services: selectedDropBox.services || [],
                 package: selectedDropBox.package || '',
                 client_application_id: selectedDropBox.id,
-                attach_documents: 'abc.png',
-                photo: 'xyz.png',
             });
             setIsEditClient(true);
         } else {
@@ -110,7 +108,12 @@ const ClientForm = () => {
             }
 
             if (fileCount === (index + 1)) {
-                customerLogoFormData.append('send_mail', 1);
+                if (isEditClient) {
+
+                    customerLogoFormData.append('send_mail', 0);
+                } else {
+                    customerLogoFormData.append('send_mail', 1);
+                }
                 customerLogoFormData.append('services', serviceData);
                 customerLogoFormData.append('client_application_name', clientInput.name);
                 customerLogoFormData.append('client_application_generated_id', new_application_id);
@@ -177,9 +180,17 @@ const ClientForm = () => {
 
                 const data = await response.json();
                 fetchClientDrop();
-                const insertedId = data.result.results.insertId;
-                const new_application_id = data.result.new_application_id;
-                alert(insertedId);
+                let insertedId;
+                let new_application_id
+                if (isEditClient) {
+                    insertedId = clientInput.client_application_id
+                    new_application_id = clientInput.application_id;
+
+                } else {
+                    insertedId = data.result.results.insertId;
+                    new_application_id = data.result.new_application_id;
+                }
+
                 const newToken = data._token || data.token;
                 if (newToken) {
                     localStorage.setItem("branch_token", newToken);
@@ -195,6 +206,7 @@ const ClientForm = () => {
                     package: '',
                     client_application_id: ''
                 });
+                setFiles({})
                 setInputError({});
 
 
@@ -204,7 +216,11 @@ const ClientForm = () => {
                     icon: "success",
                     confirmButtonText: "Ok"
                 });
-                await uploadCustomerLogo(insertedId, new_application_id);
+                console.log('step-1');
+                if (fileCount !== 0) {
+                    await uploadCustomerLogo(insertedId, new_application_id);
+                }
+                console.log('step-2');
             } catch (error) {
                 console.error("There was an error!", error);
             } finally {

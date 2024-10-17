@@ -119,6 +119,7 @@ const DropBoxList = () => {
                                             <img
                                                 src={`https://goldquestreact.onrender.com/${report.photo}`}
                                                 alt={report.photo}
+                                                className='h-20 w-20 rounded-full'
                                             />
                                         ) : '----'}
                                     </td>
@@ -133,6 +134,7 @@ const DropBoxList = () => {
                                             <img
                                                 src={`https://goldquestreact.onrender.com/${report.attach_documents}`}
                                                 alt={report.attach_documents}
+                                                className='h-20 w-20 rounded-full'
                                             />
                                         ) : '----'}
                                     </td>

@@ -42,8 +42,9 @@ const CandidateApplications = () => {
         updatedStatuses[index] = value;
         setSelectedStatuses(updatedStatuses);
     };
+
     // Check if all selected statuses contain the word "completed"
-    const isAllCompleted = selectedStatuses.every(status => status.includes("completed"));
+    const isAllCompleted = selectedStatuses.length > 0 && selectedStatuses.every(status => status.includes("completed"));
 
 
     useEffect(() => {
@@ -59,7 +60,6 @@ const CandidateApplications = () => {
         setError(null);
 
         const allInputDetails = [];
-        let inYes = [];
         let inNo = [];
         Promise.all(
             servicesArray.map(serviceId => {
@@ -516,10 +516,15 @@ const CandidateApplications = () => {
         const mainAnnexureData = allInputDetails.reduce((acc, { db_table, inputDetails }) => {
             acc[db_table] = inputDetails.reduce((inputAcc, { name, value }) => {
                 inputAcc[name] = value !== undefined ? value : '';
-                return inputAcc;
+                return inputAcc; // Make sure to return inputAcc here
             }, {});
-            return acc;
+        
+            // Add selectedStatuses to the db_table object
+            acc[db_table].status = selectedStatuses;
+        
+            return acc; // Return the accumulator
         }, {});
+        
 
         let raw;
         const fileCount = Object.keys(files).length;

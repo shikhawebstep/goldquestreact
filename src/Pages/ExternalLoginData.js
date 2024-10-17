@@ -1,126 +1,82 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect } from 'react';
 import SearchBar from './SearchBar';
 import Pagination from './Pagination';
 import PaginationContext from './PaginationContext';
-import Swal from 'sweetalert2';
 import { Link } from 'react-router-dom';
-import { useApi } from '../ApiContext';
+import { useData } from './DataContext';
 
 const ExternalLoginData = () => {
-  const { currentItem, showPerPage, setTotalResults } = useContext(PaginationContext);
-  const API_URL = useApi();
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [paginatedData, setPaginatedData] = useState([]);
-  const [messageShown, setMessageShown] = useState(false);
-
-  const fetchBranches = useCallback(() => {
-    setLoading(true);
-    setError(null);
-
-    const admin_id = JSON.parse(localStorage.getItem('admin'))?.id;
-    const storedToken = localStorage.getItem('_token');
-
-    const queryParams = new URLSearchParams({
-      admin_id: admin_id || '',
-      _token: storedToken || '',
-    }).toString();
-
-    fetch(`${API_URL}/branch/list?${queryParams}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then((res) => {
-        if (!res.ok) {
-          if (!messageShown) {
-            Swal.fire({
-              title: 'Error!',
-              text: `An error occurred: ${res.statusText || 'Unknown error'}`,
-              icon: 'error',
-              confirmButtonText: 'Ok',
-            });
-            setMessageShown(true);
-          }
-          throw new Error('Network response was not ok');
-        }
-        return res.json();
-      })
-      .then((data) => {
-        const newToken = data._token || data.token;
-        if (newToken) {
-          localStorage.setItem('_token', newToken);
-        }
-       
-        setData(data.branches || []);
-        setTotalResults(data.totalResults || 0);
-      })
-      .catch((error) => {
-        console.error('Fetch error:', error);
-        setError('Failed to load data');
-      })
-      .finally(() => setLoading(false));
-  }, [API_URL, setTotalResults, messageShown]);
+  const { currentItem, showPerPage } = useContext(PaginationContext);
+  const { listData, fetchData, toggleAccordion, branches, openAccordionId } = useData();
 
   useEffect(() => {
-    fetchBranches();
-  }, [fetchBranches]);
+    fetchData();
+  }, [fetchData]);
 
-  useEffect(() => {
-    const startIndex = (currentItem - 1) * showPerPage;
-    const endIndex = startIndex + showPerPage;
-    setPaginatedData(data.slice(startIndex, endIndex));
-  }, [currentItem, showPerPage, data]);
+  const startIndex = (currentItem - 1) * showPerPage;
+  const endIndex = startIndex + showPerPage;
+  const paginatedData = listData.slice(startIndex, endIndex);
 
   return (
     <div className="bg-white m-4 md:m-24 shadow-md rounded-md p-3">
       <SearchBar />
-      {loading ? (
+      {listData.length === 0 ? (
         <p className='text-center'>Loading...</p>
-      ) : error ? (
-        <p>{error}</p>
       ) : (
         <div className="overflow-x-auto py-6 px-4">
           <table className="min-w-full">
             <thead>
-              <tr className="bg-green-500">
-                <th className="py-2 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">SL</th>
-                <th className="py-2 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Company Name</th>
-                <th className="py-2 px-4 text-white border-r border-b text-left uppercase whitespace-nowrap">Username</th>
-                <th className="py-2 px-4 text-center text-white border-b border-r uppercase whitespace-nowrap">Login Link</th>
-                <th className="py-2 px-4 text-white border-b border-r text-left uppercase whitespace-nowrap">Action</th>
+              <tr className='bg-green-500 border'>
+                <th className="py-3 px-4 border-b text-white text-left uppercase">SL</th>
+                <th className="py-3 px-4 border-b text-white text-left uppercase">Client Code</th>
+                <th className="py-3 px-4 border-b text-white text-left uppercase">Company Name</th>
+                <th className="py-3 px-4 border-b text-white text-left uppercase">Mobile</th>
+                <th className="py-3 px-4 border-b text-white text-center uppercase ">Action</th>
               </tr>
             </thead>
             <tbody>
-              {paginatedData.length > 0 ? (
-                paginatedData.map((item, index) => (
-                  <tr key={item.id || index}>
-                    <td className="py-2 px-4 border-b border-r border-l whitespace-nowrap text-center">{index + 1 + (currentItem - 1) * showPerPage}</td>
-                    <td className="py-2 px-4 border-b border-r text-center whitespace-nowrap">{item.name}</td>
-                    <td className="py-2 px-4 border-b border-r whitespace-nowrap">{item.email}</td>
-                    <td className="py-2 px-4 border-b border-r whitespace-nowrap text-center uppercase text-blue-500 font-bold">
-                      <Link 
-                        to={`/customer-login?email=${encodeURIComponent(item.email)}`}
-                        target='_blank'
-                        className="hover:underline"
-                      >
-                        Go
-                      </Link>
+              {paginatedData.map((item, index) => (
+                <React.Fragment key={item.main_id}>
+                  <tr className='border'>
+                    <td className="py-3 px-4 border-b text-left whitespace-nowrap capitalize">
+                      <input type="checkbox" className="me-2" />
+                      {index + 1}
                     </td>
-                    <td className="py-2 px-4 border-b border-r whitespace-nowrap text-center">
-                      <button className="bg-red-600 hover:bg-red-200 rounded-md p-2 text-white">Delete</button>
+                    <td className="py-3 px-4 border-b text-center whitespace-nowrap capitalize">{item.client_unique_id}</td>
+                    <td className="py-3 px-4 border-b whitespace-nowrap capitalize">{item.name}</td>
+                    <td className="py-3 px-4 border-b text-left cursor-pointer">{item.mobile}</td>
+                    <td className="py-3 px-4 border-b text-center cursor-pointer">
+                      {item.branch_count > 1 && (
+                        <button
+                          className="bg-green-600 hover:bg-green-200 rounded-md p-2 px-5 text-white"
+                          onClick={() => toggleAccordion(item.main_id)}
+                        >
+                          View Branches
+                        </button>
+                      )}
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="5" className="py-2 px-4 text-center">
-                    No data available
-                  </td>
-                </tr>
-              )}
+
+                  {openAccordionId === item.main_id && branches.map(branch => (
+                    <tr key={branch.id} className='border'>
+                      <td className="py-2 px-4 border-b text-center whitespace-nowrap">{branch.name}</td>
+                      <td className="py-2 px-4 border-b whitespace-nowrap">{branch.email}</td>
+                      <td className="py-2 px-4 border-b whitespace-nowrap text-center uppercase text-blue-500 font-bold">
+                        <Link
+                          to={`/customer-login?email=${encodeURIComponent(branch.email)}`}
+                          target='_blank'
+                          className="hover:underline"
+                        >
+                          Go
+                        </Link>
+                      </td>
+                      <td className="py-2 px-4 border-b whitespace-nowrap text-center">
+                        <button className="bg-red-600 hover:bg-red-200 rounded-md p-2 text-white">Delete</button>
+                      </td>
+                    </tr>
+                  ))}
+                </React.Fragment>
+              ))}
             </tbody>
           </table>
         </div>
